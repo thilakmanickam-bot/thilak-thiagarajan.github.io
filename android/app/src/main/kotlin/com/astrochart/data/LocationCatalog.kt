@@ -80,6 +80,7 @@ object LocationCatalog {
         LocationOption("Pune", "India", 18.5204, 73.8567, "Asia/Kolkata"),
         LocationOption("Ahmedabad", "India", 23.0225, 72.5714, "Asia/Kolkata"),
         LocationOption("Coimbatore", "India", 11.0168, 76.9558, "Asia/Kolkata"),
+        LocationOption("Erode", "India", 11.3410, 77.7172, "Asia/Kolkata"),
         LocationOption("Colombo", "Sri Lanka", 6.9271, 79.8612, "Asia/Colombo"),
         LocationOption("Karachi", "Pakistan", 24.8607, 67.0011, "Asia/Karachi"),
         LocationOption("Dhaka", "Bangladesh", 23.8103, 90.4125, "Asia/Dhaka"),
