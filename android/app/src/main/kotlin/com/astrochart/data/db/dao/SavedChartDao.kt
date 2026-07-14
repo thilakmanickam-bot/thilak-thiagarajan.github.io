@@ -26,4 +26,7 @@ interface SavedChartDao {
 
     @Query("DELETE FROM saved_charts WHERE id = :chartId")
     suspend fun deleteChartById(chartId: Long)
+
+    @Query("UPDATE saved_charts SET name = :name WHERE id = :chartId")
+    suspend fun renameChart(chartId: Long, name: String)
 }

@@ -79,6 +79,12 @@ class ChartRepository(private val context: Context) {
         }
     }
 
+    suspend fun renameChart(id: Long, name: String) {
+        withContext(Dispatchers.IO) {
+            chartDao.renameChart(id, name)
+        }
+    }
+
     fun searchCharts(query: String): Flow<List<SavedChartEntity>> {
         return chartDao.searchCharts(query)
     }
