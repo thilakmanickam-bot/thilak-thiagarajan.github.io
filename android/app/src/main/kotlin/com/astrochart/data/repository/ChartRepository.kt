@@ -6,6 +6,7 @@ import com.astrochart.core.models.NatalChart
 import com.astrochart.core.utils.ChartCalculator
 import com.astrochart.data.db.AstroChartDatabase
 import com.astrochart.data.db.entities.SavedChartEntity
+import com.astrochart.data.util.ChartJson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
@@ -49,6 +50,29 @@ class ChartRepository(private val context: Context) {
         }
     }
 
+    /**
+     * Loads a saved chart and reconstructs its [NatalChart]. Prefers the stored
+     * JSON snapshot; if that is missing or unparseable (e.g. an older row), it
+     * falls back to recomputing deterministically from the saved birth data.
+     */
+    suspend fun getNatalChartById(id: Long): NatalChart? {
+        return withContext(Dispatchers.IO) {
+            val entity = chartDao.getChartById(id) ?: return@withContext null
+            deserializeChart(entity.chartJson) ?: recomputeFromEntity(entity)
+        }
+    }
+
+    private fun recomputeFromEntity(entity: SavedChartEntity): NatalChart {
+        val birthData = BirthData(
+            dateTime = entity.birthDateTime,
+            latitude = entity.latitude,
+            longitude = entity.longitude,
+            timeZone = ZoneId.of(entity.timeZone),
+            locationName = entity.locationName
+        )
+        return ChartCalculator.calculateNatalChart(birthData)
+    }
+
     suspend fun deleteChart(id: Long) {
         withContext(Dispatchers.IO) {
             chartDao.deleteChartById(id)
@@ -60,10 +84,10 @@ class ChartRepository(private val context: Context) {
     }
 
     private fun serializeChart(chart: NatalChart): String {
-        return chart.toString()
+        return ChartJson.toJson(chart)
     }
 
     private fun deserializeChart(json: String): NatalChart? {
-        return null
+        return ChartJson.fromJson(json)
     }
 }
