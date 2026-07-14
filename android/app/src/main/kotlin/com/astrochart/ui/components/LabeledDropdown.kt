@@ -6,6 +6,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -13,6 +14,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import com.astrochart.ui.theme.CardBorder
+import com.astrochart.ui.theme.GoldDeep
+import com.astrochart.ui.theme.TextMuted
+import com.astrochart.ui.theme.TextPrimary
 
 /**
  * A read-only text field that opens a dropdown of [options]. Generic so it can
@@ -43,6 +48,17 @@ fun <T> LabeledDropdown(
             label = { Text(label) },
             placeholder = { Text(placeholder) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = GoldDeep,
+                unfocusedBorderColor = CardBorder,
+                focusedLabelColor = GoldDeep,
+                unfocusedLabelColor = TextMuted,
+                focusedTextColor = TextPrimary,
+                unfocusedTextColor = TextPrimary,
+                focusedTrailingIconColor = GoldDeep,
+                unfocusedTrailingIconColor = TextMuted,
+                cursorColor = GoldDeep
+            ),
             modifier = Modifier
                 .menuAnchor()
                 .fillMaxWidth()
