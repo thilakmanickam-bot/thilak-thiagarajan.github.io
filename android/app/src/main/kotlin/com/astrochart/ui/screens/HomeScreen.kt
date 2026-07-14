@@ -11,6 +11,8 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun HomeScreen(
     onNavigateToBirthInput: () -> Unit,
+    onNavigateToSavedCharts: () -> Unit,
+    onNavigateToSample: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -51,7 +53,7 @@ fun HomeScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         ElevatedButton(
-            onClick = { },
+            onClick = onNavigateToSavedCharts,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
@@ -63,7 +65,7 @@ fun HomeScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         OutlinedButton(
-            onClick = { },
+            onClick = onNavigateToSample,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),

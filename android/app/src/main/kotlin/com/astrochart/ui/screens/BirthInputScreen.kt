@@ -1,6 +1,8 @@
 package com.astrochart.ui.screens
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -35,6 +37,7 @@ fun BirthInputScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(24.dp)
     ) {
         Text(
@@ -118,6 +121,15 @@ fun BirthInputScreen(
             value = location,
             onValueChange = { location = it },
             label = { Text("Location Name") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        OutlinedTextField(
+            value = timeZone,
+            onValueChange = { timeZone = it },
+            label = { Text("Time Zone (e.g. America/New_York)") },
             modifier = Modifier.fillMaxWidth()
         )
 

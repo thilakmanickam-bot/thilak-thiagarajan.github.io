@@ -7,15 +7,17 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.astrochart.ui.screens.BirthInputScreen
 import com.astrochart.ui.screens.ChartDetailScreen
 import com.astrochart.ui.screens.HomeScreen
+import com.astrochart.ui.screens.SavedChartsScreen
 import com.astrochart.ui.theme.AstroChartTheme
 import com.astrochart.ui.viewmodel.BirthInputViewModel
 import com.astrochart.ui.viewmodel.ChartViewModel
@@ -49,7 +51,12 @@ fun AppNavigation() {
     ) {
         composable("home") {
             HomeScreen(
-                onNavigateToBirthInput = { navController.navigate("birth_input") }
+                onNavigateToBirthInput = { navController.navigate("birth_input") },
+                onNavigateToSavedCharts = { navController.navigate("saved_charts") },
+                onNavigateToSample = {
+                    chartViewModel.loadSampleChart()
+                    navController.navigate("chart_detail")
+                }
             )
         }
 
@@ -65,9 +72,21 @@ fun AppNavigation() {
             )
         }
 
+        composable("saved_charts") {
+            val savedCharts by chartViewModel.savedCharts.collectAsState()
+            SavedChartsScreen(
+                charts = savedCharts,
+                onChartSelected = { id ->
+                    chartViewModel.loadSavedChart(id)
+                    navController.navigate("chart_detail")
+                }
+            )
+        }
+
         composable("chart_detail") {
+            val chart by chartViewModel.currentChart.collectAsState()
             ChartDetailScreen(
-                chart = chartViewModel.currentChart.value,
+                chart = chart,
                 viewModel = chartViewModel
             )
         }

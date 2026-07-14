@@ -5,6 +5,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.astrochart.core.models.Aspect
@@ -32,7 +33,40 @@ fun ChartDetailScreen(
     var selectedTab by remember { mutableStateOf(0) }
     val tabs = listOf("Positions", "Aspects", "Balance")
 
+    val uiState by viewModel.uiState.collectAsState()
+    var chartName by remember(chart) {
+        mutableStateOf(chart.birthData.locationName.ifBlank { "My chart" })
+    }
+
     Column(modifier = modifier.fillMaxSize()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            OutlinedTextField(
+                value = chartName,
+                onValueChange = { chartName = it },
+                label = { Text("Chart name") },
+                singleLine = true,
+                modifier = Modifier.weight(1f)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Button(onClick = { viewModel.saveCurrentChart(chartName) }) {
+                Text("Save")
+            }
+        }
+
+        if (uiState is ChartViewModel.ChartUiState.Saved) {
+            Text(
+                text = "Saved ✓",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+            )
+        }
+
         TabRow(selectedTabIndex = selectedTab) {
             tabs.forEachIndexed { index, tab ->
                 Tab(
