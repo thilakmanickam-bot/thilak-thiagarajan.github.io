@@ -84,6 +84,29 @@ jobs:
         with:
           gradle-version: 8.2
 
+      # Prepared as a file because the emulator-runner executes its `script`
+      # line-by-line in separate shells (so multi-line variables/logic there do
+      # not persist). One bash file = one shell.
+      - name: Prepare UI-test script
+        run: |
+          cat > ui-test.sh <<'EOF'
+          set -e
+          gradle -p android :app:assembleDebug :app:assembleDebugAndroidTest --stacktrace
+          # Install both APKs manually and drive the tests with `am instrument`
+          # so the app stays installed afterwards (Gradle's connectedAndroidTest
+          # uninstalls it, which deletes the screenshots before we can pull them).
+          adb install -r android/app/build/outputs/apk/debug/app-debug.apk
+          adb install -r "$(find android/app/build/outputs/apk/androidTest/debug -name '*.apk' | head -1)"
+          adb shell am instrument -w com.astrochart.test/androidx.test.runner.AndroidJUnitRunner | tee /tmp/instr.txt
+          mkdir -p screenshots
+          echo "== device screenshots =="
+          adb exec-out run-as com.astrochart ls -la files/screenshots || true
+          adb exec-out run-as com.astrochart sh -c 'cd files && tar cf - screenshots' 2>/dev/null | tar xf - -C . 2>/dev/null || true
+          echo "== pulled screenshots =="
+          ls -la screenshots || true
+          grep -q "OK (" /tmp/instr.txt
+          EOF
+
       - name: Run Compose UI tests and capture screenshots
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -91,18 +114,7 @@ jobs:
           arch: x86_64
           target: google_apis
           disable-animations: true
-          script: |
-            TEST_EXIT=0
-            gradle -p android :app:connectedDebugAndroidTest --stacktrace || TEST_EXIT=$?
-            mkdir -p screenshots
-            echo "== device screenshots dir =="
-            adb exec-out run-as com.astrochart ls -la files/screenshots || true
-            # Pull via run-as (debug build). Use tar with explicit -f - on BOTH
-            # ends so host tar reads stdin; cd into files first to avoid -C quirks.
-            adb exec-out run-as com.astrochart sh -c 'cd files && tar cf - screenshots' 2>/dev/null | tar xf - -C . 2>/dev/null || true
-            echo "== pulled screenshots =="
-            ls -la screenshots || true
-            exit $TEST_EXIT
+          script: bash ui-test.sh
 
       - name: Upload screenshots artifact
         if: always()
