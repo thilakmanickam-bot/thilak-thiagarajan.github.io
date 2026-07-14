@@ -25,22 +25,23 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-          cache: gradle
 
-      - name: Make gradlew executable
-        run: chmod +x android/gradlew
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v3
+        with:
+          gradle-version: 8.2
 
       - name: Run Lint
-        run: cd android && ./gradlew lint
+        run: gradle -p android lint
 
       - name: Run Core Unit Tests
-        run: cd android && ./gradlew core:test --stacktrace
+        run: gradle -p android core:test --stacktrace
 
       - name: Run App Unit Tests
-        run: cd android && ./gradlew app:testDebugUnitTest --stacktrace
+        run: gradle -p android app:testDebugUnitTest --stacktrace
 
       - name: Build Debug APK
-        run: cd android && ./gradlew app:assembleDebug --stacktrace
+        run: gradle -p android app:assembleDebug --stacktrace
 
       - name: Upload test results
         if: always()
