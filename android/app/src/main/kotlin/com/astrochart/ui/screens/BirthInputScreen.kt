@@ -5,12 +5,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.astrochart.core.models.NatalChart
 import com.astrochart.ui.viewmodel.BirthInputViewModel
 
 @Composable
 fun BirthInputScreen(
     viewModel: BirthInputViewModel,
-    onChartCalculated: () -> Unit,
+    onChartCalculated: (NatalChart) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var year by remember { mutableStateOf("2000") }
@@ -27,7 +28,7 @@ fun BirthInputScreen(
 
     LaunchedEffect(uiState) {
         if (uiState is BirthInputViewModel.BirthInputUiState.Success) {
-            onChartCalculated()
+            onChartCalculated((uiState as BirthInputViewModel.BirthInputUiState.Success).chart)
         }
     }
 

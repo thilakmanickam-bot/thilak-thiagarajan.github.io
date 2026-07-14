@@ -7,7 +7,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.astrochart.core.models.Aspect
 import com.astrochart.core.models.NatalChart
+import com.astrochart.core.models.PlanetaryPosition
 import com.astrochart.ui.viewmodel.ChartViewModel
 
 @Composable
@@ -121,7 +123,7 @@ fun ChartDetailScreen(
 }
 
 @Composable
-fun PositionCard(planet: com.astrochart.core.models.PlanetaryPosition) {
+fun PositionCard(planet: PlanetaryPosition) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -152,7 +154,7 @@ fun PositionCard(planet: com.astrochart.core.models.PlanetaryPosition) {
 }
 
 @Composable
-fun AspectCard(aspect: com.astrochart.core.models.Aspect) {
+fun AspectCard(aspect: Aspect) {
     Card(
         modifier = Modifier
             .fillMaxWidth()

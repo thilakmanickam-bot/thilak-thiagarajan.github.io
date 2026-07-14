@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.astrochart.core.models.BirthData
+import com.astrochart.core.models.NatalChart
 import com.astrochart.data.repository.ChartRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -53,7 +54,7 @@ class BirthInputViewModel(application: Application) : AndroidViewModel(applicati
     sealed class BirthInputUiState {
         object Idle : BirthInputUiState()
         object Loading : BirthInputUiState()
-        data class Success(val chart: com.astrochart.core.models.NatalChart) : BirthInputUiState()
+        data class Success(val chart: NatalChart) : BirthInputUiState()
         data class Error(val message: String) : BirthInputUiState()
     }
 }

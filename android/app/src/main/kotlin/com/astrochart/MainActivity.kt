@@ -56,7 +56,8 @@ fun AppNavigation() {
         composable("birth_input") {
             BirthInputScreen(
                 viewModel = birthInputViewModel,
-                onChartCalculated = {
+                onChartCalculated = { chart ->
+                    chartViewModel.setChart(chart)
                     navController.navigate("chart_detail") {
                         popUpTo("home")
                     }
