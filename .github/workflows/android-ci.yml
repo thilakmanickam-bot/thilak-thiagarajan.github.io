@@ -95,7 +95,12 @@ jobs:
             TEST_EXIT=0
             gradle -p android :app:connectedDebugAndroidTest --stacktrace || TEST_EXIT=$?
             mkdir -p screenshots
-            adb exec-out run-as com.astrochart tar c -C files screenshots 2>/dev/null | tar x -C . 2>/dev/null || true
+            echo "== device screenshots dir =="
+            adb exec-out run-as com.astrochart ls -la files/screenshots || true
+            # Pull via run-as (debug build). Use tar with explicit -f - on BOTH
+            # ends so host tar reads stdin; cd into files first to avoid -C quirks.
+            adb exec-out run-as com.astrochart sh -c 'cd files && tar cf - screenshots' 2>/dev/null | tar xf - -C . 2>/dev/null || true
+            echo "== pulled screenshots =="
             ls -la screenshots || true
             exit $TEST_EXIT
 
