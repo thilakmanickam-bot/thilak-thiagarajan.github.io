@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.AstroChart" parent="android:Theme.Material.Light.NoActionBar" />
+    <!-- Dark, no-action-bar base so the launch window matches the celestial
+         night background (avoids a light flash before Compose draws). -->
+    <style name="Theme.AstroChart" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/astro_bg</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
 </resources>

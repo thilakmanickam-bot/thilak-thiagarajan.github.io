@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Launch/window background — matches AstroBgBottom in the Compose theme. -->
+    <color name="astro_bg">#08061C</color>
+</resources>
