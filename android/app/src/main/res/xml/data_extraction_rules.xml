@@ -1,10 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <data-extraction-rules>
-    <domain-config>
-        <domain name="example.com">
-            <path-list>
-                <path-element path=".*" />
-            </path-list>
-        </domain>
-    </domain-config>
+    <cloud-backup>
+        <exclude domain="sharedpref" path="device_auth_token.xml" />
+    </cloud-backup>
 </data-extraction-rules>
