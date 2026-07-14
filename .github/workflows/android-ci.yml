@@ -57,3 +57,78 @@ jobs:
           name: test-results
           path: android/app/build/reports/
 
+  ui-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v3
+        with:
+          gradle-version: 8.2
+
+      - name: Run Compose UI tests and capture screenshots
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          arch: x86_64
+          target: google_apis
+          disable-animations: true
+          script: |
+            TEST_EXIT=0
+            gradle -p android :app:connectedDebugAndroidTest --stacktrace || TEST_EXIT=$?
+            mkdir -p screenshots
+            adb exec-out run-as com.astrochart tar c -C files screenshots 2>/dev/null | tar x -C . 2>/dev/null || true
+            ls -la screenshots || true
+            exit $TEST_EXIT
+
+      - name: Upload screenshots artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-screenshots
+          path: screenshots/
+          if-no-files-found: warn
+
+      - name: Upload instrumented test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: instrumented-test-report
+          path: android/app/build/reports/androidTests/
+
+      - name: Publish screenshots to ci-screenshots branch
+        if: always()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ -z "$(ls -A screenshots 2>/dev/null)" ]; then
+            echo "No screenshots captured; nothing to publish."
+            exit 0
+          fi
+          cd screenshots
+          git init -q
+          git checkout -q -b ci-screenshots
+          git add .
+          git -c user.email=ci@astrochart.app -c user.name="AstroChart CI" \
+            commit -q -m "UI screenshots for ${GITHUB_SHA}"
+          git push -f "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" ci-screenshots
+
