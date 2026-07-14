@@ -5,7 +5,8 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.astrochart.core.models.BirthData
 import com.astrochart.core.models.NatalChart
-import com.astrochart.data.repository.ChartRepository
+import com.astrochart.core.utils.ChartCalculator
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -13,8 +14,6 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 
 class BirthInputViewModel(application: Application) : AndroidViewModel(application) {
-
-    private val repository = ChartRepository(application.applicationContext)
 
     private val _uiState = MutableStateFlow<BirthInputUiState>(BirthInputUiState.Idle)
     val uiState: StateFlow<BirthInputUiState> = _uiState
@@ -32,7 +31,7 @@ class BirthInputViewModel(application: Application) : AndroidViewModel(applicati
     ) {
         _uiState.value = BirthInputUiState.Loading
 
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.Default) {
             try {
                 val dateTime = LocalDateTime.of(year, month, day, hour, minute)
                 val birthData = BirthData(
@@ -43,7 +42,7 @@ class BirthInputViewModel(application: Application) : AndroidViewModel(applicati
                     locationName = locationName
                 )
 
-                val chart = repository.calculateChart(birthData)
+                val chart = ChartCalculator.calculateNatalChart(birthData)
                 _uiState.value = BirthInputUiState.Success(chart)
             } catch (e: Exception) {
                 _uiState.value = BirthInputUiState.Error(e.message ?: "Unknown error")
