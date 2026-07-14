@@ -1,0 +1,45 @@
+package com.astrochart
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
+import com.astrochart.ui.theme.AstroChartTheme
+
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContent {
+            AstroChartTheme {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    HomeContent()
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun HomeContent(modifier: Modifier = Modifier) {
+    Text(
+        text = "AstroChart - Coming Soon",
+        modifier = modifier
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+fun HomeContentPreview() {
+    AstroChartTheme {
+        HomeContent()
+    }
+}

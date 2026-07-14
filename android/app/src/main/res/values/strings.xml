@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">AstroChart</string>
+    <string name="home_title">Your Natal Chart</string>
+    <string name="birth_input_title">Enter Birth Data</string>
+    <string name="chart_detail_title">Chart Analysis</string>
+    <string name="input_date">Birth Date</string>
+    <string name="input_time">Birth Time</string>
+    <string name="input_location">Location</string>
+    <string name="submit">Calculate Chart</string>
+    <string name="view_sample">View Sample Chart</string>
+    <string name="sun_sign">Sun Sign</string>
+    <string name="moon_sign">Moon Sign</string>
+    <string name="rising_sign">Rising Sign (Ascendant)</string>
+</resources>
