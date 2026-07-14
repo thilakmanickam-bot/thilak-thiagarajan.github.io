@@ -19,7 +19,13 @@ class BirthInputViewModel(application: Application) : AndroidViewModel(applicati
     private val _uiState = MutableStateFlow<BirthInputUiState>(BirthInputUiState.Idle)
     val uiState: StateFlow<BirthInputUiState> = _uiState
 
-    fun submitBirthData(
+    /**
+     * Computes the chart for the given birth details and automatically saves it
+     * under [name]. Coordinates and time zone come from the chosen location, so
+     * the caller no longer supplies raw latitude/longitude by hand.
+     */
+    fun calculateAndSave(
+        name: String,
         year: Int,
         month: Int,
         day: Int,
@@ -44,11 +50,17 @@ class BirthInputViewModel(application: Application) : AndroidViewModel(applicati
                 )
 
                 val chart = repository.calculateChart(birthData)
+                repository.saveChart(name.trim(), chart)
                 _uiState.value = BirthInputUiState.Success(chart)
             } catch (e: Exception) {
-                _uiState.value = BirthInputUiState.Error(e.message ?: "Unknown error")
+                _uiState.value = BirthInputUiState.Error(e.message ?: "Could not calculate chart")
             }
         }
+    }
+
+    /** Resets state so a returning user sees a clean form, not the last result. */
+    fun reset() {
+        _uiState.value = BirthInputUiState.Idle
     }
 
     sealed class BirthInputUiState {

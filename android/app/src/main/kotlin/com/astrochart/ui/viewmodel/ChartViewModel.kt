@@ -23,13 +23,17 @@ class ChartViewModel(application: Application) : AndroidViewModel(application) {
     private val _currentChart = MutableStateFlow<NatalChart?>(null)
     val currentChart: StateFlow<NatalChart?> = _currentChart
 
+    private val _currentChartName = MutableStateFlow("")
+    val currentChartName: StateFlow<String> = _currentChartName
+
     /** Saved charts, live from the database, for the saved-charts list screen. */
     val savedCharts: StateFlow<List<SavedChartEntity>> =
         repository.getSavedCharts()
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
-    fun setChart(chart: NatalChart) {
+    fun setChart(chart: NatalChart, name: String) {
         _currentChart.value = chart
+        _currentChartName.value = name
         _uiState.value = ChartUiState.Success
     }
 
@@ -37,9 +41,11 @@ class ChartViewModel(application: Application) : AndroidViewModel(application) {
     fun loadSavedChart(id: Long) {
         _uiState.value = ChartUiState.Loading
         viewModelScope.launch {
+            val entity = repository.getChartById(id)
             val chart = repository.getNatalChartById(id)
-            if (chart != null) {
+            if (entity != null && chart != null) {
                 _currentChart.value = chart
+                _currentChartName.value = entity.name
                 _uiState.value = ChartUiState.Success
             } else {
                 _uiState.value = ChartUiState.Error("Chart not found")
@@ -53,21 +59,22 @@ class ChartViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             val chart = repository.calculateChart(SampleData.sampleBirthData())
             _currentChart.value = chart
+            _currentChartName.value = "Sample — Natalie Wood"
             _uiState.value = ChartUiState.Success
         }
     }
 
-    fun saveCurrentChart(name: String) {
-        val chart = _currentChart.value ?: return
-        _uiState.value = ChartUiState.Loading
-
+    /** Renames a saved chart. The saved-charts list updates automatically. */
+    fun renameSavedChart(id: Long, name: String) {
         viewModelScope.launch {
-            try {
-                repository.saveChart(name, chart)
-                _uiState.value = ChartUiState.Saved
-            } catch (e: Exception) {
-                _uiState.value = ChartUiState.Error(e.message ?: "Failed to save chart")
-            }
+            repository.renameChart(id, name.trim())
+        }
+    }
+
+    /** Deletes a saved chart. The saved-charts list updates automatically. */
+    fun deleteSavedChart(id: Long) {
+        viewModelScope.launch {
+            repository.deleteChart(id)
         }
     }
 
@@ -75,7 +82,6 @@ class ChartViewModel(application: Application) : AndroidViewModel(application) {
         object Idle : ChartUiState()
         object Loading : ChartUiState()
         object Success : ChartUiState()
-        object Saved : ChartUiState()
         data class Error(val message: String) : ChartUiState()
     }
 }
