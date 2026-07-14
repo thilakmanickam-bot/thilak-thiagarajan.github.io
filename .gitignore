@@ -1,0 +1,45 @@
+# Android Studio & Gradle
+android/.gradle/
+android/build/
+android/local.properties
+android/.idea/
+android/*.iml
+android/app/build/
+android/core/build/
+android/.DS_Store
+android/gradle/wrapper/gradle-wrapper.jar
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*.swn
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+*.apk
+*.aar
+*.aab
+*.dex
+*.class
+*.jar
+
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Node (for natalie-astro-chart)
+natalie-astro-chart/node_modules/
+natalie-astro-chart/package-lock.json
+natalie-astro-chart/yarn.lock
+
+# Misc
+*.log
+*.tmp
+*.bak
