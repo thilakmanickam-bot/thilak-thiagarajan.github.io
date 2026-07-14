@@ -5,27 +5,33 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.astrochart.ui.components.CelestialBackground
 import com.astrochart.ui.screens.BirthInputScreen
 import com.astrochart.ui.screens.ChartDetailScreen
 import com.astrochart.ui.screens.HomeScreen
 import com.astrochart.ui.screens.SavedChartsScreen
 import com.astrochart.ui.theme.AstroChartTheme
+import com.astrochart.ui.theme.GoldDeep
+import com.astrochart.ui.theme.TextPrimary
 import com.astrochart.ui.viewmodel.BirthInputViewModel
 import com.astrochart.ui.viewmodel.ChartViewModel
 
@@ -34,10 +40,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             AstroChartTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
+                CelestialBackground {
                     AppNavigation()
                 }
             }
@@ -63,16 +66,26 @@ fun AppNavigation() {
     val canGoBack = route != null && route != "home"
 
     Scaffold(
+        containerColor = Color.Transparent,
         topBar = {
             TopAppBar(
                 title = { Text(title) },
                 navigationIcon = {
                     if (canGoBack) {
                         IconButton(onClick = { navController.popBackStack() }) {
-                            Text("←", style = MaterialTheme.typography.titleLarge)
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Back",
+                                tint = GoldDeep
+                            )
                         }
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent,
+                    titleContentColor = TextPrimary,
+                    navigationIconContentColor = GoldDeep
+                )
             )
         }
     ) { innerPadding ->

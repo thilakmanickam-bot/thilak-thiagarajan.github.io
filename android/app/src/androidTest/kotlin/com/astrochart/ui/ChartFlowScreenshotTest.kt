@@ -40,15 +40,16 @@ class ChartFlowScreenshotTest {
 
     @Test
     fun homeScreen_showsActions() {
-        composeRule.onNodeWithText("Calculate My Chart").assertExists()
-        composeRule.onNodeWithText("View Saved Charts").assertExists()
-        composeRule.onNodeWithText("Sample Chart").assertExists()
+        // Buttons render uppercase in the redesign, so match case-insensitively.
+        composeRule.onNodeWithText("Calculate My Chart", ignoreCase = true).assertExists()
+        composeRule.onNodeWithText("View Saved Charts", ignoreCase = true).assertExists()
+        composeRule.onNodeWithText("Sample Chart", ignoreCase = true).assertExists()
         screenshot("01-home")
     }
 
     @Test
     fun birthInputScreen_showsForm() {
-        composeRule.onNodeWithText("Calculate My Chart").performClick()
+        composeRule.onNodeWithText("Calculate My Chart", ignoreCase = true).performClick()
         composeRule.onNodeWithText("Name").assertExists()
         composeRule.onNodeWithText("Location").assertExists()
         screenshot("02-birth-input")
@@ -56,7 +57,7 @@ class ChartFlowScreenshotTest {
 
     @Test
     fun sampleChart_rendersDetail() {
-        composeRule.onNodeWithText("Sample Chart").performClick()
+        composeRule.onNodeWithText("Sample Chart", ignoreCase = true).performClick()
         composeRule.waitUntil(timeoutMillis = 15_000) {
             composeRule.onAllNodesWithText("Placements").fetchSemanticsNodes().isNotEmpty()
         }

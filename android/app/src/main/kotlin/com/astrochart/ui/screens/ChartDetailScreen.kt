@@ -6,15 +6,30 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material3.*
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.astrochart.core.models.Aspect
 import com.astrochart.core.models.NatalChart
 import com.astrochart.core.models.PlanetaryPosition
+import com.astrochart.ui.components.CelestialCard
+import com.astrochart.ui.components.LocalBackgroundMotion
+import com.astrochart.ui.components.SectionDivider
+import com.astrochart.ui.theme.GoldDeep
+import com.astrochart.ui.theme.TextMuted
+import com.astrochart.ui.theme.TextPrimary
 import kotlinx.coroutines.launch
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -29,11 +44,8 @@ fun ChartDetailScreen(
     modifier: Modifier = Modifier
 ) {
     if (chart == null) {
-        Box(
-            modifier = modifier.fillMaxSize(),
-            contentAlignment = androidx.compose.ui.Alignment.Center
-        ) {
-            CircularProgressIndicator()
+        Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(color = GoldDeep)
         }
         return
     }
@@ -42,20 +54,33 @@ fun ChartDetailScreen(
     val pagerState = rememberPagerState(pageCount = { tabs.size })
     val scope = rememberCoroutineScope()
 
+    // Feed the pager position into the animated background as a parallax offset.
+    val motion = LocalBackgroundMotion.current
+    LaunchedEffect(pagerState) {
+        snapshotFlow { pagerState.currentPage + pagerState.currentPageOffsetFraction }
+            .collect { motion.parallax = it - 1f }
+    }
+    DisposableEffect(Unit) { onDispose { motion.parallax = 0f } }
+
     Column(modifier = modifier.fillMaxSize()) {
         ChartHeader(chart = chart, chartName = chartName)
 
-        TabRow(selectedTabIndex = pagerState.currentPage) {
+        TabRow(
+            selectedTabIndex = pagerState.currentPage,
+            containerColor = Color.Transparent,
+            contentColor = GoldDeep
+        ) {
             tabs.forEachIndexed { index, title ->
                 Tab(
                     selected = pagerState.currentPage == index,
                     onClick = { scope.launch { pagerState.animateScrollToPage(index) } },
-                    text = { Text(title) }
+                    selectedContentColor = GoldDeep,
+                    unselectedContentColor = TextMuted,
+                    text = { Text(title, style = MaterialTheme.typography.titleSmall) }
                 )
             }
         }
 
-        // Swipe left/right moves between tabs; the TabRow stays in sync.
         HorizontalPager(
             state = pagerState,
             modifier = Modifier
@@ -76,39 +101,35 @@ private fun ChartHeader(chart: NatalChart, chartName: String) {
     val sun = chart.planets.firstOrNull { it.name == "Sun" }
     val moon = chart.planets.firstOrNull { it.name == "Moon" }
 
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer
-        )
+    CelestialCard(
+        modifier = Modifier.padding(16.dp),
+        contentPadding = 18
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            if (chartName.isNotBlank()) {
-                Text(
-                    text = chartName,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-            }
+        if (chartName.isNotBlank()) {
             Text(
-                text = chart.birthData.dateTime.format(birthFormatter),
-                style = MaterialTheme.typography.bodyMedium
+                text = chartName,
+                style = MaterialTheme.typography.titleLarge,
+                color = TextPrimary
             )
-            if (chart.birthData.locationName.isNotBlank()) {
-                Text(
-                    text = chart.birthData.locationName,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-            Spacer(modifier = Modifier.height(12.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
-                sun?.let { KeyPlacement("Sun", it.sign) }
-                moon?.let { KeyPlacement("Moon", it.sign) }
-                KeyPlacement("Rising", chart.ascendant.sign)
-            }
+            Spacer(modifier = Modifier.height(4.dp))
+        }
+        Text(
+            text = chart.birthData.dateTime.format(birthFormatter),
+            style = MaterialTheme.typography.bodyMedium,
+            color = TextMuted
+        )
+        if (chart.birthData.locationName.isNotBlank()) {
+            Text(
+                text = chart.birthData.locationName,
+                style = MaterialTheme.typography.bodyMedium,
+                color = TextMuted
+            )
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(28.dp)) {
+            sun?.let { KeyPlacement("Sun", it.sign) }
+            moon?.let { KeyPlacement("Moon", it.sign) }
+            KeyPlacement("Rising", chart.ascendant.sign)
         }
     }
 }
@@ -116,14 +137,13 @@ private fun ChartHeader(chart: NatalChart, chartName: String) {
 @Composable
 private fun KeyPlacement(label: String, sign: String) {
     Column {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall
-        )
+        Text(text = label.uppercase(), style = MaterialTheme.typography.labelSmall, color = TextMuted)
+        Spacer(modifier = Modifier.height(2.dp))
         Text(
             text = sign,
             style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Medium
+            color = GoldDeep,
+            fontWeight = FontWeight.SemiBold
         )
     }
 }
@@ -133,7 +153,7 @@ private fun PlacementsTab(chart: NatalChart) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         item { TabHeading("Angles") }
         item { PlacementRow(chart.ascendant) }
@@ -145,24 +165,24 @@ private fun PlacementsTab(chart: NatalChart) {
 
 @Composable
 private fun PlacementRow(position: PlanetaryPosition) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+    CelestialCard(contentPadding = 14) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
                 text = position.name,
                 style = MaterialTheme.typography.titleSmall,
+                color = TextPrimary,
                 modifier = Modifier.weight(1f)
             )
-            Column(horizontalAlignment = androidx.compose.ui.Alignment.End) {
-                Text(text = position.label, style = MaterialTheme.typography.bodyMedium)
+            Column(horizontalAlignment = Alignment.End) {
+                Text(text = position.label, style = MaterialTheme.typography.bodyMedium, color = GoldDeep)
                 Text(
                     text = "House ${position.house}",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = TextMuted
                 )
             }
         }
@@ -178,7 +198,7 @@ private fun AspectsTab(chart: NatalChart) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         items(chart.aspects) { aspect -> AspectRow(aspect) }
     }
@@ -186,29 +206,29 @@ private fun AspectsTab(chart: NatalChart) {
 
 @Composable
 private fun AspectRow(aspect: Aspect) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = "${aspect.bodyA} ${aspect.type} ${aspect.bodyB}",
-                    style = MaterialTheme.typography.titleSmall
-                )
-                Text(
-                    text = "orb " + String.format(Locale.US, "%.1f°", aspect.orb),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            if (aspect.interpretation.isNotBlank()) {
-                Spacer(modifier = Modifier.height(6.dp))
-                Text(
-                    text = aspect.interpretation,
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
+    CelestialCard {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = "${aspect.bodyA} ${aspect.type} ${aspect.bodyB}",
+                style = MaterialTheme.typography.titleSmall,
+                color = TextPrimary
+            )
+            Text(
+                text = "orb " + String.format(Locale.US, "%.1f°", aspect.orb),
+                style = MaterialTheme.typography.bodySmall,
+                color = TextMuted
+            )
+        }
+        if (aspect.interpretation.isNotBlank()) {
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = aspect.interpretation,
+                style = MaterialTheme.typography.bodySmall,
+                color = TextMuted
+            )
         }
     }
 }
@@ -218,7 +238,7 @@ private fun BalanceTab(chart: NatalChart) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         item { TabHeading("Elements") }
         items(chart.balance.elements.entries.toList()) { (element, count) ->
@@ -233,18 +253,17 @@ private fun BalanceTab(chart: NatalChart) {
 
 @Composable
 private fun BalanceRow(label: String, count: Int) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+    CelestialCard(contentPadding = 14) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(text = label, style = MaterialTheme.typography.bodyLarge)
+            Text(text = label, style = MaterialTheme.typography.bodyLarge, color = TextPrimary)
             Text(
                 text = if (count == 1) "1 body" else "$count bodies",
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = GoldDeep
             )
         }
     }
@@ -252,12 +271,16 @@ private fun BalanceRow(label: String, count: Int) {
 
 @Composable
 private fun TabHeading(text: String) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.titleMedium,
-        color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(top = 8.dp, bottom = 2.dp)
-    )
+    Column {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelSmall,
+            color = GoldDeep
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        SectionDivider()
+        Spacer(modifier = Modifier.height(2.dp))
+    }
 }
 
 @Composable
@@ -266,8 +289,8 @@ private fun EmptyTab(message: String) {
         modifier = Modifier
             .fillMaxSize()
             .padding(24.dp),
-        contentAlignment = androidx.compose.ui.Alignment.Center
+        contentAlignment = Alignment.Center
     ) {
-        Text(text = message, style = MaterialTheme.typography.bodyMedium)
+        Text(text = message, style = MaterialTheme.typography.bodyMedium, color = TextMuted)
     }
 }

@@ -4,12 +4,25 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DeleteOutline
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.astrochart.data.db.entities.SavedChartEntity
+import com.astrochart.ui.components.CelestialCard
+import com.astrochart.ui.theme.GoldDeep
+import com.astrochart.ui.theme.TextMuted
+import com.astrochart.ui.theme.TextPrimary
 import java.time.format.DateTimeFormatter
 
 private val dateFormatter = DateTimeFormatter.ofPattern("d MMM yyyy, HH:mm")
@@ -26,12 +39,13 @@ fun SavedChartsScreen(
         Box(
             modifier = modifier
                 .fillMaxSize()
-                .padding(24.dp),
+                .padding(28.dp),
             contentAlignment = Alignment.Center
         ) {
             Text(
                 text = "No saved charts yet. Calculate a chart and it will be saved here automatically.",
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodyMedium,
+                color = TextMuted
             )
         }
         return
@@ -40,7 +54,7 @@ fun SavedChartsScreen(
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         items(charts, key = { it.id }) { chart ->
             SavedChartCard(
@@ -63,35 +77,35 @@ private fun SavedChartCard(
     var showRename by remember { mutableStateOf(false) }
     var showDelete by remember { mutableStateOf(false) }
 
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column {
+    CelestialCard(contentPadding = 0) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
+                    .weight(1f)
                     .clickable(onClick = onOpen)
-                    .padding(16.dp)
+                    .padding(start = 16.dp, top = 16.dp, bottom = 16.dp, end = 8.dp)
             ) {
                 Text(
                     text = chart.name.ifBlank { "Untitled chart" },
-                    style = MaterialTheme.typography.titleMedium
+                    style = MaterialTheme.typography.titleMedium,
+                    color = TextPrimary
                 )
                 if (chart.locationName.isNotBlank()) {
-                    Text(text = chart.locationName, style = MaterialTheme.typography.bodySmall)
+                    Text(chart.locationName, style = MaterialTheme.typography.bodySmall, color = TextMuted)
                 }
                 Text(
                     text = chart.birthDateTime.format(dateFormatter),
-                    style = MaterialTheme.typography.bodySmall
+                    style = MaterialTheme.typography.bodySmall,
+                    color = TextMuted
                 )
             }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp),
-                horizontalArrangement = Arrangement.End
-            ) {
-                TextButton(onClick = { showRename = true }) { Text("Rename") }
-                TextButton(onClick = { showDelete = true }) { Text("Delete") }
+            IconButton(onClick = { showRename = true }) {
+                Icon(Icons.Filled.Edit, contentDescription = "Rename", tint = GoldDeep)
             }
+            IconButton(onClick = { showDelete = true }) {
+                Icon(Icons.Filled.DeleteOutline, contentDescription = "Delete", tint = GoldDeep)
+            }
+            Spacer(modifier = Modifier.width(4.dp))
         }
     }
 
