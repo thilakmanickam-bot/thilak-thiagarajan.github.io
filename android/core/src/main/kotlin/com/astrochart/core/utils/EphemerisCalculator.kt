@@ -105,7 +105,11 @@ object EphemerisCalculator {
             else -> 0.0
         }
 
-        return if (lon.isNaN() || lon.isInfinite()) 0.0 else lon % 360.0
+        if (lon.isNaN() || lon.isInfinite()) return 0.0
+        // Kotlin's % keeps the dividend's sign, so for dates far from J2000 the
+        // raw longitude can be negative. Normalize into [0, 360) so downstream
+        // aspect math (which compares raw longitudes) stays correct.
+        return ((lon % 360.0) + 360.0) % 360.0
     }
 
     private fun calculateSunLongitude(t: Double): Double {

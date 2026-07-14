@@ -77,6 +77,30 @@ class ChartCalculatorTest {
     }
 
     @Test
+    fun testCalculateNatalChart_LongitudesNormalizedForPreJ2000Date() {
+        // Regression: for dates far from J2000 the raw longitude formulas can go
+        // negative, which must be normalized into [0, 360). A pre-2000 date
+        // exercises that path (a Moon longitude here is negative before mod).
+        val birthData = BirthData(
+            dateTime = LocalDateTime.of(1985, 3, 15, 8, 45),
+            latitude = 51.5074,
+            longitude = -0.1278,
+            timeZone = ZoneId.of("Europe/London"),
+            locationName = "London"
+        )
+
+        val chart = ChartCalculator.calculateNatalChart(birthData)
+
+        for (planet in chart.planets) {
+            assertTrue(
+                planet.lon >= 0.0 && planet.lon < 360.0,
+                "${planet.name} longitude ${planet.lon} not normalized to [0, 360)"
+            )
+            assertTrue(planet.sign in ZodiacUtils.getAllSigns())
+        }
+    }
+
+    @Test
     fun testCalculateNatalChart_AscendantHasSign() {
         val birthData = BirthData(
             dateTime = LocalDateTime.of(2000, 1, 1, 12, 0),
