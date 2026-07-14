@@ -69,8 +69,9 @@ object EphemerisCalculator {
         val cosLat = cos(latRad)
         val sinLat = sin(latRad)
 
-        val ascRa = atan2(-cos(lstRad), sin(lstRad) * cosLat / sinLat)
-        return (Math.toDegrees(ascRa) + 360) % 360.0
+        val ascRa = atan2(-cos(lstRad), if (sinLat != 0.0) sin(lstRad) * cosLat / sinLat else 1.0)
+        val result = (Math.toDegrees(ascRa) + 360) % 360.0
+        return if (result.isNaN() || result.isInfinite()) lst else result
     }
 
     private fun calculateMidheaven(birthData: BirthData): Double {
@@ -83,13 +84,14 @@ object EphemerisCalculator {
         )
 
         val lst = localSiderealTime(jd, birthData.longitude)
-        return lst % 360.0
+        val result = lst % 360.0
+        return if (result.isNaN() || result.isInfinite()) 0.0 else result
     }
 
     private fun calculatePlanetLongitude(planet: String, jd: Double): Double {
         val t = (jd - 2451545.0) / 36525.0
 
-        return when (planet) {
+        val lon = when (planet) {
             "Sun" -> calculateSunLongitude(t)
             "Moon" -> calculateMoonLongitude(t)
             "Mercury" -> calculateMercuryLongitude(t)
@@ -102,6 +104,8 @@ object EphemerisCalculator {
             "Pluto" -> calculatePlutoLongitude(t)
             else -> 0.0
         }
+
+        return if (lon.isNaN() || lon.isInfinite()) 0.0 else lon % 360.0
     }
 
     private fun calculateSunLongitude(t: Double): Double {
@@ -111,7 +115,8 @@ object EphemerisCalculator {
         val eq = (1.914602 - 0.004817 * t - 0.000014 * t * t) * sin(meanAnomRad) +
                 (0.019993 - 0.000101 * t) * sin(2 * meanAnomRad) +
                 0.000029 * sin(3 * meanAnomRad)
-        return (meanLon + eq) % 360.0
+        val result = (meanLon + eq) % 360.0
+        return if (result.isNaN() || result.isInfinite()) 0.0 else result
     }
 
     private fun calculateMoonLongitude(t: Double): Double {
@@ -126,7 +131,8 @@ object EphemerisCalculator {
                 1.27402 * sin(2 * meanElongRad - meanAnomRad) +
                 0.65918 * sin(2 * meanElongRad)
 
-        return (meanLon + correction) % 360.0
+        val result = (meanLon + correction) % 360.0
+        return if (result.isNaN() || result.isInfinite()) 0.0 else result
     }
 
     private fun calculateMercuryLongitude(t: Double): Double {
