@@ -79,8 +79,8 @@ dependencies {
     // Gson
     implementation "com.google.code.gson:gson:2.10.1"
 
-    // Core module
-    implementation project(":core")
+    // Core module - temporarily commented to test
+    // implementation project(":core")
 
     // Testing
     testImplementation "junit:junit:4.13.2"
