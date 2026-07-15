@@ -19,15 +19,24 @@ import java.util.concurrent.TimeUnit
  * WorkManager, which persists across reboots and needs no exact-alarm permission.
  */
 object NotificationScheduler {
-    const val CHANNEL_ID = "daily_reading"
+    // New id: channels are immutable once created, so a fresh id guarantees the
+    // silent (low-importance) settings apply even where the old channel exists.
+    const val CHANNEL_ID = "daily_reading_v2"
     private const val WORK_NAME = "daily_reading"
     private const val NOTIFY_HOUR = 6
 
-    /** Creates the notification channel (required on API 26+; minSdk is 26). */
+    /**
+     * Creates a **silent** notification channel (required on API 26+; minSdk is 26):
+     * low importance with no sound or vibration, so the daily reading only appears
+     * quietly in the shade — no alarm.
+     */
     fun ensureChannel(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val name = UiStrings.forLanguage(LanguageStore.load(context)).notifChannelName
-            val channel = NotificationChannel(CHANNEL_ID, name, NotificationManager.IMPORTANCE_DEFAULT)
+            val channel = NotificationChannel(CHANNEL_ID, name, NotificationManager.IMPORTANCE_LOW).apply {
+                setSound(null, null)
+                enableVibration(false)
+            }
             context.getSystemService(NotificationManager::class.java)?.createNotificationChannel(channel)
         }
     }

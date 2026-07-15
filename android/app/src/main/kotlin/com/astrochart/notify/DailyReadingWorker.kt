@@ -68,6 +68,8 @@ class DailyReadingWorker(appContext: Context, params: WorkerParameters) :
             .setStyle(NotificationCompat.BigTextStyle().bigText(data.summary))
             .setAutoCancel(true)
             .setContentIntent(pending)
+            .setSilent(true)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
             .build()
 
         NotificationManagerCompat.from(context).notify(NOTIF_ID, notification)
