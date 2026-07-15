@@ -7,6 +7,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Translate
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -15,16 +18,26 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.astrochart.core.i18n.Language
 import com.astrochart.ui.components.CelestialBackground
+import com.astrochart.ui.i18n.LanguageStore
+import com.astrochart.ui.i18n.LocalLanguage
+import com.astrochart.ui.i18n.LocalStrings
+import com.astrochart.ui.i18n.UiStrings
 import com.astrochart.ui.screens.BirthInputScreen
 import com.astrochart.ui.screens.ChartDetailScreen
 import com.astrochart.ui.screens.HomeScreen
@@ -55,15 +68,24 @@ fun AppNavigation() {
     val chartViewModel: ChartViewModel = viewModel()
     val birthInputViewModel: BirthInputViewModel = viewModel()
 
+    val context = LocalContext.current
+    var language by remember { mutableStateOf(LanguageStore.load(context)) }
+    val strings = remember(language) { UiStrings.forLanguage(language) }
+
     val backStackEntry by navController.currentBackStackEntryAsState()
     val route = backStackEntry?.destination?.route
-    val title = when (route) {
-        "birth_input" -> "Calculate My Chart"
-        "saved_charts" -> "Saved Charts"
-        "chart_detail" -> "Chart"
-        else -> "AstroChart"
-    }
     val canGoBack = route != null && route != "home"
+
+    CompositionLocalProvider(
+        LocalStrings provides strings,
+        LocalLanguage provides language
+    ) {
+    val title = when (route) {
+        "birth_input" -> strings.navCalculate
+        "saved_charts" -> strings.navSavedChartsTitle
+        "chart_detail" -> strings.chartTitle
+        else -> strings.appName
+    }
 
     Scaffold(
         containerColor = Color.Transparent,
@@ -75,11 +97,21 @@ fun AppNavigation() {
                         IconButton(onClick = { navController.popBackStack() }) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Back",
+                                contentDescription = strings.back,
                                 tint = GoldDeep
                             )
                         }
                     }
+                },
+                actions = {
+                    LanguageSwitcher(
+                        current = language,
+                        label = strings.languageLabel,
+                        onSelect = {
+                            language = it
+                            LanguageStore.save(context, it)
+                        }
+                    )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Transparent,
@@ -99,11 +131,7 @@ fun AppNavigation() {
             composable("home") {
                 HomeScreen(
                     onNavigateToBirthInput = { navController.navigate("birth_input") },
-                    onNavigateToSavedCharts = { navController.navigate("saved_charts") },
-                    onNavigateToSample = {
-                        chartViewModel.loadSampleChart()
-                        navController.navigate("chart_detail")
-                    }
+                    onNavigateToSavedCharts = { navController.navigate("saved_charts") }
                 )
             }
 
@@ -140,6 +168,40 @@ fun AppNavigation() {
                     chartName = chartName
                 )
             }
+        }
+    }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun LanguageSwitcher(
+    current: Language,
+    label: String,
+    onSelect: (Language) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    IconButton(onClick = { expanded = true }) {
+        Icon(
+            imageVector = Icons.Filled.Translate,
+            contentDescription = label,
+            tint = GoldDeep
+        )
+    }
+    DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+        Language.entries.forEach { lang ->
+            DropdownMenuItem(
+                text = {
+                    Text(
+                        text = lang.displayName,
+                        color = if (lang == current) GoldDeep else TextPrimary
+                    )
+                },
+                onClick = {
+                    onSelect(lang)
+                    expanded = false
+                }
+            )
         }
     }
 }

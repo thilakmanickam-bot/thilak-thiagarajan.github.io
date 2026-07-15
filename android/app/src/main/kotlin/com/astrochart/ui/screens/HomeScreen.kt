@@ -26,6 +26,7 @@ import com.astrochart.ui.components.EyebrowLabel
 import com.astrochart.ui.components.GoldButton
 import com.astrochart.ui.components.MoonPhaseRow
 import com.astrochart.ui.components.OutlineGoldButton
+import com.astrochart.ui.i18n.LocalStrings
 import com.astrochart.ui.theme.GoldDeep
 import com.astrochart.ui.theme.TextMuted
 import com.astrochart.ui.theme.TextPrimary
@@ -34,12 +35,12 @@ import com.astrochart.ui.theme.TextPrimary
 fun HomeScreen(
     onNavigateToBirthInput: () -> Unit,
     onNavigateToSavedCharts: () -> Unit,
-    onNavigateToSample: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val strings = LocalStrings.current
     val title = buildAnnotatedString {
-        withStyle(SpanStyle(color = TextPrimary)) { append("Explore your\n") }
-        withStyle(SpanStyle(color = GoldDeep)) { append("natal chart") }
+        withStyle(SpanStyle(color = TextPrimary)) { append(strings.homeTitleLine1 + "\n") }
+        withStyle(SpanStyle(color = GoldDeep)) { append(strings.homeTitleLine2) }
     }
 
     Column(
@@ -55,7 +56,7 @@ fun HomeScreen(
 
         Spacer(modifier = Modifier.height(28.dp))
 
-        EyebrowLabel(text = "Your cosmic guide", icon = Icons.Filled.AutoAwesome)
+        EyebrowLabel(text = strings.homeEyebrow, icon = Icons.Filled.AutoAwesome)
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -68,7 +69,7 @@ fun HomeScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "Enter your birth details and see your placements, aspects, and elemental balance — computed on your device.",
+            text = strings.homeSubtitle,
             style = MaterialTheme.typography.bodyLarge,
             color = TextMuted,
             textAlign = TextAlign.Center
@@ -77,7 +78,7 @@ fun HomeScreen(
         Spacer(modifier = Modifier.height(40.dp))
 
         GoldButton(
-            text = "Calculate My Chart",
+            text = strings.navCalculate,
             onClick = onNavigateToBirthInput,
             trailingIcon = Icons.AutoMirrored.Filled.ArrowForward,
             modifier = Modifier.fillMaxWidth()
@@ -86,16 +87,8 @@ fun HomeScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         OutlineGoldButton(
-            text = "View Saved Charts",
+            text = strings.homeViewSaved,
             onClick = onNavigateToSavedCharts,
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        OutlineGoldButton(
-            text = "Sample Chart",
-            onClick = onNavigateToSample,
             modifier = Modifier.fillMaxWidth()
         )
 

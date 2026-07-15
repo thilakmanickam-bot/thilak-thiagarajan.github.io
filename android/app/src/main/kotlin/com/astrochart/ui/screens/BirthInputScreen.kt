@@ -26,6 +26,8 @@ import com.astrochart.data.TimeZoneCatalog
 import com.astrochart.ui.components.EyebrowLabel
 import com.astrochart.ui.components.GoldButton
 import com.astrochart.ui.components.LabeledDropdown
+import com.astrochart.ui.i18n.LocalLanguage
+import com.astrochart.ui.i18n.LocalStrings
 import com.astrochart.ui.theme.AstroError
 import com.astrochart.ui.theme.CardBorder
 import com.astrochart.ui.theme.GoldDeep
@@ -36,7 +38,6 @@ import java.time.Month
 import java.time.Year
 import java.time.YearMonth
 import java.time.format.TextStyle
-import java.util.Locale
 
 @Composable
 fun BirthInputScreen(
@@ -44,7 +45,11 @@ fun BirthInputScreen(
     onChartCalculated: (NatalChart, String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val strings = LocalStrings.current
+    val lang = LocalLanguage.current
+
     var name by remember { mutableStateOf("") }
+    var gender by remember { mutableStateOf("") } // canonical English: "", Female, Male, Other
     var year by remember { mutableStateOf(2000) }
     var month by remember { mutableStateOf(1) }
     var day by remember { mutableStateOf(1) }
@@ -52,6 +57,15 @@ fun BirthInputScreen(
     var minute by remember { mutableStateOf(0) }
     var location by remember { mutableStateOf<LocationOption?>(null) }
     var timeZone by remember { mutableStateOf("UTC") }
+
+    // Canonical gender codes with localized labels for display.
+    val genderOptions = listOf("Female", "Male", "Other")
+    fun genderLabel(code: String): String = when (code) {
+        "Female" -> strings.genderFemale
+        "Male" -> strings.genderMale
+        "Other" -> strings.genderOther
+        else -> strings.genderUnset
+    }
 
     val years = remember { (1900..Year.now().value).toList().reversed() }
     val daysInMonth = remember(year, month) { YearMonth.of(year, month).lengthOfMonth() }
@@ -88,10 +102,10 @@ fun BirthInputScreen(
             .padding(horizontal = 24.dp)
     ) {
         Spacer(modifier = Modifier.height(12.dp))
-        EyebrowLabel(text = "New chart", icon = Icons.Filled.Person)
+        EyebrowLabel(text = strings.biEyebrow, icon = Icons.Filled.Person)
         Spacer(modifier = Modifier.height(10.dp))
         Text(
-            text = "Enter the birth details",
+            text = strings.biHeading,
             style = MaterialTheme.typography.headlineSmall,
             color = TextPrimary
         )
@@ -101,18 +115,30 @@ fun BirthInputScreen(
         OutlinedTextField(
             value = name,
             onValueChange = { name = it },
-            label = { Text("Name") },
+            label = { Text(strings.name) },
             singleLine = true,
             isError = name.isBlank(),
-            supportingText = { if (name.isBlank()) Text("Required — the chart is saved under this name") },
+            supportingText = { if (name.isBlank()) Text(strings.nameRequired) },
             colors = fieldColors,
             modifier = Modifier.fillMaxWidth()
         )
 
-        SectionLabel("Date of birth")
+        Spacer(modifier = Modifier.height(12.dp))
+
+        LabeledDropdown(
+            label = strings.gender,
+            options = genderOptions,
+            selected = gender.ifBlank { null },
+            optionLabel = { genderLabel(it) },
+            onSelected = { gender = it },
+            placeholder = strings.genderUnset,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        SectionLabel(strings.dob)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             LabeledDropdown(
-                label = "Day",
+                label = strings.day,
                 options = days,
                 selected = day,
                 optionLabel = { it.toString() },
@@ -120,15 +146,15 @@ fun BirthInputScreen(
                 modifier = Modifier.weight(1f)
             )
             LabeledDropdown(
-                label = "Month",
+                label = strings.month,
                 options = (1..12).toList(),
                 selected = month,
-                optionLabel = { Month.of(it).getDisplayName(TextStyle.FULL, Locale.getDefault()) },
+                optionLabel = { Month.of(it).getDisplayName(TextStyle.SHORT, lang.locale) },
                 onSelected = { month = it },
                 modifier = Modifier.weight(1.4f)
             )
             LabeledDropdown(
-                label = "Year",
+                label = strings.year,
                 options = years,
                 selected = year,
                 optionLabel = { it.toString() },
@@ -137,10 +163,10 @@ fun BirthInputScreen(
             )
         }
 
-        SectionLabel("Time of birth (24-hour)")
+        SectionLabel(strings.tob)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             LabeledDropdown(
-                label = "Hour",
+                label = strings.hour,
                 options = (0..23).toList(),
                 selected = hour,
                 optionLabel = { it.toString().padStart(2, '0') },
@@ -148,7 +174,7 @@ fun BirthInputScreen(
                 modifier = Modifier.weight(1f)
             )
             LabeledDropdown(
-                label = "Minute",
+                label = strings.minute,
                 options = (0..59).toList(),
                 selected = minute,
                 optionLabel = { it.toString().padStart(2, '0') },
@@ -157,9 +183,9 @@ fun BirthInputScreen(
             )
         }
 
-        SectionLabel("Place of birth")
+        SectionLabel(strings.pob)
         LabeledDropdown(
-            label = "Location",
+            label = strings.location,
             options = LocationCatalog.locations,
             selected = location,
             optionLabel = { it.displayName },
@@ -167,14 +193,14 @@ fun BirthInputScreen(
                 location = it
                 timeZone = it.zoneId
             },
-            placeholder = "Select a city",
+            placeholder = strings.selectCity,
             modifier = Modifier.fillMaxWidth()
         )
 
         Spacer(modifier = Modifier.height(12.dp))
 
         LabeledDropdown(
-            label = "Time zone",
+            label = strings.timeZone,
             options = timeZones,
             selected = timeZone,
             optionLabel = { it },
@@ -194,7 +220,7 @@ fun BirthInputScreen(
         }
 
         GoldButton(
-            text = "Calculate My Chart",
+            text = strings.navCalculate,
             onClick = {
                 val loc = location ?: return@GoldButton
                 viewModel.calculateAndSave(
@@ -207,7 +233,8 @@ fun BirthInputScreen(
                     latitude = loc.latitude,
                     longitude = loc.longitude,
                     timeZoneId = timeZone,
-                    locationName = loc.displayName
+                    locationName = loc.displayName,
+                    gender = gender
                 )
             },
             enabled = canSubmit,

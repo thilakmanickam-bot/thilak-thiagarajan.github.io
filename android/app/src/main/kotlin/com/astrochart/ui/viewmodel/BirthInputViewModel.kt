@@ -34,7 +34,8 @@ class BirthInputViewModel(application: Application) : AndroidViewModel(applicati
         latitude: Double,
         longitude: Double,
         timeZoneId: String,
-        locationName: String
+        locationName: String,
+        gender: String = ""
     ) {
         _uiState.value = BirthInputUiState.Loading
 
@@ -46,7 +47,8 @@ class BirthInputViewModel(application: Application) : AndroidViewModel(applicati
                     latitude = latitude,
                     longitude = longitude,
                     timeZone = ZoneId.of(timeZoneId),
-                    locationName = locationName
+                    locationName = locationName,
+                    gender = gender
                 )
 
                 val chart = repository.calculateChart(birthData)

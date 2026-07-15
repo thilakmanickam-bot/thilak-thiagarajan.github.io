@@ -18,14 +18,21 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.astrochart.core.i18n.Language
 import com.astrochart.data.db.entities.SavedChartEntity
 import com.astrochart.ui.components.CelestialCard
+import com.astrochart.ui.i18n.LocalLanguage
+import com.astrochart.ui.i18n.LocalStrings
 import com.astrochart.ui.theme.GoldDeep
 import com.astrochart.ui.theme.TextMuted
 import com.astrochart.ui.theme.TextPrimary
 import java.time.format.DateTimeFormatter
 
-private val dateFormatter = DateTimeFormatter.ofPattern("d MMM yyyy, HH:mm")
+private fun dateFormatter(lang: Language): DateTimeFormatter =
+    DateTimeFormatter.ofPattern(
+        if (lang == Language.ZH) "yyyy年M月d日 HH:mm" else "d MMM yyyy, HH:mm",
+        lang.locale
+    )
 
 @Composable
 fun SavedChartsScreen(
@@ -35,6 +42,7 @@ fun SavedChartsScreen(
     onDelete: (Long) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val strings = LocalStrings.current
     if (charts.isEmpty()) {
         Box(
             modifier = modifier
@@ -43,7 +51,7 @@ fun SavedChartsScreen(
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = "No saved charts yet. Calculate a chart and it will be saved here automatically.",
+                text = strings.noSaved,
                 style = MaterialTheme.typography.bodyMedium,
                 color = TextMuted
             )
@@ -74,6 +82,8 @@ private fun SavedChartCard(
     onRename: (String) -> Unit,
     onDelete: () -> Unit
 ) {
+    val strings = LocalStrings.current
+    val lang = LocalLanguage.current
     var showRename by remember { mutableStateOf(false) }
     var showDelete by remember { mutableStateOf(false) }
 
@@ -86,7 +96,7 @@ private fun SavedChartCard(
                     .padding(start = 16.dp, top = 16.dp, bottom = 16.dp, end = 8.dp)
             ) {
                 Text(
-                    text = chart.name.ifBlank { "Untitled chart" },
+                    text = chart.name.ifBlank { strings.untitled },
                     style = MaterialTheme.typography.titleMedium,
                     color = TextPrimary
                 )
@@ -94,16 +104,16 @@ private fun SavedChartCard(
                     Text(chart.locationName, style = MaterialTheme.typography.bodySmall, color = TextMuted)
                 }
                 Text(
-                    text = chart.birthDateTime.format(dateFormatter),
+                    text = chart.birthDateTime.format(dateFormatter(lang)),
                     style = MaterialTheme.typography.bodySmall,
                     color = TextMuted
                 )
             }
             IconButton(onClick = { showRename = true }) {
-                Icon(Icons.Filled.Edit, contentDescription = "Rename", tint = GoldDeep)
+                Icon(Icons.Filled.Edit, contentDescription = strings.rename, tint = GoldDeep)
             }
             IconButton(onClick = { showDelete = true }) {
-                Icon(Icons.Filled.DeleteOutline, contentDescription = "Delete", tint = GoldDeep)
+                Icon(Icons.Filled.DeleteOutline, contentDescription = strings.delete, tint = GoldDeep)
             }
             Spacer(modifier = Modifier.width(4.dp))
         }
@@ -123,16 +133,16 @@ private fun SavedChartCard(
     if (showDelete) {
         AlertDialog(
             onDismissRequest = { showDelete = false },
-            title = { Text("Delete chart?") },
-            text = { Text("\"${chart.name.ifBlank { "Untitled chart" }}\" will be permanently removed.") },
+            title = { Text(strings.deleteTitle) },
+            text = { Text(strings.deleteMessage(chart.name.ifBlank { strings.untitled })) },
             confirmButton = {
                 TextButton(onClick = {
                     onDelete()
                     showDelete = false
-                }) { Text("Delete") }
+                }) { Text(strings.delete) }
             },
             dismissButton = {
-                TextButton(onClick = { showDelete = false }) { Text("Cancel") }
+                TextButton(onClick = { showDelete = false }) { Text(strings.cancel) }
             }
         )
     }
@@ -144,15 +154,16 @@ private fun RenameDialog(
     onConfirm: (String) -> Unit,
     onDismiss: () -> Unit
 ) {
+    val strings = LocalStrings.current
     var name by remember { mutableStateOf(initial) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Rename chart") },
+        title = { Text(strings.renameTitle) },
         text = {
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
-                label = { Text("Name") },
+                label = { Text(strings.name) },
                 singleLine = true
             )
         },
@@ -160,10 +171,10 @@ private fun RenameDialog(
             TextButton(
                 onClick = { onConfirm(name.trim()) },
                 enabled = name.isNotBlank()
-            ) { Text("Save") }
+            ) { Text(strings.save) }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
+            TextButton(onClick = onDismiss) { Text(strings.cancel) }
         }
     )
 }

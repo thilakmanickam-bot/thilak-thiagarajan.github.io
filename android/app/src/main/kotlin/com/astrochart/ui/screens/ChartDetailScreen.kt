@@ -24,15 +24,23 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.astrochart.core.i18n.Language
+import com.astrochart.core.i18n.Translations
+import com.astrochart.core.interpret.AgeUtil
 import com.astrochart.core.interpret.ChartReading
+import com.astrochart.core.interpret.ChineseZodiac
 import com.astrochart.core.models.Aspect
 import com.astrochart.core.models.NatalChart
 import com.astrochart.core.models.PlanetaryPosition
+import com.astrochart.core.utils.AspectInterpretationProvider
 import com.astrochart.ui.components.CelestialCard
 import com.astrochart.ui.components.EyebrowLabel
 import com.astrochart.ui.components.LocalBackgroundMotion
 import com.astrochart.ui.components.NatalWheel
 import com.astrochart.ui.components.SectionDivider
+import com.astrochart.ui.i18n.LocalLanguage
+import com.astrochart.ui.i18n.LocalStrings
+import com.astrochart.ui.i18n.UiStrings
 import com.astrochart.ui.theme.GoldDeep
 import com.astrochart.ui.theme.TextMuted
 import com.astrochart.ui.theme.TextPrimary
@@ -40,7 +48,18 @@ import kotlinx.coroutines.launch
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-private val birthFormatter = DateTimeFormatter.ofPattern("d MMM yyyy, HH:mm")
+private fun birthFormatter(lang: Language): DateTimeFormatter =
+    DateTimeFormatter.ofPattern(
+        if (lang == Language.ZH) "yyyy年M月d日 HH:mm" else "d MMM yyyy, HH:mm",
+        lang.locale
+    )
+
+/** Rebuilds a placement's degree label with the sign name localized. */
+private fun localizedLabel(position: PlanetaryPosition, lang: Language): String {
+    val deg = position.degree
+    val min = position.minute.toString().padStart(2, '0')
+    return "$deg°$min' ${Translations.signName(position.sign, lang)}"
+}
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -56,7 +75,11 @@ fun ChartDetailScreen(
         return
     }
 
-    val tabs = listOf("Wheel", "Placements", "Aspects", "Balance", "Reading")
+    val strings = LocalStrings.current
+    val tabs = listOf(
+        strings.tabWheel, strings.tabPlacements, strings.tabAspects,
+        strings.tabBalance, strings.tabReading
+    )
     val pagerState = rememberPagerState(pageCount = { tabs.size })
     val scope = rememberCoroutineScope()
 
@@ -123,19 +146,21 @@ private fun WheelTab(chart: NatalChart) {
 
 @Composable
 private fun WheelLegend() {
+    val strings = LocalStrings.current
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text("Ascendant is at the 9 o'clock position; the zodiac runs anticlockwise.",
+        Text(strings.wheelLegendAxis,
             style = MaterialTheme.typography.bodySmall, color = TextMuted)
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            Text("— harmonious (trine/sextile)", style = MaterialTheme.typography.bodySmall, color = Color(0xFF8FB8C8))
-            Text("— challenging (square/opp.)", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+            Text(strings.wheelLegendSoft, style = MaterialTheme.typography.bodySmall, color = Color(0xFF8FB8C8))
+            Text(strings.wheelLegendHard, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
         }
     }
 }
 
 @Composable
 private fun ReadingTab(chart: NatalChart, chartName: String) {
-    val sections = remember(chart, chartName) { ChartReading.build(chart, chartName) }
+    val lang = LocalLanguage.current
+    val sections = remember(chart, chartName, lang) { ChartReading.build(chart, chartName, lang) }
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
@@ -160,8 +185,16 @@ private fun ReadingTab(chart: NatalChart, chartName: String) {
 
 @Composable
 private fun ChartHeader(chart: NatalChart, chartName: String) {
+    val strings = LocalStrings.current
+    val lang = LocalLanguage.current
     val sun = chart.planets.firstOrNull { it.name == "Sun" }
     val moon = chart.planets.firstOrNull { it.name == "Moon" }
+
+    val birthYear = chart.birthData.dateTime.year
+    val age = AgeUtil.years(chart.birthData.dateTime)
+    val gender = chart.birthData.gender
+    val zodiac = ChineseZodiac.name(birthYear, lang)
+    val zodiacEmoji = ChineseZodiac.emoji(birthYear)
 
     CelestialCard(
         modifier = Modifier.padding(16.dp),
@@ -176,7 +209,7 @@ private fun ChartHeader(chart: NatalChart, chartName: String) {
             Spacer(modifier = Modifier.height(4.dp))
         }
         Text(
-            text = chart.birthData.dateTime.format(birthFormatter),
+            text = chart.birthData.dateTime.format(birthFormatter(lang)),
             style = MaterialTheme.typography.bodyMedium,
             color = TextMuted
         )
@@ -189,11 +222,28 @@ private fun ChartHeader(chart: NatalChart, chartName: String) {
         }
         Spacer(modifier = Modifier.height(16.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(28.dp)) {
-            sun?.let { KeyPlacement("Sun", it.sign) }
-            moon?.let { KeyPlacement("Moon", it.sign) }
-            KeyPlacement("Rising", chart.ascendant.sign)
+            sun?.let { KeyPlacement(strings.labelSun, Translations.signName(it.sign, lang)) }
+            moon?.let { KeyPlacement(strings.labelMoon, Translations.signName(it.sign, lang)) }
+            KeyPlacement(strings.labelRising, Translations.signName(chart.ascendant.sign, lang))
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        SectionDivider()
+        Spacer(modifier = Modifier.height(12.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(28.dp)) {
+            KeyPlacement(strings.labelAge, strings.ageValue(age))
+            if (gender.isNotBlank()) {
+                KeyPlacement(strings.labelGender, localizedGender(gender, strings))
+            }
+            KeyPlacement(strings.labelChineseZodiac, "$zodiacEmoji $zodiac")
         }
     }
+}
+
+private fun localizedGender(code: String, strings: UiStrings): String = when (code) {
+    "Female" -> strings.genderFemale
+    "Male" -> strings.genderMale
+    "Other" -> strings.genderOther
+    else -> code
 }
 
 @Composable
@@ -212,21 +262,35 @@ private fun KeyPlacement(label: String, sign: String) {
 
 @Composable
 private fun PlacementsTab(chart: NatalChart) {
+    val strings = LocalStrings.current
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        item { TabHeading("Angles") }
+        item { TabHeading(strings.angles) }
         item { PlacementRow(chart.ascendant) }
         item { PlacementRow(chart.midheaven) }
-        item { TabHeading("Planets") }
+        item { TabHeading(strings.planets) }
         items(chart.planets) { planet -> PlacementRow(planet) }
     }
 }
 
+/** Localized body name: the two angles plus delegation to planet-name translation. */
+private fun bodyName(name: String, lang: Language): String = when (name) {
+    "Ascendant" -> when (lang) {
+        Language.EN -> "Ascendant"; Language.TA -> "லக்னம்"; Language.ZH -> "上升"
+    }
+    "Midheaven" -> when (lang) {
+        Language.EN -> "Midheaven"; Language.TA -> "மத்திம வானம்"; Language.ZH -> "天顶"
+    }
+    else -> Translations.planetName(name, lang)
+}
+
 @Composable
 private fun PlacementRow(position: PlanetaryPosition) {
+    val strings = LocalStrings.current
+    val lang = LocalLanguage.current
     CelestialCard(contentPadding = 14) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -234,15 +298,15 @@ private fun PlacementRow(position: PlanetaryPosition) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = position.name,
+                text = bodyName(position.name, lang),
                 style = MaterialTheme.typography.titleSmall,
                 color = TextPrimary,
                 modifier = Modifier.weight(1f)
             )
             Column(horizontalAlignment = Alignment.End) {
-                Text(text = position.label, style = MaterialTheme.typography.bodyMedium, color = GoldDeep)
+                Text(text = localizedLabel(position, lang), style = MaterialTheme.typography.bodyMedium, color = GoldDeep)
                 Text(
-                    text = "House ${position.house}",
+                    text = strings.houseLabel(position.house),
                     style = MaterialTheme.typography.bodySmall,
                     color = TextMuted
                 )
@@ -253,8 +317,9 @@ private fun PlacementRow(position: PlanetaryPosition) {
 
 @Composable
 private fun AspectsTab(chart: NatalChart) {
+    val strings = LocalStrings.current
     if (chart.aspects.isEmpty()) {
-        EmptyTab("No major aspects within orb for this chart.")
+        EmptyTab(strings.noAspects)
         return
     }
     LazyColumn(
@@ -268,26 +333,32 @@ private fun AspectsTab(chart: NatalChart) {
 
 @Composable
 private fun AspectRow(aspect: Aspect) {
+    val strings = LocalStrings.current
+    val lang = LocalLanguage.current
+    val bodyA = Translations.planetName(aspect.bodyA, lang)
+    val bodyB = Translations.planetName(aspect.bodyB, lang)
+    val type = Translations.aspectType(aspect.type, lang)
+    val interp = AspectInterpretationProvider.getInterpretation(aspect.bodyA, aspect.bodyB, aspect.type, lang)
     CelestialCard {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = "${aspect.bodyA} ${aspect.type} ${aspect.bodyB}",
+                text = "$bodyA $type $bodyB",
                 style = MaterialTheme.typography.titleSmall,
                 color = TextPrimary
             )
             Text(
-                text = "orb " + String.format(Locale.US, "%.1f°", aspect.orb),
+                text = strings.orb + " " + String.format(Locale.US, "%.1f°", aspect.orb),
                 style = MaterialTheme.typography.bodySmall,
                 color = TextMuted
             )
         }
-        if (aspect.interpretation.isNotBlank()) {
+        if (interp.isNotBlank()) {
             Spacer(modifier = Modifier.height(6.dp))
             Text(
-                text = aspect.interpretation,
+                text = interp,
                 style = MaterialTheme.typography.bodySmall,
                 color = TextMuted
             )
@@ -297,24 +368,27 @@ private fun AspectRow(aspect: Aspect) {
 
 @Composable
 private fun BalanceTab(chart: NatalChart) {
+    val strings = LocalStrings.current
+    val lang = LocalLanguage.current
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        item { TabHeading("Elements") }
+        item { TabHeading(strings.elements) }
         items(chart.balance.elements.entries.toList()) { (element, count) ->
-            BalanceRow(element, count)
+            BalanceRow(Translations.element(element, lang), count)
         }
-        item { TabHeading("Modalities") }
+        item { TabHeading(strings.modalities) }
         items(chart.balance.modalities.entries.toList()) { (modality, count) ->
-            BalanceRow(modality, count)
+            BalanceRow(Translations.modality(modality, lang), count)
         }
     }
 }
 
 @Composable
 private fun BalanceRow(label: String, count: Int) {
+    val strings = LocalStrings.current
     CelestialCard(contentPadding = 14) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -323,7 +397,7 @@ private fun BalanceRow(label: String, count: Int) {
         ) {
             Text(text = label, style = MaterialTheme.typography.bodyLarge, color = TextPrimary)
             Text(
-                text = if (count == 1) "1 body" else "$count bodies",
+                text = strings.bodyCount(count),
                 style = MaterialTheme.typography.bodyMedium,
                 color = GoldDeep
             )
