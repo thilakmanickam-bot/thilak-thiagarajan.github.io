@@ -75,7 +75,17 @@ data class UiStrings(
     val deleteTitle: String,
     val cancel: String,
     val renameTitle: String,
-    val save: String
+    val save: String,
+    // Daily reading
+    val dailyTitle: String,
+    val dailyGood: String,
+    val dailyAvoid: String,
+    val dailyFocus: String,
+    val dailyLuckyColor: String,
+    val dailyAvoidColor: String,
+    // Notification
+    val notifTitle: String,
+    val notifChannelName: String
 ) {
     fun ageValue(years: Int): String = when (lang) {
         Language.EN -> "$years yrs"
@@ -169,7 +179,15 @@ data class UiStrings(
             deleteTitle = "Delete chart?",
             cancel = "Cancel",
             renameTitle = "Rename chart",
-            save = "Save"
+            save = "Save",
+            dailyTitle = "Today",
+            dailyGood = "Good to do",
+            dailyAvoid = "Avoid",
+            dailyFocus = "Focus",
+            dailyLuckyColor = "Lucky colour",
+            dailyAvoidColor = "Colour to avoid",
+            notifTitle = "Your daily reading",
+            notifChannelName = "Daily reading"
         )
 
         private val TA = UiStrings(
@@ -233,7 +251,15 @@ data class UiStrings(
             deleteTitle = "ஜாதகத்தை நீக்கவா?",
             cancel = "ரத்து",
             renameTitle = "ஜாதகத்தை மறுபெயரிடு",
-            save = "சேமி"
+            save = "சேமி",
+            dailyTitle = "இன்று",
+            dailyGood = "செய்ய நல்லது",
+            dailyAvoid = "தவிர்க்க",
+            dailyFocus = "கவனம்",
+            dailyLuckyColor = "அதிர்ஷ்ட நிறம்",
+            dailyAvoidColor = "தவிர்க்க வேண்டிய நிறம்",
+            notifTitle = "உங்கள் தினசரி பலன்",
+            notifChannelName = "தினசரி பலன்"
         )
 
         private val ZH = UiStrings(
@@ -297,7 +323,15 @@ data class UiStrings(
             deleteTitle = "删除星盘？",
             cancel = "取消",
             renameTitle = "重命名星盘",
-            save = "保存"
+            save = "保存",
+            dailyTitle = "今日",
+            dailyGood = "宜",
+            dailyAvoid = "忌",
+            dailyFocus = "焦点",
+            dailyLuckyColor = "幸运色",
+            dailyAvoidColor = "忌用色",
+            notifTitle = "你的每日运势",
+            notifChannelName = "每日运势"
         )
     }
 }

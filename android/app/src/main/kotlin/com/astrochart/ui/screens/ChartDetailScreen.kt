@@ -24,11 +24,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
 import com.astrochart.core.i18n.Language
 import com.astrochart.core.i18n.Translations
 import com.astrochart.core.interpret.AgeUtil
 import com.astrochart.core.interpret.ChartReading
 import com.astrochart.core.interpret.ChineseZodiac
+import com.astrochart.core.interpret.DailyReading
 import com.astrochart.core.models.Aspect
 import com.astrochart.core.models.NatalChart
 import com.astrochart.core.models.PlanetaryPosition
@@ -45,6 +49,7 @@ import com.astrochart.ui.theme.GoldDeep
 import com.astrochart.ui.theme.TextMuted
 import com.astrochart.ui.theme.TextPrimary
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
@@ -140,6 +145,84 @@ private fun WheelTab(chart: NatalChart) {
             NatalWheel(chart = chart, modifier = Modifier.fillMaxWidth())
             Spacer(modifier = Modifier.height(14.dp))
             WheelLegend()
+        }
+        Spacer(modifier = Modifier.height(12.dp))
+        DailyReadingCard(chart)
+    }
+}
+
+private fun dailyDateFmt(lang: Language): DateTimeFormatter =
+    DateTimeFormatter.ofPattern(if (lang == Language.ZH) "M月d日" else "d MMM yyyy", lang.locale)
+
+@Composable
+private fun DailyReadingCard(chart: NatalChart) {
+    val strings = LocalStrings.current
+    val lang = LocalLanguage.current
+    val sun = chart.planets.firstOrNull { it.name == "Sun" }?.sign
+    val today = LocalDate.now()
+    val data = remember(lang, sun, today) { DailyReading.build(today, lang, sun) }
+    val dateText = remember(lang, today) { today.format(dailyDateFmt(lang)) }
+
+    CelestialCard {
+        EyebrowLabel(text = strings.dailyTitle + "  •  " + dateText)
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = data.summary,
+            style = MaterialTheme.typography.bodyMedium,
+            color = TextPrimary
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        DailyRow(strings.dailyFocus, data.focus)
+        DailyRow(strings.dailyGood, data.goodToDo)
+        DailyRow(strings.dailyAvoid, data.avoid)
+        Spacer(modifier = Modifier.height(10.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+            ColorSwatch(strings.dailyLuckyColor, data.luckyColorName, data.luckyColorHex)
+            ColorSwatch(strings.dailyAvoidColor, data.avoidColorName, data.avoidColorHex)
+        }
+    }
+}
+
+@Composable
+private fun DailyRow(label: String, value: String) {
+    Row(modifier = Modifier.padding(vertical = 3.dp)) {
+        Text(
+            text = label.uppercase(),
+            style = MaterialTheme.typography.labelSmall,
+            color = TextMuted,
+            modifier = Modifier.width(112.dp)
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyMedium,
+            color = TextPrimary,
+            modifier = Modifier.weight(1f)
+        )
+    }
+}
+
+@Composable
+private fun ColorSwatch(label: String, name: String, hex: Long) {
+    Column {
+        Text(
+            text = label.uppercase(),
+            style = MaterialTheme.typography.labelSmall,
+            color = TextMuted
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                modifier = Modifier
+                    .size(16.dp)
+                    .clip(CircleShape)
+                    .background(Color(hex))
+            )
+            Spacer(modifier = Modifier.width(6.dp))
+            Text(
+                text = name,
+                style = MaterialTheme.typography.bodyMedium,
+                color = TextPrimary
+            )
         }
     }
 }

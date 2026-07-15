@@ -18,6 +18,9 @@ interface SavedChartDao {
     @Query("SELECT * FROM saved_charts WHERE id = :chartId")
     suspend fun getChartById(chartId: Long): SavedChartEntity?
 
+    @Query("SELECT * FROM saved_charts ORDER BY createdAt DESC LIMIT 1")
+    suspend fun getLatestChart(): SavedChartEntity?
+
     @Query("SELECT * FROM saved_charts ORDER BY createdAt DESC")
     fun getAllCharts(): Flow<List<SavedChartEntity>>
 
