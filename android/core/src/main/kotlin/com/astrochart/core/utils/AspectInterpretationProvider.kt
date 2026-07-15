@@ -1,5 +1,7 @@
 package com.astrochart.core.utils
 
+import com.astrochart.core.i18n.Language
+import com.astrochart.core.i18n.Translations
 import com.astrochart.core.models.AspectInterpretation
 
 object AspectInterpretationProvider {
@@ -7,6 +9,36 @@ object AspectInterpretationProvider {
     fun getInterpretation(bodyA: String, bodyB: String, aspectType: String): String {
         val key = "$bodyA-$bodyB-$aspectType"
         return interpretations[key] ?: "This aspect brings combined energies of $bodyA and $bodyB."
+    }
+
+    /**
+     * Localized aspect interpretation. English returns the bespoke text above;
+     * Tamil and Chinese compose a natural sentence from the localized planet
+     * names and the aspect's nature (blend / harmonious / challenging), so the
+     * reading is fully translated without maintaining hundreds of hand-written
+     * lines per language.
+     */
+    fun getInterpretation(bodyA: String, bodyB: String, aspectType: String, lang: Language): String {
+        if (lang == Language.EN) return getInterpretation(bodyA, bodyB, aspectType)
+        val a = Translations.planetName(bodyA, lang)
+        val b = Translations.planetName(bodyB, lang)
+        val nature = when (aspectType) {
+            "Conjunction" -> 0   // blend
+            "Trine", "Sextile" -> 1 // harmonious
+            else -> 2            // challenging
+        }
+        return when (lang) {
+            Language.TA -> when (nature) {
+                0 -> "$a – $b: இந்த இணைப்பு அவற்றின் ஆற்றல்களை ஒன்றிணைக்கிறது."
+                1 -> "$a – $b: இவை இணக்கமாகப் பாய்கின்றன, இயல்பான திறமையையும் எளிமையையும் தருகின்றன."
+                else -> "$a – $b: இவற்றுக்கிடையே பதற்றம் உள்ளது, வளர்ச்சிக்கான உந்துதலைத் தருகிறது."
+            }
+            else -> when (nature) {
+                0 -> "${a}与${b}：能量融合，共同运作。"
+                1 -> "${a}与${b}：和谐流动，带来天赋与顺畅。"
+                else -> "${a}与${b}：彼此张力，激发成长。"
+            }
+        }
     }
 
     private val interpretations = mapOf(
