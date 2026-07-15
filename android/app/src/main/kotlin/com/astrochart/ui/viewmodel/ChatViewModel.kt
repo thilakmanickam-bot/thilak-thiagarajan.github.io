@@ -8,8 +8,10 @@ import com.astrochart.chat.ChatClient
 import com.astrochart.chat.ChatRequest
 import com.astrochart.core.i18n.Language
 import com.astrochart.core.interpret.ChatPrompt
+import com.astrochart.core.models.NatalChart
 import com.astrochart.data.db.entities.SavedChartEntity
 import com.astrochart.data.repository.ChartRepository
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -51,39 +53,80 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
 
     private var systemPrompt: String = ""
     private var language: Language = Language.EN
+    // The loaded chart is kept so the prompt/greeting can be rebuilt if the app
+    // language changes before the conversation starts.
+    private var currentChart: NatalChart? = null
+    private var currentName: String = ""
+    private var sendJob: Job? = null
+    private var selecting: Boolean = false
     private val api by lazy { ChatClient.create() }
 
-    /** Whether a proxy is configured; when false, chat cannot send. */
+    /** Whether a proxy is configured (URL + app token) so chat can send. */
     fun isConfigured(): Boolean = ChatClient.isConfigured()
 
     fun suggestedQuestions(): List<String> = ChatPrompt.suggestedQuestions(language)
 
     /** Loads a saved chart, builds its system prompt, and opens the conversation. */
     fun selectChart(id: Long, lang: Language) {
+        if (selecting) return
+        selecting = true
+        // Any in-flight reply belongs to a previous chart; abandon it.
+        sendJob?.cancel()
+        sendJob = null
+        _isSending.value = false
         language = lang
         _error.value = null
         viewModelScope.launch {
-            val entity = repository.getChartById(id)
-            val chart = repository.getNatalChartById(id)
-            if (entity == null || chart == null) {
-                _error.value = "not_found"
-                return@launch
+            try {
+                val entity = repository.getChartById(id)
+                val chart = repository.getNatalChartById(id)
+                if (entity == null || chart == null) {
+                    _error.value = "not_found"
+                    return@launch
+                }
+                currentChart = chart
+                currentName = entity.name
+                buildForLanguage(lang)
+                _selectedChartName.value = entity.name
+                _messages.value = emptyList()
+            } finally {
+                selecting = false
             }
-            val context = ChatPrompt.chartContext(chart, entity.name, lang)
-            systemPrompt = ChatPrompt.systemPrompt(lang, context)
-            _selectedChartName.value = entity.name
-            _greeting.value = ChatPrompt.greeting(lang, entity.name)
-            _messages.value = emptyList()
         }
+    }
+
+    /**
+     * Rebuilds the system prompt, greeting, and suggestion language when the app
+     * language changes — but only before the conversation has started, so an
+     * in-progress exchange isn't switched mid-stream.
+     */
+    fun onLanguageChanged(lang: Language) {
+        if (lang == language) return
+        language = lang
+        if (currentChart != null && _messages.value.isEmpty()) {
+            buildForLanguage(lang)
+        }
+    }
+
+    private fun buildForLanguage(lang: Language) {
+        val chart = currentChart ?: return
+        val context = ChatPrompt.chartContext(chart, currentName, lang)
+        systemPrompt = ChatPrompt.systemPrompt(lang, context)
+        _greeting.value = ChatPrompt.greeting(lang, currentName)
     }
 
     /** Returns to the profile picker. */
     fun clearSelection() {
+        sendJob?.cancel()
+        sendJob = null
+        _isSending.value = false
         _selectedChartName.value = null
         _greeting.value = null
         _messages.value = emptyList()
         _error.value = null
         systemPrompt = ""
+        currentChart = null
+        currentName = ""
     }
 
     fun clearError() { _error.value = null }
@@ -101,16 +144,20 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         _isSending.value = true
         _error.value = null
 
-        viewModelScope.launch {
+        sendJob = viewModelScope.launch {
             try {
-                // Send the recent history (bounded) so context stays coherent
-                // without unbounded token growth. Starts with a user turn.
-                val history = _messages.value.takeLast(MAX_HISTORY).map {
-                    ApiMessage(
-                        role = if (it.role == Role.USER) "user" else "assistant",
-                        content = it.text
-                    )
-                }
+                // Send a bounded, valid history: drop the oldest turns, then any
+                // leading assistant turn so the array always starts with a user
+                // message (the Messages API requires this and strict alternation).
+                val history = _messages.value
+                    .takeLast(MAX_HISTORY)
+                    .dropWhile { it.role == Role.ASSISTANT }
+                    .map {
+                        ApiMessage(
+                            role = if (it.role == Role.USER) "user" else "assistant",
+                            content = it.text
+                        )
+                    }
                 val response = api.sendMessage(
                     ChatRequest(
                         model = MODEL,
@@ -121,15 +168,26 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                 )
                 val reply = response.text().trim()
                 if (reply.isEmpty()) {
+                    rollbackLastUser()
                     _error.value = "send_failed"
                 } else {
                     _messages.value = _messages.value + ChatMessage(Role.ASSISTANT, reply)
                 }
             } catch (t: Throwable) {
+                // Remove the optimistic user turn so a retry doesn't produce two
+                // consecutive user messages (which the API rejects).
+                rollbackLastUser()
                 _error.value = "send_failed"
             } finally {
                 _isSending.value = false
             }
+        }
+    }
+
+    private fun rollbackLastUser() {
+        val current = _messages.value
+        if (current.isNotEmpty() && current.last().role == Role.USER) {
+            _messages.value = current.dropLast(1)
         }
     }
 

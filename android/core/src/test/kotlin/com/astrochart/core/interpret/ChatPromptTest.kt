@@ -42,9 +42,12 @@ class ChatPromptTest {
         val ctx = ChatPrompt.chartContext(chart, "Alex", Language.EN)
         val prompt = ChatPrompt.systemPrompt(Language.EN, ctx)
 
-        // Persona guardrail present, chart context embedded, English directive present.
+        // Persona guardrail present, chart context embedded (header + the actual
+        // chart snapshot), English directive present.
         assertTrue(prompt.contains("You do not tell the future"), "persona boundary missing")
+        assertTrue(prompt.contains("for reflection only"), "context header missing")
         assertTrue(prompt.contains("Alex"), "chart context not embedded")
+        assertTrue(prompt.contains(ctx), "the chart snapshot is not embedded verbatim")
         assertTrue(prompt.contains("Always reply in English"), "English directive missing")
 
         // The Tamil and Chinese prompts carry their own reply directives.
@@ -67,5 +70,24 @@ class ChatPromptTest {
                 assertTrue(q.isNotBlank(), "$lang has a blank suggested question")
             }
         }
+    }
+
+    @Test
+    fun localizedText_actuallyUsesTheTargetScript() {
+        // Guards against a copy-paste of English into the TA/ZH branches: the
+        // localized greeting and suggestions must contain their own script.
+        val taGreeting = ChatPrompt.greeting(Language.TA, "Alex")
+        assertTrue(taGreeting.any { it in '஀'..'௿' }, "TA greeting has no Tamil script")
+        assertTrue(
+            ChatPrompt.suggestedQuestions(Language.TA).all { q -> q.any { it in '஀'..'௿' } },
+            "a TA suggestion has no Tamil script"
+        )
+
+        val zhGreeting = ChatPrompt.greeting(Language.ZH, "Alex")
+        assertTrue(zhGreeting.any { it in '一'..'鿿' }, "ZH greeting has no Han script")
+        assertTrue(
+            ChatPrompt.suggestedQuestions(Language.ZH).all { q -> q.any { it in '一'..'鿿' } },
+            "a ZH suggestion has no Han script"
+        )
     }
 }

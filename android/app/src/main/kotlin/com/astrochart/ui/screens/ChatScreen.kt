@@ -1,5 +1,6 @@
 package com.astrochart.ui.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -42,7 +43,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.astrochart.ui.components.CelestialCard
 import com.astrochart.ui.components.GoldButton
-import com.astrochart.ui.components.OutlineGoldButton
 import com.astrochart.ui.i18n.LocalLanguage
 import com.astrochart.ui.i18n.LocalStrings
 import com.astrochart.ui.theme.CardBorder
@@ -96,12 +96,14 @@ private fun ChartPicker(
     val strings = LocalStrings.current
     val language = LocalLanguage.current
     val charts by viewModel.savedCharts.collectAsState()
+    val error by viewModel.error.collectAsState()
 
     Column(
         modifier = modifier
             .fillMaxSize()
             .padding(horizontal = 24.dp, vertical = 16.dp)
     ) {
+        error?.let { ErrorLine(code = it) }
         if (charts.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -154,15 +156,22 @@ private fun Conversation(
     modifier: Modifier
 ) {
     val strings = LocalStrings.current
+    val language = LocalLanguage.current
     val greeting by viewModel.greeting.collectAsState()
     val messages by viewModel.messages.collectAsState()
     val isSending by viewModel.isSending.collectAsState()
     val error by viewModel.error.collectAsState()
 
+    // If the app language changes before the conversation starts, rebuild the
+    // greeting/prompt/suggestions in the new language.
+    LaunchedEffect(language) { viewModel.onLanguageChanged(language) }
+
     val listState = rememberLazyListState()
-    val total = (if (greeting != null) 1 else 0) + messages.size + (if (isSending) 1 else 0)
-    LaunchedEffect(total) {
-        if (total > 0) listState.animateScrollToItem(total - 1)
+    // Re-scroll to the newest content whenever a message is added or the
+    // thinking indicator toggles.
+    LaunchedEffect(messages.size, isSending, greeting) {
+        val count = (if (greeting != null) 1 else 0) + messages.size + (if (isSending) 1 else 0)
+        if (count > 0) listState.animateScrollToItem(count - 1)
     }
 
     Column(modifier = modifier.fillMaxSize()) {
@@ -208,11 +217,7 @@ private fun Conversation(
                             color = TextMuted
                         )
                         viewModel.suggestedQuestions().forEach { q ->
-                            OutlineGoldButton(
-                                text = q,
-                                onClick = { viewModel.send(q) },
-                                modifier = Modifier.fillMaxWidth()
-                            )
+                            SuggestionChip(text = q, onClick = { viewModel.send(q) })
                         }
                     }
                 }
@@ -227,15 +232,7 @@ private fun Conversation(
             }
         }
 
-        error?.let {
-            val text = if (it == "not_configured") strings.chatNotConfigured else strings.chatError
-            Text(
-                text = text,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.error,
-                modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp)
-            )
-        }
+        error?.let { ErrorLine(code = it) }
 
         MessageInput(
             hint = strings.chatInputHint,
@@ -296,7 +293,8 @@ private fun MessageInput(
 ) {
     var text by remember { mutableStateOf("") }
     val submit = {
-        if (text.isNotBlank()) {
+        // Ignore while a reply is in flight so the typed text isn't cleared unsent.
+        if (enabled && text.isNotBlank()) {
             onSend(text)
             text = ""
         }
@@ -335,4 +333,45 @@ private fun MessageInput(
             )
         }
     }
+}
+
+/**
+ * A tap-to-send suggested question. Unlike the gold CTA buttons this keeps the
+ * question's natural casing and left-aligns it, which suits full-sentence
+ * prompts and the gentle tone.
+ */
+@Composable
+private fun SuggestionChip(text: String, onClick: () -> Unit) {
+    Surface(
+        shape = RoundedCornerShape(18.dp),
+        color = CardFill.copy(alpha = 0.5f),
+        border = BorderStroke(1.dp, CardBorder),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyMedium,
+            color = GoldDeep,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+        )
+    }
+}
+
+/** Maps an error code to a localized line shown in red. */
+@Composable
+private fun ErrorLine(code: String) {
+    val strings = LocalStrings.current
+    val text = when (code) {
+        "not_configured" -> strings.chatNotConfigured
+        "not_found" -> strings.chatLoadFailed
+        else -> strings.chatError
+    }
+    Text(
+        text = text,
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.error,
+        modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp)
+    )
 }

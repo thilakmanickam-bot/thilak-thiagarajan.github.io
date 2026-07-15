@@ -11,6 +11,9 @@ Halo app  ──POST (X-App-Token)──▶  this Worker  ──x-api-key──�
 
 The model is pinned to `claude-haiku-4-5` and `max_tokens` is capped server-side,
 so a leaked app token can't be used to request a pricier model or huge outputs.
+Request size and message count are bounded too. This does **not** limit request
+*volume* — for that, add a [Cloudflare rate-limiting rule](https://developers.cloudflare.com/waf/rate-limiting-rules/)
+on the Worker route (e.g. N requests/min per IP) before relying on it in production.
 
 ## Deploy
 

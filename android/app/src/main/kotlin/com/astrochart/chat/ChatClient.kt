@@ -18,8 +18,12 @@ object ChatClient {
     val proxyUrl: String = BuildConfig.CHAT_PROXY_URL
     private val appToken: String = BuildConfig.CHAT_APP_TOKEN
 
-    /** True when a proxy URL is set, so chat requests can actually be sent. */
-    fun isConfigured(): Boolean = proxyUrl.isNotBlank()
+    /**
+     * True when both the proxy URL and the app token are set. The token is
+     * required — without it the worker rejects every request with 401 — so an
+     * app with only the URL is treated as not configured.
+     */
+    fun isConfigured(): Boolean = proxyUrl.isNotBlank() && appToken.isNotBlank()
 
     fun create(): AnthropicApi {
         val logging = HttpLoggingInterceptor().apply {

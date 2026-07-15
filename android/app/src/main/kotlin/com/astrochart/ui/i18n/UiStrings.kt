@@ -98,7 +98,8 @@ data class UiStrings(
     val chatSuggestionsHeader: String,
     val chatThinking: String,
     val chatNotConfigured: String,
-    val chatError: String
+    val chatError: String,
+    val chatLoadFailed: String
 ) {
     fun ageValue(years: Int): String = when (lang) {
         Language.EN -> "$years yrs"
@@ -212,7 +213,8 @@ data class UiStrings(
             chatSuggestionsHeader = "You might ask…",
             chatThinking = "Reflecting…",
             chatNotConfigured = "The astrologer isn't connected yet. Add the chat proxy URL and token at build time to begin.",
-            chatError = "Something interrupted our connection. Please try again in a moment."
+            chatError = "Something interrupted our connection. Please try again in a moment.",
+            chatLoadFailed = "Couldn't open that chart. Please try another."
         )
 
         private val TA = UiStrings(
@@ -293,10 +295,11 @@ data class UiStrings(
             chatChangeChart = "ஜாதகத்தை மாற்று",
             chatInputHint = "உங்கள் மனதில் உள்ளதைப் பகிருங்கள்…",
             chatSend = "அனுப்பு",
-            chatSuggestionsHeader = "நீங்கள் கேகலாம்…",
+            chatSuggestionsHeader = "நீங்கள் கேட்கலாம்…",
             chatThinking = "சிந்திக்கிறேன்…",
             chatNotConfigured = "ஜோதிடர் இன்னும் இணைக்கப்படவில்லை. தொடங்க, உருவாக்கும் நேரத்தில் ப்ராக்ஸி முகவரி மற்றும் டோக்கனைச் சேர்க்கவும்.",
-            chatError = "இணைப்பு தடைபட்டது. சிறிது நேரத்தில் மீண்டும் முயற்சிக்கவும்."
+            chatError = "இணைப்பு தடைபட்டது. சிறிது நேரத்தில் மீண்டும் முயற்சிக்கவும்.",
+            chatLoadFailed = "அந்த ஜாதகத்தைத் திறக்க முடியவில்லை. வேறொன்றை முயற்சிக்கவும்."
         )
 
         private val ZH = UiStrings(
@@ -380,7 +383,8 @@ data class UiStrings(
             chatSuggestionsHeader = "你可以问……",
             chatThinking = "思考中……",
             chatNotConfigured = "星象向导尚未连接。请在构建时添加聊天代理地址与令牌以开始使用。",
-            chatError = "连接中断了，请稍后再试。"
+            chatError = "连接中断了，请稍后再试。",
+            chatLoadFailed = "无法打开该星盘，请换一个试试。"
         )
     }
 }
