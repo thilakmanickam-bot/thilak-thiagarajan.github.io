@@ -55,7 +55,7 @@ object Translations {
         "Aries" to "大胆、直接、开拓",
         "Taurus" to "稳健、感性、务实",
         "Gemini" to "好奇、多变、健谈",
-        "Cancer" to "体贴、护己、直觉",
+        "Cancer" to "体贴、守护、直觉",
         "Leo" to "热情、外向、自豪",
         "Virgo" to "精确、实际、善于分析",
         "Libra" to "平衡、重关系、圆融",

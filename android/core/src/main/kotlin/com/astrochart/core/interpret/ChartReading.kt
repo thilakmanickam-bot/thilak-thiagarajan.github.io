@@ -89,7 +89,7 @@ object ChartReading {
         )[index]
         Language.TA -> listOf(
             "மேற்பார்வை", "மைய சுயம்", "கிரக நிலைகள்", "முக்கிய கோணங்கள்",
-            "பஞ்சபூத & குண சமநிலை"
+            "பூத & குண சமநிலை"
         )[index]
         Language.ZH -> listOf(
             "概览", "核心自我", "行星落点", "主要相位", "元素与模式平衡"
@@ -134,9 +134,9 @@ object ChartReading {
         return when (lang) {
             Language.EN -> "With the Sun in $sunN, the Moon in $moonN, and $ascN rising, " +
                 "$who blends a $sunKw core, $moonKw emotions, and a $ascKw first impression."
-            Language.TA -> "$sunN சூரியன், $moonN சந்திரன், $ascN லக்னம் — $who ஒரு $sunKw சுயத்தையும், " +
+            Language.TA -> "$sunN ராசியில் சூரியன், $moonN ராசியில் சந்திரன், $ascN லக்னம் — $who ஒரு $sunKw சுயத்தையும், " +
                 "$moonKw உணர்வுகளையும், $ascKw முதல் தோற்றத்தையும் இணைக்கிறார்."
-            Language.ZH -> "太阳在${sunN}、月亮在${moonN}、${ascN}上升，${who}融合了${sunKw}的自我、" +
+            Language.ZH -> "太阳在${sunN}、月亮在${moonN}、${ascN}上升，${who}融合了${sunKw}的自我，" +
                 "${moonKw}的情感，以及${ascKw}的第一印象。"
         }
     }
@@ -165,11 +165,11 @@ object ChartReading {
         val kw = Translations.signKeywords(p.sign, lang)
         val area = Translations.houseArea(p.house, lang)
         return when (lang) {
-            Language.EN -> "$glyph $planet in $sign (House ${p.house}) — your $role is expressed " +
-                "in a $kw way, focused on $area."
+            Language.EN -> "$glyph $planet in $sign (House ${p.house}) — you express your $role " +
+                "in a $kw way, focusing on $area."
             Language.TA -> "$glyph $planet — $sign ராசியில் (${p.house}ஆம் வீடு): உங்கள் $role $kw " +
                 "விதத்தில் வெளிப்படுகிறது, $area தொடர்பாக."
-            Language.ZH -> "$glyph $planet 在${sign}（第${p.house}宫）——你的${role}以${kw}的方式展现，聚焦于${area}。"
+            Language.ZH -> "$glyph ${planet}在${sign}（第${p.house}宫）——你的${role}以${kw}的方式展现，聚焦于${area}。"
         }
     }
 
@@ -177,7 +177,7 @@ object ChartReading {
 
     private fun noAspects(lang: Language): String = when (lang) {
         Language.EN -> "No major aspects fall within orb here — the planets each act fairly independently."
-        Language.TA -> "இங்கு orb-க்குள் பெரிய கோணங்கள் எதுவும் இல்லை — கிரகங்கள் ஒவ்வொன்றும் தனித்தனியே செயல்படுகின்றன."
+        Language.TA -> "இங்கு இடைவெளிக்குள் பெரிய கோணங்கள் எதுவும் இல்லை — கிரகங்கள் ஒவ்வொன்றும் தனித்தனியே செயல்படுகின்றன."
         Language.ZH -> "此处没有落在容许度内的主要相位——各行星相对独立地运作。"
     }
 
@@ -186,7 +186,7 @@ object ChartReading {
         lang: Language, rawType: String
     ): String = when (lang) {
         Language.EN -> "$a ${rawType.lowercase()} $b (orb $orb°): $interp"
-        Language.TA -> "$a $type $b ($orb° orb): $interp"
+        Language.TA -> "$a–$b $type ($orb° இடைவெளி): $interp"
         Language.ZH -> "$a$type$b（容许度 $orb°）：$interp"
     }
 
@@ -201,9 +201,12 @@ object ChartReading {
 
         val missing = ELEMENTS.filter { (el[it] ?: 0) == 0 }
         if (missing.isNotEmpty()) {
-            val names = missing.joinToString(if (lang == Language.ZH) "、" else ", ") {
-                Translations.element(it, lang)
+            val sep = when (lang) {
+                Language.ZH -> "、"
+                Language.EN -> " or "
+                Language.TA -> ", "
             }
+            val names = missing.joinToString(sep) { Translations.element(it, lang) }
             paras += lackingElementText(names, missing.first(), lang)
         }
 
@@ -245,7 +248,7 @@ object ChartReading {
             "Air" -> "பொருள்நிலைப் பார்வைக்கும் உரையாடலுக்கும் சற்று விலகி நிற்பது உதவும்."
             else -> "உணர்வுகளுக்கும் இரக்கத்துக்கும் இடம் கொடுப்பது சமநிலையைத் தரும்."
         }
-        Language.ZH -> "${names}能量很少或缺失——" + when (first) {
+        Language.ZH -> "${names}元素的能量很少或缺失——" + when (first) {
             "Fire" -> "培养主动性与自我主张能带来平衡。"
             "Earth" -> "值得培养踏实的日常与执行力。"
             "Air" -> "适时抽离以获得客观视角与对话会有帮助。"
