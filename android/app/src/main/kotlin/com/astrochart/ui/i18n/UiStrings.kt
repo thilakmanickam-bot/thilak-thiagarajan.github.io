@@ -120,7 +120,7 @@ data class UiStrings(
 
         private val EN = UiStrings(
             lang = Language.EN,
-            appName = "AstroChart",
+            appName = "Halo",
             navCalculate = "Calculate My Chart",
             navSavedChartsTitle = "Saved Charts",
             chartTitle = "Chart",
@@ -192,7 +192,7 @@ data class UiStrings(
 
         private val TA = UiStrings(
             lang = Language.TA,
-            appName = "AstroChart",
+            appName = "Halo",
             navCalculate = "எனது ஜாதகத்தைக் கணக்கிடு",
             navSavedChartsTitle = "சேமித்த ஜாதகங்கள்",
             chartTitle = "ஜாதகம்",
@@ -264,7 +264,7 @@ data class UiStrings(
 
         private val ZH = UiStrings(
             lang = Language.ZH,
-            appName = "AstroChart",
+            appName = "Halo",
             navCalculate = "计算我的星盘",
             navSavedChartsTitle = "已保存星盘",
             chartTitle = "星盘",
