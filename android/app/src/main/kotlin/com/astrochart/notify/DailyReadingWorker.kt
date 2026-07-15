@@ -62,7 +62,7 @@ class DailyReadingWorker(appContext: Context, params: WorkerParameters) :
         )
 
         val notification = NotificationCompat.Builder(context, NotificationScheduler.CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_launcher)
+            .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(strings.notifTitle)
             .setContentText(data.summary)
             .setStyle(NotificationCompat.BigTextStyle().bigText(data.summary))
