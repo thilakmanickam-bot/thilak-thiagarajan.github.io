@@ -48,6 +48,7 @@ import com.astrochart.ui.i18n.LocalStrings
 import com.astrochart.ui.i18n.UiStrings
 import com.astrochart.ui.screens.BirthInputScreen
 import com.astrochart.ui.screens.ChartDetailScreen
+import com.astrochart.ui.screens.ChatScreen
 import com.astrochart.ui.screens.HomeScreen
 import com.astrochart.ui.screens.SavedChartsScreen
 import com.astrochart.ui.theme.AstroChartTheme
@@ -55,6 +56,7 @@ import com.astrochart.ui.theme.GoldDeep
 import com.astrochart.ui.theme.TextPrimary
 import com.astrochart.ui.viewmodel.BirthInputViewModel
 import com.astrochart.ui.viewmodel.ChartViewModel
+import com.astrochart.ui.viewmodel.ChatViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -94,6 +96,7 @@ fun AppNavigation() {
     val navController = rememberNavController()
     val chartViewModel: ChartViewModel = viewModel()
     val birthInputViewModel: BirthInputViewModel = viewModel()
+    val chatViewModel: ChatViewModel = viewModel()
 
     val context = LocalContext.current
     var language by remember { mutableStateOf(LanguageStore.load(context)) }
@@ -111,6 +114,7 @@ fun AppNavigation() {
         "birth_input" -> strings.navCalculate
         "saved_charts" -> strings.navSavedChartsTitle
         "chart_detail" -> strings.chartTitle
+        "chat" -> strings.navChatTitle
         else -> strings.appName
     }
 
@@ -158,7 +162,8 @@ fun AppNavigation() {
             composable("home") {
                 HomeScreen(
                     onNavigateToBirthInput = { navController.navigate("birth_input") },
-                    onNavigateToSavedCharts = { navController.navigate("saved_charts") }
+                    onNavigateToSavedCharts = { navController.navigate("saved_charts") },
+                    onNavigateToChat = { navController.navigate("chat") }
                 )
             }
 
@@ -193,6 +198,15 @@ fun AppNavigation() {
                 ChartDetailScreen(
                     chart = chart,
                     chartName = chartName
+                )
+            }
+
+            composable("chat") {
+                ChatScreen(
+                    viewModel = chatViewModel,
+                    onNavigateToBirthInput = {
+                        navController.navigate("birth_input") { popUpTo("home") }
+                    }
                 )
             }
         }

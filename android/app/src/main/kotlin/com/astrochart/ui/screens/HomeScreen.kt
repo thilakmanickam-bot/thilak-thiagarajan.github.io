@@ -35,6 +35,7 @@ import com.astrochart.ui.theme.TextPrimary
 fun HomeScreen(
     onNavigateToBirthInput: () -> Unit,
     onNavigateToSavedCharts: () -> Unit,
+    onNavigateToChat: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val strings = LocalStrings.current
@@ -89,6 +90,14 @@ fun HomeScreen(
         OutlineGoldButton(
             text = strings.homeViewSaved,
             onClick = onNavigateToSavedCharts,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlineGoldButton(
+            text = strings.chatEntry,
+            onClick = onNavigateToChat,
             modifier = Modifier.fillMaxWidth()
         )
 

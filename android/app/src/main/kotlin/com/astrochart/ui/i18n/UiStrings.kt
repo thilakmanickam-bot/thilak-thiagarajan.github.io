@@ -85,7 +85,20 @@ data class UiStrings(
     val dailyAvoidColor: String,
     // Notification
     val notifTitle: String,
-    val notifChannelName: String
+    val notifChannelName: String,
+    // Chat (AI astrologer)
+    val chatEntry: String,
+    val navChatTitle: String,
+    val chatChoosePrompt: String,
+    val chatEmptyMessage: String,
+    val chatCreateChart: String,
+    val chatChangeChart: String,
+    val chatInputHint: String,
+    val chatSend: String,
+    val chatSuggestionsHeader: String,
+    val chatThinking: String,
+    val chatNotConfigured: String,
+    val chatError: String
 ) {
     fun ageValue(years: Int): String = when (lang) {
         Language.EN -> "$years yrs"
@@ -187,7 +200,19 @@ data class UiStrings(
             dailyLuckyColor = "Lucky colour",
             dailyAvoidColor = "Colour to avoid",
             notifTitle = "Your daily reading",
-            notifChannelName = "Daily reading"
+            notifChannelName = "Daily reading",
+            chatEntry = "Ask the Astrologer",
+            navChatTitle = "Astrologer",
+            chatChoosePrompt = "Whose chart shall we reflect on?",
+            chatEmptyMessage = "You have no saved charts yet. Create one, and we can gently reflect on it together.",
+            chatCreateChart = "Create a Chart",
+            chatChangeChart = "Change chart",
+            chatInputHint = "Share what's on your mind…",
+            chatSend = "Send",
+            chatSuggestionsHeader = "You might ask…",
+            chatThinking = "Reflecting…",
+            chatNotConfigured = "The astrologer isn't connected yet. Add the chat proxy URL and token at build time to begin.",
+            chatError = "Something interrupted our connection. Please try again in a moment."
         )
 
         private val TA = UiStrings(
@@ -259,7 +284,19 @@ data class UiStrings(
             dailyLuckyColor = "அதிர்ஷ்ட நிறம்",
             dailyAvoidColor = "தவிர்க்க வேண்டிய நிறம்",
             notifTitle = "உங்கள் தினசரி பலன்",
-            notifChannelName = "தினசரி பலன்"
+            notifChannelName = "தினசரி பலன்",
+            chatEntry = "ஜோதிடரிடம் கேளுங்கள்",
+            navChatTitle = "ஜோதிடர்",
+            chatChoosePrompt = "யாருடைய ஜாதகத்தைப் பற்றி சிந்திப்போம்?",
+            chatEmptyMessage = "இதுவரை சேமித்த ஜாதகங்கள் இல்லை. ஒன்றை உருவாக்குங்கள், அதைப் பற்றி மெதுவாக சிந்திப்போம்.",
+            chatCreateChart = "ஜாதகம் உருவாக்கு",
+            chatChangeChart = "ஜாதகத்தை மாற்று",
+            chatInputHint = "உங்கள் மனதில் உள்ளதைப் பகிருங்கள்…",
+            chatSend = "அனுப்பு",
+            chatSuggestionsHeader = "நீங்கள் கேகலாம்…",
+            chatThinking = "சிந்திக்கிறேன்…",
+            chatNotConfigured = "ஜோதிடர் இன்னும் இணைக்கப்படவில்லை. தொடங்க, உருவாக்கும் நேரத்தில் ப்ராக்ஸி முகவரி மற்றும் டோக்கனைச் சேர்க்கவும்.",
+            chatError = "இணைப்பு தடைபட்டது. சிறிது நேரத்தில் மீண்டும் முயற்சிக்கவும்."
         )
 
         private val ZH = UiStrings(
@@ -331,7 +368,19 @@ data class UiStrings(
             dailyLuckyColor = "幸运色",
             dailyAvoidColor = "忌用色",
             notifTitle = "你的每日运势",
-            notifChannelName = "每日运势"
+            notifChannelName = "每日运势",
+            chatEntry = "向星象向导提问",
+            navChatTitle = "星象向导",
+            chatChoosePrompt = "我们来反思谁的星盘？",
+            chatEmptyMessage = "你还没有已保存的星盘。先创建一个，我们再一起静静地反思。",
+            chatCreateChart = "创建星盘",
+            chatChangeChart = "更换星盘",
+            chatInputHint = "说说你的心事……",
+            chatSend = "发送",
+            chatSuggestionsHeader = "你可以问……",
+            chatThinking = "思考中……",
+            chatNotConfigured = "星象向导尚未连接。请在构建时添加聊天代理地址与令牌以开始使用。",
+            chatError = "连接中断了，请稍后再试。"
         )
     }
 }
