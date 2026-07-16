@@ -8,14 +8,19 @@ android {
     namespace = "com.astrochart"
     compileSdk rootProject.ext.compileSdk
 
+    // versionCode/versionName can be overridden from CI (VERSION_CODE / VERSION_NAME)
+    // so each Play upload gets a unique, increasing code without editing the file.
+    // Resolved into locals first to avoid Groovy parsing `versionCode (...).toInteger()`
+    // as a method call with a chained method on its return value.
+    def resolvedVersionCode = (System.getenv("VERSION_CODE") ?: rootProject.ext.versionCode.toString()).toInteger()
+    def resolvedVersionName = System.getenv("VERSION_NAME") ?: rootProject.ext.versionName
+
     defaultConfig {
         applicationId = "com.astrochart"
         minSdk rootProject.ext.minSdk
         targetSdk rootProject.ext.targetSdk
-        // versionCode can be overridden from CI (VERSION_CODE) so each Play upload
-        // gets a unique, increasing code without editing the file.
-        versionCode (System.getenv("VERSION_CODE") ?: rootProject.ext.versionCode.toString()).toInteger()
-        versionName System.getenv("VERSION_NAME") ?: rootProject.ext.versionName
+        versionCode resolvedVersionCode
+        versionName resolvedVersionName
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
