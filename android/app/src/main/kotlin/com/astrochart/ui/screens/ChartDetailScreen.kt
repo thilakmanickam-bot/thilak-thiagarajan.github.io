@@ -230,13 +230,13 @@ private fun ColorSwatch(label: String, name: String, hex: Long) {
 @Composable
 private fun WheelLegend() {
     val strings = LocalStrings.current
+    // Stack the two colour keys vertically so the longer localized strings (e.g.
+    // Tamil) wrap naturally instead of being squeezed into a narrow column.
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(strings.wheelLegendAxis,
             style = MaterialTheme.typography.bodySmall, color = TextMuted)
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            Text(strings.wheelLegendSoft, style = MaterialTheme.typography.bodySmall, color = Color(0xFF8FB8C8))
-            Text(strings.wheelLegendHard, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
-        }
+        Text(strings.wheelLegendSoft, style = MaterialTheme.typography.bodySmall, color = Color(0xFF8FB8C8))
+        Text(strings.wheelLegendHard, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
     }
 }
 
@@ -304,20 +304,26 @@ private fun ChartHeader(chart: NatalChart, chartName: String) {
             )
         }
         Spacer(modifier = Modifier.height(16.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(28.dp)) {
-            sun?.let { KeyPlacement(strings.labelSun, Translations.signName(it.sign, lang)) }
-            moon?.let { KeyPlacement(strings.labelMoon, Translations.signName(it.sign, lang)) }
-            KeyPlacement(strings.labelRising, Translations.signName(chart.ascendant.sign, lang))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            sun?.let { KeyPlacement(strings.labelSun, Translations.signName(it.sign, lang), Modifier.weight(1f)) }
+            moon?.let { KeyPlacement(strings.labelMoon, Translations.signName(it.sign, lang), Modifier.weight(1f)) }
+            KeyPlacement(strings.labelRising, Translations.signName(chart.ascendant.sign, lang), Modifier.weight(1f))
         }
         Spacer(modifier = Modifier.height(16.dp))
         SectionDivider()
         Spacer(modifier = Modifier.height(12.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(28.dp)) {
-            KeyPlacement(strings.labelAge, strings.ageValue(age))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            KeyPlacement(strings.labelAge, strings.ageValue(age), Modifier.weight(1f))
             if (gender.isNotBlank()) {
-                KeyPlacement(strings.labelGender, localizedGender(gender, strings))
+                KeyPlacement(strings.labelGender, localizedGender(gender, strings), Modifier.weight(1f))
             }
-            KeyPlacement(strings.labelChineseZodiac, "$zodiacEmoji $zodiac")
+            KeyPlacement(strings.labelChineseZodiac, "$zodiacEmoji $zodiac", Modifier.weight(1f))
         }
     }
 }
@@ -330,8 +336,8 @@ private fun localizedGender(code: String, strings: UiStrings): String = when (co
 }
 
 @Composable
-private fun KeyPlacement(label: String, sign: String) {
-    Column {
+private fun KeyPlacement(label: String, sign: String, modifier: Modifier = Modifier) {
+    Column(modifier = modifier) {
         Text(text = label.uppercase(), style = MaterialTheme.typography.labelSmall, color = TextMuted)
         Spacer(modifier = Modifier.height(2.dp))
         Text(
@@ -425,12 +431,14 @@ private fun AspectRow(aspect: Aspect) {
     CelestialCard {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
                 text = "$bodyA $type $bodyB",
                 style = MaterialTheme.typography.titleSmall,
-                color = TextPrimary
+                color = TextPrimary,
+                modifier = Modifier.weight(1f)
             )
             Text(
                 text = strings.orb + " " + String.format(Locale.US, "%.1f°", aspect.orb),

@@ -3,6 +3,8 @@ package com.astrochart.ui.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.astrochart.chat.AnthropicApi
+import com.astrochart.chat.ApiKeyStore
 import com.astrochart.chat.ApiMessage
 import com.astrochart.chat.ChatClient
 import com.astrochart.chat.ChatRequest
@@ -51,6 +53,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
 
+    private val appContext = application.applicationContext
     private var systemPrompt: String = ""
     private var language: Language = Language.EN
     // The loaded chart is kept so the prompt/greeting can be rebuilt if the app
@@ -59,10 +62,27 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     private var currentName: String = ""
     private var sendJob: Job? = null
     private var selecting: Boolean = false
-    private val api by lazy { ChatClient.create() }
+    private var apiClient: AnthropicApi? = null
 
-    /** Whether a proxy is configured (URL + app token) so chat can send. */
-    fun isConfigured(): Boolean = ChatClient.isConfigured()
+    /** True until an API key is entered, or when the user asks to change it. */
+    private val _showKeyEntry = MutableStateFlow(ApiKeyStore.load(appContext).isBlank())
+    val showKeyEntry: StateFlow<Boolean> = _showKeyEntry.asStateFlow()
+
+    /** Whether an API key is stored, so chat can actually send. */
+    fun hasApiKey(): Boolean = ApiKeyStore.load(appContext).isNotBlank()
+
+    /** Stores the user's Anthropic API key and returns to the chat if non-blank. */
+    fun saveApiKey(key: String) {
+        ApiKeyStore.save(appContext, key)
+        apiClient = null
+        _showKeyEntry.value = key.isBlank()
+    }
+
+    /** Re-opens the key entry so the user can change or replace the key. */
+    fun editApiKey() { _showKeyEntry.value = true }
+
+    private fun api(): AnthropicApi =
+        apiClient ?: ChatClient.create(ApiKeyStore.load(appContext)).also { apiClient = it }
 
     fun suggestedQuestions(): List<String> = ChatPrompt.suggestedQuestions(language)
 
@@ -135,7 +155,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     fun send(text: String) {
         val trimmed = text.trim()
         if (trimmed.isEmpty() || _isSending.value) return
-        if (!isConfigured() || systemPrompt.isEmpty()) {
+        if (!hasApiKey() || systemPrompt.isEmpty()) {
             _error.value = "not_configured"
             return
         }
@@ -158,7 +178,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                             content = it.text
                         )
                     }
-                val response = api.sendMessage(
+                val response = api().sendMessage(
                     ChatRequest(
                         model = MODEL,
                         maxTokens = MAX_TOKENS,

@@ -8,25 +8,20 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 /**
- * Builds the [AnthropicApi] pointed at the chat proxy. The proxy URL and the
- * shared app-token come from [BuildConfig] (injected at build time — never
- * committed). When they are empty the app is "not configured" and the chat
- * screen offers guidance instead of calling the network.
+ * Builds the [AnthropicApi] pointed straight at the Anthropic Messages API,
+ * authenticated with the user's own API key (entered in-app, stored on-device
+ * via [ApiKeyStore]). The key is attached as the `x-api-key` header on each
+ * request and never sent anywhere but Anthropic.
  */
 object ChatClient {
 
-    val proxyUrl: String = BuildConfig.CHAT_PROXY_URL
-    private val appToken: String = BuildConfig.CHAT_APP_TOKEN
+    private const val BASE_URL = "https://api.anthropic.com/"
+    private const val ANTHROPIC_VERSION = "2023-06-01"
 
-    /**
-     * True when both the proxy URL and the app token are set. The token is
-     * required — without it the worker rejects every request with 401 — so an
-     * app with only the URL is treated as not configured.
-     */
-    fun isConfigured(): Boolean = proxyUrl.isNotBlank() && appToken.isNotBlank()
-
-    fun create(): AnthropicApi {
+    fun create(apiKey: String): AnthropicApi {
         val logging = HttpLoggingInterceptor().apply {
+            // BASIC logs only method/URL/status — never headers, so the key and
+            // the x-api-key header are not written to logcat even in debug.
             level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BASIC
             else HttpLoggingInterceptor.Level.NONE
         }
@@ -34,7 +29,8 @@ object ChatClient {
         val client = OkHttpClient.Builder()
             .addInterceptor { chain ->
                 val request = chain.request().newBuilder()
-                    .header("X-App-Token", appToken)
+                    .header("x-api-key", apiKey)
+                    .header("anthropic-version", ANTHROPIC_VERSION)
                     .header("content-type", "application/json")
                     .build()
                 chain.proceed(request)
@@ -44,11 +40,8 @@ object ChatClient {
             .readTimeout(60, TimeUnit.SECONDS)
             .build()
 
-        // Retrofit requires a base URL ending in "/"; tolerate a missing slash.
-        val base = if (proxyUrl.endsWith("/")) proxyUrl else "$proxyUrl/"
-
         return Retrofit.Builder()
-            .baseUrl(base)
+            .baseUrl(BASE_URL)
             .client(client)
             .addConverterFactory(GsonConverterFactory.create())
             .build()

@@ -17,14 +17,6 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
-
-        // Chat proxy config, injected at build time from Gradle properties (kept out
-        // of the repo). Both default to empty so CI and local builds work without
-        // secrets; when empty the chat screen shows a "not configured" notice.
-        buildConfigField "String", "CHAT_PROXY_URL",
-            "\"${project.findProperty('chatProxyUrl') ?: ''}\""
-        buildConfigField "String", "CHAT_APP_TOKEN",
-            "\"${project.findProperty('chatAppToken') ?: ''}\""
     }
 
     buildTypes {

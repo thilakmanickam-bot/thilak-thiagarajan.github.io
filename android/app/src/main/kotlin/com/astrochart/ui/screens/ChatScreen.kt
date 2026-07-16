@@ -40,6 +40,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.astrochart.ui.components.CelestialCard
 import com.astrochart.ui.components.GoldButton
@@ -64,18 +65,9 @@ fun ChatScreen(
     onNavigateToBirthInput: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val strings = LocalStrings.current
-
-    if (!viewModel.isConfigured()) {
-        Box(modifier = modifier.fillMaxSize().padding(28.dp), contentAlignment = Alignment.Center) {
-            CelestialCard {
-                Text(
-                    text = strings.chatNotConfigured,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = TextMuted
-                )
-            }
-        }
+    val showKeyEntry by viewModel.showKeyEntry.collectAsState()
+    if (showKeyEntry) {
+        ApiKeyEntry(viewModel = viewModel, modifier = modifier)
         return
     }
 
@@ -103,6 +95,14 @@ private fun ChartPicker(
             .fillMaxSize()
             .padding(horizontal = 24.dp, vertical = 16.dp)
     ) {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+            Text(
+                text = strings.chatChangeApiKey,
+                style = MaterialTheme.typography.labelLarge,
+                color = GoldDeep,
+                modifier = Modifier.clickable { viewModel.editApiKey() }
+            )
+        }
         error?.let { ErrorLine(code = it) }
         if (charts.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -356,6 +356,68 @@ private fun SuggestionChip(text: String, onClick: () -> Unit) {
             color = GoldDeep,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
         )
+    }
+}
+
+/**
+ * First-run (and "change key") screen: the user pastes their Anthropic API key,
+ * which is stored on-device and used to call the Messages API directly.
+ */
+@Composable
+private fun ApiKeyEntry(viewModel: ChatViewModel, modifier: Modifier) {
+    val strings = LocalStrings.current
+    var key by remember { mutableStateOf("") }
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        CelestialCard {
+            Text(
+                text = strings.chatConnectTitle,
+                style = MaterialTheme.typography.titleMedium,
+                color = TextPrimary
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = strings.chatApiKeyPrompt,
+                style = MaterialTheme.typography.bodyMedium,
+                color = TextMuted
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            OutlinedTextField(
+                value = key,
+                onValueChange = { key = it },
+                placeholder = { Text(strings.chatApiKeyHint, color = TextMuted) },
+                singleLine = true,
+                visualTransformation = PasswordVisualTransformation(),
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = CardFill.copy(alpha = 0.5f),
+                    unfocusedContainerColor = CardFill.copy(alpha = 0.5f),
+                    focusedTextColor = TextPrimary,
+                    unfocusedTextColor = TextPrimary,
+                    focusedIndicatorColor = CardBorder,
+                    unfocusedIndicatorColor = CardBorder,
+                    cursorColor = GoldDeep
+                )
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            GoldButton(
+                text = strings.chatConnect,
+                onClick = { viewModel.saveApiKey(key) },
+                enabled = key.isNotBlank(),
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = strings.chatApiKeyHelp,
+                style = MaterialTheme.typography.bodySmall,
+                color = TextMuted
+            )
+        }
     }
 }
 
