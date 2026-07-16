@@ -22,6 +22,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import com.astrochart.BuildConfig
 import com.astrochart.ui.components.EyebrowLabel
 import com.astrochart.ui.components.GoldButton
 import com.astrochart.ui.components.MoonPhaseRow
@@ -30,11 +31,13 @@ import com.astrochart.ui.i18n.LocalStrings
 import com.astrochart.ui.theme.GoldDeep
 import com.astrochart.ui.theme.TextMuted
 import com.astrochart.ui.theme.TextPrimary
+import java.time.Year
 
 @Composable
 fun HomeScreen(
     onNavigateToBirthInput: () -> Unit,
     onNavigateToSavedCharts: () -> Unit,
+    onNavigateToChat: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val strings = LocalStrings.current
@@ -92,6 +95,45 @@ fun HomeScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(modifier = Modifier.height(48.dp))
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlineGoldButton(
+            text = strings.chatEntry,
+            onClick = onNavigateToChat,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(40.dp))
+
+        AppFooter(modifier = Modifier.fillMaxWidth())
+
+        Spacer(modifier = Modifier.height(20.dp))
+    }
+}
+
+/** App version and attribution shown at the bottom of the home screen. */
+@Composable
+private fun AppFooter(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "v${BuildConfig.VERSION_NAME}",
+            style = MaterialTheme.typography.labelSmall,
+            color = TextMuted
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = "Built by Techbyt",
+            style = MaterialTheme.typography.labelSmall,
+            color = GoldDeep
+        )
+        Text(
+            text = "© ${Year.now().value} Techbyt. All rights reserved.",
+            style = MaterialTheme.typography.labelSmall,
+            color = TextMuted,
+            textAlign = TextAlign.Center
+        )
     }
 }

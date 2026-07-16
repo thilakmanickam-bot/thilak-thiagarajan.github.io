@@ -56,3 +56,42 @@ jobs:
         with:
           name: test-results
           path: android/app/build/reports/
+
+  # Publishes the built debug APK as a directly-installable file on a GitHub
+  # Release, so it can be downloaded and sideloaded without digging through
+  # Actions artifacts (which are zipped). Debug APKs are debug-signed, so they
+  # install on any device with "install unknown apps" enabled. Runs only on
+  # branch pushes; never on pull requests. Isolated from build-and-test, so a
+  # publish hiccup never fails the required check.
+  publish-apk:
+    needs: build-and-test
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download debug APK
+        uses: actions/download-artifact@v4
+        with:
+          name: app-debug-apk
+          path: apk
+
+      - name: Rename to a clean filename
+        run: |
+          mkdir -p out
+          cp apk/*.apk "out/Halo-android-debug.apk"
+
+      - name: Publish to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: android-preview
+          name: Halo — Android preview build
+          body: |
+            Latest debug build of the Halo Android app from `${{ github.ref_name }}`
+            (commit ${{ github.sha }}).
+
+            Download **Halo-android-debug.apk** below and install it on your phone
+            (enable "install unknown apps" for your browser/files app). This is a
+            debug build for testing.
+          prerelease: true
+          files: out/Halo-android-debug.apk

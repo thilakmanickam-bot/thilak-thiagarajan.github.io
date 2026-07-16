@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">AstroChart</string>
+    <string name="app_name">Halo</string>
     <string name="home_title">Your Natal Chart</string>
     <string name="birth_input_title">Enter Birth Data</string>
     <string name="chart_detail_title">Chart Analysis</string>

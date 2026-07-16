@@ -85,7 +85,27 @@ data class UiStrings(
     val dailyAvoidColor: String,
     // Notification
     val notifTitle: String,
-    val notifChannelName: String
+    val notifChannelName: String,
+    // Chat (AI astrologer)
+    val chatEntry: String,
+    val navChatTitle: String,
+    val chatChoosePrompt: String,
+    val chatEmptyMessage: String,
+    val chatCreateChart: String,
+    val chatChangeChart: String,
+    val chatInputHint: String,
+    val chatSend: String,
+    val chatSuggestionsHeader: String,
+    val chatThinking: String,
+    val chatNotConfigured: String,
+    val chatError: String,
+    val chatLoadFailed: String,
+    val chatConnectTitle: String,
+    val chatApiKeyPrompt: String,
+    val chatApiKeyHint: String,
+    val chatConnect: String,
+    val chatApiKeyHelp: String,
+    val chatChangeApiKey: String
 ) {
     fun ageValue(years: Int): String = when (lang) {
         Language.EN -> "$years yrs"
@@ -120,7 +140,7 @@ data class UiStrings(
 
         private val EN = UiStrings(
             lang = Language.EN,
-            appName = "AstroChart",
+            appName = "Halo",
             navCalculate = "Calculate My Chart",
             navSavedChartsTitle = "Saved Charts",
             chartTitle = "Chart",
@@ -187,12 +207,31 @@ data class UiStrings(
             dailyLuckyColor = "Lucky colour",
             dailyAvoidColor = "Colour to avoid",
             notifTitle = "Your daily reading",
-            notifChannelName = "Daily reading"
+            notifChannelName = "Daily reading",
+            chatEntry = "Ask the Universe",
+            navChatTitle = "Astrologer",
+            chatChoosePrompt = "Whose chart shall we reflect on?",
+            chatEmptyMessage = "You have no saved charts yet. Create one, and we can gently reflect on it together.",
+            chatCreateChart = "Create a Chart",
+            chatChangeChart = "Change chart",
+            chatInputHint = "Share what's on your mind…",
+            chatSend = "Send",
+            chatSuggestionsHeader = "You might ask…",
+            chatThinking = "Reflecting…",
+            chatNotConfigured = "The astrologer isn't connected yet. Add your Anthropic API key to begin.",
+            chatError = "Something interrupted our connection. Please try again in a moment.",
+            chatLoadFailed = "Couldn't open that chart. Please try another.",
+            chatConnectTitle = "Connect the astrologer",
+            chatApiKeyPrompt = "Paste your Anthropic API key to begin. It's stored only on this device and used to talk to Claude.",
+            chatApiKeyHint = "Anthropic API key (sk-ant-…)",
+            chatConnect = "Connect",
+            chatApiKeyHelp = "Create a key at console.anthropic.com",
+            chatChangeApiKey = "Change API key"
         )
 
         private val TA = UiStrings(
             lang = Language.TA,
-            appName = "AstroChart",
+            appName = "Halo",
             navCalculate = "எனது ஜாதகத்தைக் கணக்கிடு",
             navSavedChartsTitle = "சேமித்த ஜாதகங்கள்",
             chartTitle = "ஜாதகம்",
@@ -259,12 +298,31 @@ data class UiStrings(
             dailyLuckyColor = "அதிர்ஷ்ட நிறம்",
             dailyAvoidColor = "தவிர்க்க வேண்டிய நிறம்",
             notifTitle = "உங்கள் தினசரி பலன்",
-            notifChannelName = "தினசரி பலன்"
+            notifChannelName = "தினசரி பலன்",
+            chatEntry = "பிரபஞ்சத்திடம் கேளுங்கள்",
+            navChatTitle = "ஜோதிடர்",
+            chatChoosePrompt = "யாருடைய ஜாதகத்தைப் பற்றி சிந்திப்போம்?",
+            chatEmptyMessage = "இதுவரை சேமித்த ஜாதகங்கள் இல்லை. ஒன்றை உருவாக்குங்கள், அதைப் பற்றி மெதுவாக சிந்திப்போம்.",
+            chatCreateChart = "ஜாதகம் உருவாக்கு",
+            chatChangeChart = "ஜாதகத்தை மாற்று",
+            chatInputHint = "உங்கள் மனதில் உள்ளதைப் பகிருங்கள்…",
+            chatSend = "அனுப்பு",
+            chatSuggestionsHeader = "நீங்கள் கேட்கலாம்…",
+            chatThinking = "சிந்திக்கிறேன்…",
+            chatNotConfigured = "ஜோதிடர் இன்னும் இணைக்கப்படவில்லை. தொடங்க உங்கள் Anthropic API சாவியைச் சேர்க்கவும்.",
+            chatError = "இணைப்பு தடைபட்டது. சிறிது நேரத்தில் மீண்டும் முயற்சிக்கவும்.",
+            chatLoadFailed = "அந்த ஜாதகத்தைத் திறக்க முடியவில்லை. வேறொன்றை முயற்சிக்கவும்.",
+            chatConnectTitle = "ஜோதிடரை இணைக்கவும்",
+            chatApiKeyPrompt = "தொடங்க உங்கள் Anthropic API சாவியை ஒட்டவும். இது இந்த சாதனத்தில் மட்டுமே சேமிக்கப்படும்.",
+            chatApiKeyHint = "Anthropic API சாவி (sk-ant-…)",
+            chatConnect = "இணை",
+            chatApiKeyHelp = "console.anthropic.com இல் ஒரு சாவியை உருவாக்கலாம்",
+            chatChangeApiKey = "API சாவியை மாற்று"
         )
 
         private val ZH = UiStrings(
             lang = Language.ZH,
-            appName = "AstroChart",
+            appName = "Halo",
             navCalculate = "计算我的星盘",
             navSavedChartsTitle = "已保存星盘",
             chartTitle = "星盘",
@@ -331,7 +389,26 @@ data class UiStrings(
             dailyLuckyColor = "幸运色",
             dailyAvoidColor = "忌用色",
             notifTitle = "你的每日运势",
-            notifChannelName = "每日运势"
+            notifChannelName = "每日运势",
+            chatEntry = "向宇宙提问",
+            navChatTitle = "星象向导",
+            chatChoosePrompt = "我们来反思谁的星盘？",
+            chatEmptyMessage = "你还没有已保存的星盘。先创建一个，我们再一起静静地反思。",
+            chatCreateChart = "创建星盘",
+            chatChangeChart = "更换星盘",
+            chatInputHint = "说说你的心事……",
+            chatSend = "发送",
+            chatSuggestionsHeader = "你可以问……",
+            chatThinking = "思考中……",
+            chatNotConfigured = "星象向导尚未连接。请添加你的 Anthropic API 密钥以开始。",
+            chatError = "连接中断了，请稍后再试。",
+            chatLoadFailed = "无法打开该星盘，请换一个试试。",
+            chatConnectTitle = "连接星象向导",
+            chatApiKeyPrompt = "粘贴你的 Anthropic API 密钥即可开始。它只保存在本设备上，用于与 Claude 通信。",
+            chatApiKeyHint = "Anthropic API 密钥（sk-ant-…）",
+            chatConnect = "连接",
+            chatApiKeyHelp = "可在 console.anthropic.com 创建密钥",
+            chatChangeApiKey = "更改 API 密钥"
         )
     }
 }

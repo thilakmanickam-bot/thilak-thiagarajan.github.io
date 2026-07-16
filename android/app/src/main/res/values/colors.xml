@@ -2,4 +2,6 @@
 <resources>
     <!-- Launch/window background — matches AstroBgBottom in the Compose theme. -->
     <color name="astro_bg">#08061C</color>
+    <!-- Adaptive-icon background (deep indigo); shown only at parallax edges. -->
+    <color name="ic_launcher_background">#0A011A</color>
 </resources>
