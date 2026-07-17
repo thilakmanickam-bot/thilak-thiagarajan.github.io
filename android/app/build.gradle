@@ -8,21 +8,48 @@ android {
     namespace = "com.astrochart"
     compileSdk rootProject.ext.compileSdk
 
+    // versionCode/versionName can be overridden from CI (VERSION_CODE / VERSION_NAME)
+    // so each Play upload gets a unique, increasing code without editing the file.
+    // Resolved into locals first to avoid Groovy parsing `versionCode (...).toInteger()`
+    // as a method call with a chained method on its return value.
+    def resolvedVersionCode = (System.getenv("VERSION_CODE") ?: rootProject.ext.versionCode.toString()).toInteger()
+    def resolvedVersionName = System.getenv("VERSION_NAME") ?: rootProject.ext.versionName
+
     defaultConfig {
-        applicationId = "com.astrochart"
+        applicationId = "com.techbyt.halo"
         minSdk rootProject.ext.minSdk
         targetSdk rootProject.ext.targetSdk
-        versionCode rootProject.ext.versionCode
-        versionName rootProject.ext.versionName
+        versionCode resolvedVersionCode
+        versionName resolvedVersionName
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
+    }
+
+    // Release signing. The keystore + passwords come from environment variables
+    // (wired to CI secrets), never committed. When absent (local/CI debug builds),
+    // the release type simply isn't signed, so ordinary builds still work.
+    def releaseKeystore = System.getenv("ANDROID_KEYSTORE_FILE")
+    def hasReleaseSigning = releaseKeystore != null && file(releaseKeystore).exists()
+
+    signingConfigs {
+        release {
+            if (hasReleaseSigning) {
+                storeFile file(releaseKeystore)
+                storePassword System.getenv("ANDROID_KEYSTORE_PASSWORD")
+                keyAlias System.getenv("ANDROID_KEY_ALIAS")
+                keyPassword System.getenv("ANDROID_KEY_PASSWORD")
+            }
+        }
     }
 
     buildTypes {
         release {
             minifyEnabled = false
             proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+            if (hasReleaseSigning) {
+                signingConfig signingConfigs.release
+            }
         }
     }
 
