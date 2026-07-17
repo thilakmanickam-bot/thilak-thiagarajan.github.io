@@ -23,6 +23,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.astrochart.BuildConfig
+import com.astrochart.Features
 import com.astrochart.ui.components.EyebrowLabel
 import com.astrochart.ui.components.GoldButton
 import com.astrochart.ui.components.MoonPhaseRow
@@ -95,13 +96,15 @@ fun HomeScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        if (Features.CHAT_ENABLED) {
+            Spacer(modifier = Modifier.height(16.dp))
 
-        OutlineGoldButton(
-            text = strings.chatEntry,
-            onClick = onNavigateToChat,
-            modifier = Modifier.fillMaxWidth()
-        )
+            OutlineGoldButton(
+                text = strings.chatEntry,
+                onClick = onNavigateToChat,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
 
         Spacer(modifier = Modifier.height(40.dp))
 
