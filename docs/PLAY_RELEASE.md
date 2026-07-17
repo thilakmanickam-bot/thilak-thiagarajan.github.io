@@ -4,7 +4,7 @@ The `Release to Play Store` GitHub Actions workflow (`.github/workflows/release-
 builds a **signed Android App Bundle** and uploads it to Play. This guide covers the
 one-time setup and how to ship a build.
 
-> The app id is **`com.astrochart`**. It must match the app you create in Play Console.
+> The app id is **`com.techbyt.halo`**. It must match the app you create in Play Console.
 
 ## 1. One-time: create the app in Play Console
 

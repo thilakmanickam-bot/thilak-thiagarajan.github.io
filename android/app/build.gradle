@@ -16,7 +16,7 @@ android {
     def resolvedVersionName = System.getenv("VERSION_NAME") ?: rootProject.ext.versionName
 
     defaultConfig {
-        applicationId = "com.astrochart"
+        applicationId = "com.techbyt.halo"
         minSdk rootProject.ext.minSdk
         targetSdk rootProject.ext.targetSdk
         versionCode resolvedVersionCode
