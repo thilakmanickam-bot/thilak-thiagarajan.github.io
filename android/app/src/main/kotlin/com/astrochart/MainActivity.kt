@@ -201,13 +201,15 @@ fun AppNavigation() {
                 )
             }
 
-            composable("chat") {
-                ChatScreen(
-                    viewModel = chatViewModel,
-                    onNavigateToBirthInput = {
-                        navController.navigate("birth_input") { popUpTo("home") }
-                    }
-                )
+            if (Features.CHAT_ENABLED) {
+                composable("chat") {
+                    ChatScreen(
+                        viewModel = chatViewModel,
+                        onNavigateToBirthInput = {
+                            navController.navigate("birth_input") { popUpTo("home") }
+                        }
+                    )
+                }
             }
         }
     }
