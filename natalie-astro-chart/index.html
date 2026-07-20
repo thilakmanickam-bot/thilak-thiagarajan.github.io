@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Natalie Wood — Natal Chart</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Geist+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink:   #111010;
+    --mid:   #888;
+    --light: #bbb;
+    --paper: #f7f5f1;
+    --rule:  #e2e0db;
+    --serif: 'Cormorant Garamond', Georgia, serif;
+    --mono:  'Geist Mono', monospace;
+  }
+
+  html { scroll-behavior: smooth; font-size: 17px; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--serif);
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 1.4rem 4rem;
+    background: var(--paper);
+    border-bottom: 1px solid var(--rule);
+  }
+  .nav-name {
+    font-family: var(--mono); font-size: .68rem;
+    letter-spacing: .2em; text-transform: uppercase;
+    color: var(--ink); text-decoration: none;
+  }
+  .nav-back {
+    font-family: var(--mono); font-size: .6rem;
+    letter-spacing: .16em; text-transform: uppercase;
+    color: var(--mid); text-decoration: none; transition: color .15s;
+  }
+  .nav-back:hover { color: var(--ink); }
+
+  header.chart-hero {
+    padding: 9rem 4rem 3rem;
+    border-bottom: 1px solid var(--rule);
+    max-width: 1100px; margin: 0 auto;
+  }
+  .hero-label {
+    font-family: var(--mono); font-size: .63rem;
+    letter-spacing: .2em; text-transform: uppercase;
+    color: var(--mid); margin-bottom: 1rem;
+  }
+  .hero-name {
+    font-family: var(--serif);
+    font-size: clamp(2.6rem, 6vw, 4.6rem);
+    font-weight: 300; line-height: 1;
+    letter-spacing: -.01em; margin-bottom: 1.6rem;
+  }
+  .hero-name em { font-style: italic; color: var(--mid); }
+  .birth-data {
+    display: flex; flex-wrap: wrap; gap: .4rem 2.2rem;
+    font-family: var(--mono); font-size: .62rem;
+    letter-spacing: .12em; text-transform: uppercase; color: var(--mid);
+  }
+  .birth-data strong { color: var(--ink); font-weight: 400; }
+
+  main { max-width: 1100px; margin: 0 auto; }
+
+  section { padding: 4.5rem 4rem; border-bottom: 1px solid var(--rule); }
+  .section-header {
+    display: flex; align-items: baseline; gap: 1.5rem;
+    margin-bottom: 3rem; padding-bottom: 1.2rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  .section-num {
+    font-family: var(--mono); font-size: .6rem;
+    letter-spacing: .2em; color: var(--light); text-transform: uppercase;
+  }
+  .section-title {
+    font-family: var(--serif); font-size: clamp(1.6rem, 3.5vw, 2.2rem);
+    font-weight: 300; line-height: 1.1;
+  }
+
+  /* wheel */
+  .wheel-wrap { display: flex; justify-content: center; }
+  .wheel-wrap svg { width: min(680px, 100%); height: auto; display: block; }
+
+  /* big three */
+  .big-three {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 2rem; margin-top: 3rem;
+  }
+  .bt-card { border-top: 1px solid var(--rule); padding-top: 1rem; }
+  .bt-label {
+    font-family: var(--mono); font-size: .58rem;
+    letter-spacing: .2em; text-transform: uppercase; color: var(--mid);
+    margin-bottom: .4rem;
+  }
+  .bt-value { font-size: 1.5rem; font-weight: 300; }
+  .bt-detail { font-family: var(--mono); font-size: .6rem; color: var(--light); letter-spacing: .1em; }
+
+  /* tables */
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    font-family: var(--mono); font-size: .58rem; font-weight: 400;
+    letter-spacing: .2em; text-transform: uppercase; color: var(--mid);
+    text-align: left; padding: 0 .8rem .7rem 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  td {
+    padding: .65rem .8rem .65rem 0;
+    border-bottom: 1px solid var(--rule);
+    font-size: .95rem; font-weight: 300;
+  }
+  td.glyph { font-size: 1.1rem; width: 2.2rem; }
+  td.mono, th.num {
+    font-family: var(--mono); font-size: .62rem;
+    letter-spacing: .1em; color: var(--mid);
+  }
+  .rx { font-family: var(--mono); font-size: .58rem; color: var(--light); letter-spacing: .1em; }
+  .table-scroll { overflow-x: auto; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; }
+
+  /* balance */
+  .balance-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; }
+  .bal-row { display: flex; align-items: baseline; gap: 1rem; padding: .55rem 0; border-bottom: 1px solid var(--rule); }
+  .bal-name { flex: 0 0 6.5rem; font-size: .95rem; font-weight: 300; }
+  .bal-dots { flex: 1; font-family: var(--mono); font-size: .7rem; color: var(--ink); letter-spacing: .35em; }
+  .bal-count { font-family: var(--mono); font-size: .62rem; color: var(--mid); }
+
+  footer {
+    padding: 3rem 4rem 4rem; max-width: 1100px; margin: 0 auto;
+    font-family: var(--mono); font-size: .58rem; letter-spacing: .1em;
+    color: var(--light); line-height: 2;
+  }
+  footer a { color: var(--mid); text-decoration: none; }
+  footer a:hover { color: var(--ink); }
+
+  @media (max-width: 720px) {
+    nav, header.chart-hero, section, footer { padding-left: 1.4rem; padding-right: 1.4rem; }
+    .big-three, .two-col, .balance-grid { grid-template-columns: 1fr; gap: 2rem; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-name" href="../">Thilak Thiagarajan</a>
+  <a class="nav-back" href="../">← Back to site</a>
+</nav>
+
+<header class="chart-hero">
+  <div class="hero-label">Natal Chart · Astro-Charts Study</div>
+  <h1 class="hero-name">Natalie <em>Wood</em></h1>
+  <div class="birth-data" id="birth-data"></div>
+</header>
+
+<main>
+  <section>
+    <div class="section-header">
+      <span class="section-num">01 / Wheel</span>
+      <h2 class="section-title">The chart</h2>
+    </div>
+    <div class="wheel-wrap" id="wheel"></div>
+    <div class="big-three" id="big-three"></div>
+  </section>
+
+  <section>
+    <div class="section-header">
+      <span class="section-num">02 / Placements</span>
+      <h2 class="section-title">Planets &amp; points</h2>
+    </div>
+    <div class="table-scroll">
+      <table id="planet-table">
+        <thead><tr><th></th><th>Body</th><th>Position</th><th class="num">House</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-header">
+      <span class="section-num">03 / Structure</span>
+      <h2 class="section-title">Houses &amp; angles</h2>
+    </div>
+    <div class="two-col">
+      <div class="table-scroll">
+        <table id="house-table">
+          <thead><tr><th class="num">Cusp</th><th>Position</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="table-scroll">
+        <table id="angle-table">
+          <thead><tr><th>Angle</th><th>Position</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-header">
+      <span class="section-num">04 / Geometry</span>
+      <h2 class="section-title">Major aspects</h2>
+    </div>
+    <div class="table-scroll">
+      <table id="aspect-table">
+        <thead><tr><th></th><th>Aspect</th><th class="num">Orb</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-header">
+      <span class="section-num">05 / Balance</span>
+      <h2 class="section-title">Elements &amp; modalities</h2>
+    </div>
+    <div class="balance-grid">
+      <div id="elements"></div>
+      <div id="modalities"></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  Positions computed with the astronomy-engine ephemeris (geocentric, tropical zodiac, true equinox of date; Placidus houses).
+  Birth data per Astro-Databank, Rodden rating AA; Ascendant verified against the published value 11°48′ Libra.
+  Raw data: <a href="chart-data.json">chart-data.json</a> · generator: <a href="generate-chart-data.mjs">generate-chart-data.mjs</a>.
+</footer>
+
+<script id="chart-data" type="application/json">
+{
+  "person": "Natalie Wood",
+  "birth": {
+    "date": "1938-07-20",
+    "localTime": "11:16 AM PST",
+    "utc": "1938-07-20T19:16:00Z",
+    "place": "San Francisco, California",
+    "lat": 37.7749,
+    "lon": -122.4194,
+    "roddenRating": "AA"
+  },
+  "houseSystem": "Placidus",
+  "zodiac": "Tropical",
+  "angles": {
+    "Ascendant": {
+      "lon": 191.8091,
+      "sign": "Libra",
+      "element": "Air",
+      "modality": "Cardinal",
+      "label": "11°49′ Libra"
+    },
+    "Midheaven": {
+      "lon": 103.3367,
+      "sign": "Cancer",
+      "element": "Water",
+      "modality": "Cardinal",
+      "label": "13°20′ Cancer"
+    },
+    "Descendant": {
+      "lon": 11.8091,
+      "sign": "Aries",
+      "element": "Fire",
+      "modality": "Cardinal",
+      "label": "11°49′ Aries"
+    },
+    "Imum Coeli": {
+      "lon": 283.3367,
+      "sign": "Capricorn",
+      "element": "Earth",
+      "modality": "Cardinal",
+      "label": "13°20′ Capricorn"
+    }
+  },
+  "planets": [
+    {
+      "name": "Sun",
+      "lon": 117.3866,
+      "sign": "Cancer",
+      "element": "Water",
+      "modality": "Cardinal",
+      "label": "27°23′ Cancer",
+      "retrograde": false,
+      "house": 10
+    },
+    {
+      "name": "Moon",
+      "lon": 30.976,
+      "sign": "Taurus",
+      "element": "Earth",
+      "modality": "Fixed",
+      "label": "0°59′ Taurus",
+      "retrograde": false,
+      "house": 7
+    },
+    {
+      "name": "Mercury",
+      "lon": 142.1374,
+      "sign": "Leo",
+      "element": "Fire",
+      "modality": "Fixed",
+      "label": "22°08′ Leo",
+      "retrograde": false,
+      "house": 11
+    },
+    {
+      "name": "Venus",
+      "lon": 157.5651,
+      "sign": "Virgo",
+      "element": "Earth",
+      "modality": "Mutable",
+      "label": "7°34′ Virgo",
+      "retrograde": false,
+      "house": 11
+    },
+    {
+      "name": "Mars",
+      "lon": 118.6236,
+      "sign": "Cancer",
+      "element": "Water",
+      "modality": "Cardinal",
+      "label": "28°37′ Cancer",
+      "retrograde": false,
+      "house": 10
+    },
+    {
+      "name": "Jupiter",
+      "lon": 330.9223,
+      "sign": "Pisces",
+      "element": "Water",
+      "modality": "Mutable",
+      "label": "0°55′ Pisces",
+      "retrograde": true,
+      "house": 5
+    },
+    {
+      "name": "Saturn",
+      "lon": 17.9574,
+      "sign": "Aries",
+      "element": "Fire",
+      "modality": "Cardinal",
+      "label": "17°57′ Aries",
+      "retrograde": false,
+      "house": 7
+    },
+    {
+      "name": "Uranus",
+      "lon": 47.3372,
+      "sign": "Taurus",
+      "element": "Earth",
+      "modality": "Fixed",
+      "label": "17°20′ Taurus",
+      "retrograde": false,
+      "house": 8
+    },
+    {
+      "name": "Neptune",
+      "lon": 169.0454,
+      "sign": "Virgo",
+      "element": "Earth",
+      "modality": "Mutable",
+      "label": "19°03′ Virgo",
+      "retrograde": false,
+      "house": 12
+    },
+    {
+      "name": "Pluto",
+      "lon": 119.614,
+      "sign": "Cancer",
+      "element": "Water",
+      "modality": "Cardinal",
+      "label": "29°37′ Cancer",
+      "retrograde": false,
+      "house": 10
+    },
+    {
+      "name": "North Node",
+      "lon": 233.5767,
+      "sign": "Scorpio",
+      "element": "Water",
+      "modality": "Fixed",
+      "label": "23°35′ Scorpio",
+      "retrograde": true,
+      "house": 2
+    }
+  ],
+  "houses": [
+    {
+      "house": 1,
+      "lon": 191.8091,
+      "sign": "Libra",
+      "element": "Air",
+      "modality": "Cardinal",
+      "label": "11°49′ Libra"
+    },
+    {
+      "house": 2,
+      "lon": 219.5216,
+      "sign": "Scorpio",
+      "element": "Water",
+      "modality": "Fixed",
+      "label": "9°31′ Scorpio"
+    },
+    {
+      "house": 3,
+      "lon": 250.1236,
+      "sign": "Sagittarius",
+      "element": "Fire",
+      "modality": "Mutable",
+      "label": "10°07′ Sagittarius"
+    },
+    {
+      "house": 4,
+      "lon": 283.3367,
+      "sign": "Capricorn",
+      "element": "Earth",
+      "modality": "Cardinal",
+      "label": "13°20′ Capricorn"
+    },
+    {
+      "house": 5,
+      "lon": 316.0997,
+      "sign": "Aquarius",
+      "element": "Air",
+      "modality": "Fixed",
+      "label": "16°06′ Aquarius"
+    },
+    {
+      "house": 6,
+      "lon": 346.0104,
+      "sign": "Pisces",
+      "element": "Water",
+      "modality": "Mutable",
+      "label": "16°01′ Pisces"
+    },
+    {
+      "house": 7,
+      "lon": 11.8091,
+      "sign": "Aries",
+      "element": "Fire",
+      "modality": "Cardinal",
+      "label": "11°49′ Aries"
+    },
+    {
+      "house": 8,
+      "lon": 39.5216,
+      "sign": "Taurus",
+      "element": "Earth",
+      "modality": "Fixed",
+      "label": "9°31′ Taurus"
+    },
+    {
+      "house": 9,
+      "lon": 70.1236,
+      "sign": "Gemini",
+      "element": "Air",
+      "modality": "Mutable",
+      "label": "10°07′ Gemini"
+    },
+    {
+      "house": 10,
+      "lon": 103.3367,
+      "sign": "Cancer",
+      "element": "Water",
+      "modality": "Cardinal",
+      "label": "13°20′ Cancer"
+    },
+    {
+      "house": 11,
+      "lon": 136.0997,
+      "sign": "Leo",
+      "element": "Fire",
+      "modality": "Fixed",
+      "label": "16°06′ Leo"
+    },
+    {
+      "house": 12,
+      "lon": 166.0104,
+      "sign": "Virgo",
+      "element": "Earth",
+      "modality": "Mutable",
+      "label": "16°01′ Virgo"
+    }
+  ],
+  "aspects": [
+    {
+      "a": "Moon",
+      "b": "Jupiter",
+      "type": "Sextile",
+      "orb": 0.05
+    },
+    {
+      "a": "Mars",
+      "b": "Pluto",
+      "type": "Conjunction",
+      "orb": 0.99
+    },
+    {
+      "a": "Sun",
+      "b": "Mars",
+      "type": "Conjunction",
+      "orb": 1.24
+    },
+    {
+      "a": "Moon",
+      "b": "Pluto",
+      "type": "Square",
+      "orb": 1.36
+    },
+    {
+      "a": "Mercury",
+      "b": "North Node",
+      "type": "Square",
+      "orb": 1.44
+    },
+    {
+      "a": "Uranus",
+      "b": "Neptune",
+      "type": "Trine",
+      "orb": 1.71
+    },
+    {
+      "a": "Sun",
+      "b": "Pluto",
+      "type": "Conjunction",
+      "orb": 2.23
+    },
+    {
+      "a": "Moon",
+      "b": "Mars",
+      "type": "Square",
+      "orb": 2.35
+    },
+    {
+      "a": "Sun",
+      "b": "Moon",
+      "type": "Square",
+      "orb": 3.59
+    },
+    {
+      "a": "Sun",
+      "b": "North Node",
+      "type": "Trine",
+      "orb": 3.81
+    },
+    {
+      "a": "Mercury",
+      "b": "Saturn",
+      "type": "Trine",
+      "orb": 4.18
+    },
+    {
+      "a": "Neptune",
+      "b": "North Node",
+      "type": "Sextile",
+      "orb": 4.53
+    },
+    {
+      "a": "Mercury",
+      "b": "Uranus",
+      "type": "Square",
+      "orb": 4.8
+    },
+    {
+      "a": "Mars",
+      "b": "North Node",
+      "type": "Trine",
+      "orb": 5.05
+    },
+    {
+      "a": "Pluto",
+      "b": "North Node",
+      "type": "Trine",
+      "orb": 6.04
+    },
+    {
+      "a": "Uranus",
+      "b": "North Node",
+      "type": "Opposition",
+      "orb": 6.24
+    },
+    {
+      "a": "Moon",
+      "b": "Venus",
+      "type": "Trine",
+      "orb": 6.59
+    },
+    {
+      "a": "Venus",
+      "b": "Jupiter",
+      "type": "Opposition",
+      "orb": 6.64
+    }
+  ],
+  "balance": {
+    "elements": {
+      "Water": 4,
+      "Earth": 4,
+      "Fire": 2
+    },
+    "modalities": {
+      "Cardinal": 4,
+      "Fixed": 3,
+      "Mutable": 3
+    }
+  },
+  "generated": {
+    "ephemeris": "astronomy-engine (VSOP87 / geocentric, true equinox of date)",
+    "note": "Birth data per Astro-Databank (Rodden AA). Ascendant verified against published value 11°48′ Libra."
+  }
+}
+</script>
+
+<script>
+const DATA = JSON.parse(document.getElementById('chart-data').textContent);
+
+// ︎ forces text presentation (monochrome), not color emoji
+const T_ = '︎';
+const GLYPH = {
+  Sun:'☉'+T_, Moon:'☽'+T_, Mercury:'☿'+T_, Venus:'♀'+T_, Mars:'♂'+T_,
+  Jupiter:'♃'+T_, Saturn:'♄'+T_, Uranus:'♅'+T_, Neptune:'♆'+T_,
+  Pluto:'♇'+T_, 'North Node':'☊'+T_
+};
+const SIGN_GLYPH = ['♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓'].map(g => g + T_);
+const SIGNS = ['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'];
+const norm = d => ((d % 360) + 360) % 360;
+
+/* ── birth data line ── */
+document.getElementById('birth-data').innerHTML = [
+  `<span><strong>${new Date(DATA.birth.date + 'T12:00:00Z').toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric',timeZone:'UTC'})}</strong></span>`,
+  `<span>${DATA.birth.localTime}</span>`,
+  `<span>${DATA.birth.place}</span>`,
+  `<span>${DATA.houseSystem} · ${DATA.zodiac}</span>`,
+  `<span>Rodden ${DATA.birth.roddenRating}</span>`
+].join('');
+
+/* ── wheel ── */
+(function drawWheel() {
+  const S = 724, C = S / 2;
+  const R_OUT = 330, R_SIGN_IN = 292, R_HOUSE_IN = 258, R_PLANET = 218, R_ASPECT = 168;
+  const asc = DATA.angles.Ascendant.lon;
+  // Ascendant fixed at 9 o'clock; zodiac runs counterclockwise.
+  const pt = (lon, r) => {
+    const a = (180 + (lon - asc)) * Math.PI / 180;
+    return [C + r * Math.cos(a), C - r * Math.sin(a)];
+  };
+  let s = `<svg viewBox="0 0 ${S} ${S}" xmlns="http://www.w3.org/2000/svg" font-family="'Cormorant Garamond',Georgia,serif" aria-label="Natal chart wheel for Natalie Wood">`;
+
+  const ring = r => `<circle cx="${C}" cy="${C}" r="${r}" fill="none" stroke="#d8d5cf" stroke-width="1"/>`;
+  s += `<circle cx="${C}" cy="${C}" r="${R_OUT}" fill="#f3f0eb" stroke="#c9c6c0" stroke-width="1"/>`;
+  s += `<circle cx="${C}" cy="${C}" r="${R_SIGN_IN}" fill="#f7f5f1" stroke="#c9c6c0" stroke-width="1"/>`;
+  s += ring(R_HOUSE_IN) + ring(R_ASPECT);
+
+  // sign boundaries + glyphs
+  for (let i = 0; i < 12; i++) {
+    const [x1, y1] = pt(i * 30, R_SIGN_IN), [x2, y2] = pt(i * 30, R_OUT);
+    s += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#c9c6c0" stroke-width="1"/>`;
+    const [gx, gy] = pt(i * 30 + 15, (R_OUT + R_SIGN_IN) / 2);
+    s += `<text x="${gx}" y="${gy}" font-size="21" fill="#6b6862" text-anchor="middle" dominant-baseline="central">${SIGN_GLYPH[i]}</text>`;
+  }
+
+  // degree ticks every 5°
+  for (let d = 0; d < 360; d += 5) {
+    const len = d % 30 === 0 ? 0 : (d % 10 === 0 ? 9 : 5);
+    if (!len) continue;
+    const [x1, y1] = pt(d, R_SIGN_IN), [x2, y2] = pt(d, R_SIGN_IN - len);
+    s += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#c9c6c0" stroke-width=".7"/>`;
+  }
+
+  // house cusps
+  DATA.houses.forEach(h => {
+    const angleCusp = h.house === 1 || h.house === 4 || h.house === 7 || h.house === 10;
+    const [x1, y1] = pt(h.lon, R_ASPECT), [x2, y2] = pt(h.lon, R_SIGN_IN);
+    s += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${angleCusp ? '#111010' : '#c9c6c0'}" stroke-width="${angleCusp ? 1.4 : .8}"/>`;
+    const mid = norm(h.lon + norm(DATA.houses[h.house % 12].lon - h.lon) / 2);
+    const [nx, ny] = pt(mid, R_ASPECT + 16);
+    s += `<text x="${nx}" y="${ny}" font-size="11" fill="#bbb" text-anchor="middle" dominant-baseline="central" font-family="'Geist Mono',monospace">${h.house}</text>`;
+  });
+
+  // ASC / MC labels
+  const [ax, ay] = pt(asc, R_OUT + 14);
+  const [mx, my] = pt(DATA.angles.Midheaven.lon, R_OUT + 14);
+  s += `<text x="${ax}" y="${ay}" font-size="10" letter-spacing="2" fill="#111010" text-anchor="middle" dominant-baseline="central" font-family="'Geist Mono',monospace">ASC</text>`;
+  s += `<text x="${mx}" y="${my}" font-size="10" letter-spacing="2" fill="#111010" text-anchor="middle" dominant-baseline="central" font-family="'Geist Mono',monospace">MC</text>`;
+
+  // planet display angles: spread glyphs that sit too close
+  const MIN_SEP = 9;
+  const ps = DATA.planets.map(p => ({ ...p, disp: p.lon })).sort((a, b) => a.lon - b.lon);
+  for (let pass = 0; pass < 30; pass++) {
+    let moved = false;
+    for (let i = 0; i < ps.length; i++) {
+      const a = ps[i], b = ps[(i + 1) % ps.length];
+      let gap = norm(b.disp - a.disp);
+      if (gap < MIN_SEP) {
+        const push = (MIN_SEP - gap) / 2 + 0.05;
+        a.disp = norm(a.disp - push); b.disp = norm(b.disp + push);
+        moved = true;
+      }
+    }
+    if (!moved) break;
+  }
+
+  // aspect lines
+  const DASH = { Sextile: '4 4', Square: '', Trine: '', Opposition: '', Conjunction: '' };
+  const lonByName = Object.fromEntries(DATA.planets.map(p => [p.name, p.lon]));
+  DATA.aspects.forEach(a => {
+    if (a.type === 'Conjunction') return;
+    const [x1, y1] = pt(lonByName[a.a], R_ASPECT), [x2, y2] = pt(lonByName[a.b], R_ASPECT);
+    const soft = a.type === 'Trine' || a.type === 'Sextile';
+    s += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${soft ? '#9a978f' : '#111010'}" stroke-width=".8" stroke-dasharray="${soft ? '4 4' : ''}" opacity=".55"/>`;
+  });
+
+  // planets (degree labels alternate radius so neighbours don't collide)
+  ps.forEach((p, i) => {
+    const [tx, ty] = pt(p.lon, R_ASPECT), [ix, iy] = pt(p.lon, R_ASPECT + 8);
+    s += `<line x1="${tx}" y1="${ty}" x2="${ix}" y2="${iy}" stroke="#111010" stroke-width="1"/>`;
+    const [gx, gy] = pt(p.disp, R_PLANET);
+    s += `<text x="${gx}" y="${gy}" font-size="20" fill="#111010" text-anchor="middle" dominant-baseline="central">${GLYPH[p.name]}</text>`;
+    const [dx, dy] = pt(p.disp, i % 2 ? R_PLANET - 24 : R_PLANET + 24);
+    const degLabel = p.label.split(' ')[0] + (p.retrograde ? ' ℞' : '');
+    s += `<text x="${dx}" y="${dy}" font-size="9.5" fill="#888" text-anchor="middle" dominant-baseline="central" font-family="'Geist Mono',monospace">${degLabel}</text>`;
+  });
+
+  s += `</svg>`;
+  document.getElementById('wheel').innerHTML = s;
+})();
+
+/* ── big three ── */
+const sun = DATA.planets.find(p => p.name === 'Sun');
+const moon = DATA.planets.find(p => p.name === 'Moon');
+document.getElementById('big-three').innerHTML = [
+  ['Sun', sun.sign, sun.label],
+  ['Moon', moon.sign, moon.label],
+  ['Rising', DATA.angles.Ascendant.sign, DATA.angles.Ascendant.label],
+].map(([l, v, d]) => `
+  <div class="bt-card">
+    <div class="bt-label">${l}</div>
+    <div class="bt-value">${v}</div>
+    <div class="bt-detail">${d}</div>
+  </div>`).join('');
+
+/* ── planets table ── */
+document.querySelector('#planet-table tbody').innerHTML = DATA.planets.map(p => `
+  <tr>
+    <td class="glyph">${GLYPH[p.name]}</td>
+    <td>${p.name}</td>
+    <td>${p.label}</td>
+    <td class="mono">${p.house}</td>
+    <td class="rx">${p.retrograde ? 'RETROGRADE' : ''}</td>
+  </tr>`).join('');
+
+/* ── houses & angles ── */
+document.querySelector('#house-table tbody').innerHTML = DATA.houses.map(h => `
+  <tr><td class="mono">${String(h.house).padStart(2, '0')}</td><td>${h.label}</td></tr>`).join('');
+
+document.querySelector('#angle-table tbody').innerHTML = Object.entries(DATA.angles).map(([name, a]) => `
+  <tr><td>${name}</td><td>${a.label}</td></tr>`).join('');
+
+/* ── aspects ── */
+document.querySelector('#aspect-table tbody').innerHTML = DATA.aspects.map(a => `
+  <tr>
+    <td class="glyph">${GLYPH[a.a]} ${GLYPH[a.b]}</td>
+    <td>${a.a} ${a.type} ${a.b}</td>
+    <td class="mono">${a.orb.toFixed(2)}°</td>
+  </tr>`).join('');
+
+/* ── balance ── */
+function balanceRows(title, keys, counts) {
+  return `<div class="bt-label" style="margin-bottom:.8rem">${title}</div>` + keys.map(k => {
+    const n = counts[k] || 0;
+    return `<div class="bal-row">
+      <span class="bal-name">${k}</span>
+      <span class="bal-dots">${'●'.repeat(n)}${'○'.repeat(Math.max(0, 10 - n))}</span>
+      <span class="bal-count">${n}</span>
+    </div>`;
+  }).join('');
+}
+document.getElementById('elements').innerHTML = balanceRows('Elements', ['Fire', 'Earth', 'Air', 'Water'], DATA.balance.elements);
+document.getElementById('modalities').innerHTML = balanceRows('Modalities', ['Cardinal', 'Fixed', 'Mutable'], DATA.balance.modalities);
+</script>
+
+</body>
+</html>

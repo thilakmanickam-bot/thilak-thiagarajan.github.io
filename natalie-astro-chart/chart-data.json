@@ -1,0 +1,380 @@
+{
+  "person": "Natalie Wood",
+  "birth": {
+    "date": "1938-07-20",
+    "localTime": "11:16 AM PST",
+    "utc": "1938-07-20T19:16:00Z",
+    "place": "San Francisco, California",
+    "lat": 37.7749,
+    "lon": -122.4194,
+    "roddenRating": "AA"
+  },
+  "houseSystem": "Placidus",
+  "zodiac": "Tropical",
+  "angles": {
+    "Ascendant": {
+      "lon": 191.8091,
+      "sign": "Libra",
+      "element": "Air",
+      "modality": "Cardinal",
+      "label": "11°49′ Libra"
+    },
+    "Midheaven": {
+      "lon": 103.3367,
+      "sign": "Cancer",
+      "element": "Water",
+      "modality": "Cardinal",
+      "label": "13°20′ Cancer"
+    },
+    "Descendant": {
+      "lon": 11.8091,
+      "sign": "Aries",
+      "element": "Fire",
+      "modality": "Cardinal",
+      "label": "11°49′ Aries"
+    },
+    "Imum Coeli": {
+      "lon": 283.3367,
+      "sign": "Capricorn",
+      "element": "Earth",
+      "modality": "Cardinal",
+      "label": "13°20′ Capricorn"
+    }
+  },
+  "planets": [
+    {
+      "name": "Sun",
+      "lon": 117.3866,
+      "sign": "Cancer",
+      "element": "Water",
+      "modality": "Cardinal",
+      "label": "27°23′ Cancer",
+      "retrograde": false,
+      "house": 10
+    },
+    {
+      "name": "Moon",
+      "lon": 30.976,
+      "sign": "Taurus",
+      "element": "Earth",
+      "modality": "Fixed",
+      "label": "0°59′ Taurus",
+      "retrograde": false,
+      "house": 7
+    },
+    {
+      "name": "Mercury",
+      "lon": 142.1374,
+      "sign": "Leo",
+      "element": "Fire",
+      "modality": "Fixed",
+      "label": "22°08′ Leo",
+      "retrograde": false,
+      "house": 11
+    },
+    {
+      "name": "Venus",
+      "lon": 157.5651,
+      "sign": "Virgo",
+      "element": "Earth",
+      "modality": "Mutable",
+      "label": "7°34′ Virgo",
+      "retrograde": false,
+      "house": 11
+    },
+    {
+      "name": "Mars",
+      "lon": 118.6236,
+      "sign": "Cancer",
+      "element": "Water",
+      "modality": "Cardinal",
+      "label": "28°37′ Cancer",
+      "retrograde": false,
+      "house": 10
+    },
+    {
+      "name": "Jupiter",
+      "lon": 330.9223,
+      "sign": "Pisces",
+      "element": "Water",
+      "modality": "Mutable",
+      "label": "0°55′ Pisces",
+      "retrograde": true,
+      "house": 5
+    },
+    {
+      "name": "Saturn",
+      "lon": 17.9574,
+      "sign": "Aries",
+      "element": "Fire",
+      "modality": "Cardinal",
+      "label": "17°57′ Aries",
+      "retrograde": false,
+      "house": 7
+    },
+    {
+      "name": "Uranus",
+      "lon": 47.3372,
+      "sign": "Taurus",
+      "element": "Earth",
+      "modality": "Fixed",
+      "label": "17°20′ Taurus",
+      "retrograde": false,
+      "house": 8
+    },
+    {
+      "name": "Neptune",
+      "lon": 169.0454,
+      "sign": "Virgo",
+      "element": "Earth",
+      "modality": "Mutable",
+      "label": "19°03′ Virgo",
+      "retrograde": false,
+      "house": 12
+    },
+    {
+      "name": "Pluto",
+      "lon": 119.614,
+      "sign": "Cancer",
+      "element": "Water",
+      "modality": "Cardinal",
+      "label": "29°37′ Cancer",
+      "retrograde": false,
+      "house": 10
+    },
+    {
+      "name": "North Node",
+      "lon": 233.5767,
+      "sign": "Scorpio",
+      "element": "Water",
+      "modality": "Fixed",
+      "label": "23°35′ Scorpio",
+      "retrograde": true,
+      "house": 2
+    }
+  ],
+  "houses": [
+    {
+      "house": 1,
+      "lon": 191.8091,
+      "sign": "Libra",
+      "element": "Air",
+      "modality": "Cardinal",
+      "label": "11°49′ Libra"
+    },
+    {
+      "house": 2,
+      "lon": 219.5216,
+      "sign": "Scorpio",
+      "element": "Water",
+      "modality": "Fixed",
+      "label": "9°31′ Scorpio"
+    },
+    {
+      "house": 3,
+      "lon": 250.1236,
+      "sign": "Sagittarius",
+      "element": "Fire",
+      "modality": "Mutable",
+      "label": "10°07′ Sagittarius"
+    },
+    {
+      "house": 4,
+      "lon": 283.3367,
+      "sign": "Capricorn",
+      "element": "Earth",
+      "modality": "Cardinal",
+      "label": "13°20′ Capricorn"
+    },
+    {
+      "house": 5,
+      "lon": 316.0997,
+      "sign": "Aquarius",
+      "element": "Air",
+      "modality": "Fixed",
+      "label": "16°06′ Aquarius"
+    },
+    {
+      "house": 6,
+      "lon": 346.0104,
+      "sign": "Pisces",
+      "element": "Water",
+      "modality": "Mutable",
+      "label": "16°01′ Pisces"
+    },
+    {
+      "house": 7,
+      "lon": 11.8091,
+      "sign": "Aries",
+      "element": "Fire",
+      "modality": "Cardinal",
+      "label": "11°49′ Aries"
+    },
+    {
+      "house": 8,
+      "lon": 39.5216,
+      "sign": "Taurus",
+      "element": "Earth",
+      "modality": "Fixed",
+      "label": "9°31′ Taurus"
+    },
+    {
+      "house": 9,
+      "lon": 70.1236,
+      "sign": "Gemini",
+      "element": "Air",
+      "modality": "Mutable",
+      "label": "10°07′ Gemini"
+    },
+    {
+      "house": 10,
+      "lon": 103.3367,
+      "sign": "Cancer",
+      "element": "Water",
+      "modality": "Cardinal",
+      "label": "13°20′ Cancer"
+    },
+    {
+      "house": 11,
+      "lon": 136.0997,
+      "sign": "Leo",
+      "element": "Fire",
+      "modality": "Fixed",
+      "label": "16°06′ Leo"
+    },
+    {
+      "house": 12,
+      "lon": 166.0104,
+      "sign": "Virgo",
+      "element": "Earth",
+      "modality": "Mutable",
+      "label": "16°01′ Virgo"
+    }
+  ],
+  "aspects": [
+    {
+      "a": "Moon",
+      "b": "Jupiter",
+      "type": "Sextile",
+      "orb": 0.05
+    },
+    {
+      "a": "Mars",
+      "b": "Pluto",
+      "type": "Conjunction",
+      "orb": 0.99
+    },
+    {
+      "a": "Sun",
+      "b": "Mars",
+      "type": "Conjunction",
+      "orb": 1.24
+    },
+    {
+      "a": "Moon",
+      "b": "Pluto",
+      "type": "Square",
+      "orb": 1.36
+    },
+    {
+      "a": "Mercury",
+      "b": "North Node",
+      "type": "Square",
+      "orb": 1.44
+    },
+    {
+      "a": "Uranus",
+      "b": "Neptune",
+      "type": "Trine",
+      "orb": 1.71
+    },
+    {
+      "a": "Sun",
+      "b": "Pluto",
+      "type": "Conjunction",
+      "orb": 2.23
+    },
+    {
+      "a": "Moon",
+      "b": "Mars",
+      "type": "Square",
+      "orb": 2.35
+    },
+    {
+      "a": "Sun",
+      "b": "Moon",
+      "type": "Square",
+      "orb": 3.59
+    },
+    {
+      "a": "Sun",
+      "b": "North Node",
+      "type": "Trine",
+      "orb": 3.81
+    },
+    {
+      "a": "Mercury",
+      "b": "Saturn",
+      "type": "Trine",
+      "orb": 4.18
+    },
+    {
+      "a": "Neptune",
+      "b": "North Node",
+      "type": "Sextile",
+      "orb": 4.53
+    },
+    {
+      "a": "Mercury",
+      "b": "Uranus",
+      "type": "Square",
+      "orb": 4.8
+    },
+    {
+      "a": "Mars",
+      "b": "North Node",
+      "type": "Trine",
+      "orb": 5.05
+    },
+    {
+      "a": "Pluto",
+      "b": "North Node",
+      "type": "Trine",
+      "orb": 6.04
+    },
+    {
+      "a": "Uranus",
+      "b": "North Node",
+      "type": "Opposition",
+      "orb": 6.24
+    },
+    {
+      "a": "Moon",
+      "b": "Venus",
+      "type": "Trine",
+      "orb": 6.59
+    },
+    {
+      "a": "Venus",
+      "b": "Jupiter",
+      "type": "Opposition",
+      "orb": 6.64
+    }
+  ],
+  "balance": {
+    "elements": {
+      "Water": 4,
+      "Earth": 4,
+      "Fire": 2
+    },
+    "modalities": {
+      "Cardinal": 4,
+      "Fixed": 3,
+      "Mutable": 3
+    }
+  },
+  "generated": {
+    "ephemeris": "astronomy-engine (VSOP87 / geocentric, true equinox of date)",
+    "note": "Birth data per Astro-Databank (Rodden AA). Ascendant verified against published value 11°48′ Libra."
+  }
+}
