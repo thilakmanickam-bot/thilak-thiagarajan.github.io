@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "krea": {
+      "command": "npx",
+      "args": ["@krea/mcp-server"],
+      "env": {
+        "KREA_API_URL": "https://api.krea.ai/mcp"
+      },
+      "disabled": false
+    }
+  }
+}
