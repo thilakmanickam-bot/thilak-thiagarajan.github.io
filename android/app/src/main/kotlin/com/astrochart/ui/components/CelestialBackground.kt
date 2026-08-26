@@ -33,11 +33,8 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
-import com.astrochart.ui.theme.AstroBgBottom
-import com.astrochart.ui.theme.AstroBgMid
-import com.astrochart.ui.theme.AstroBgTop
-import com.astrochart.ui.theme.AstroGlow
 import com.astrochart.ui.theme.GoldLight
+import com.astrochart.ui.theme.LocalAppTheme
 import com.astrochart.ui.theme.Star
 import kotlinx.coroutines.launch
 import kotlin.math.PI
@@ -93,7 +90,9 @@ fun CelestialBackground(
     val ripples = remember { mutableStateListOf<Ripple>() }
     val scope = rememberCoroutineScope()
 
-    val gradient = Brush.verticalGradient(listOf(AstroBgTop, AstroBgMid, AstroBgBottom))
+    val theme = LocalAppTheme.current
+    val gradient = Brush.verticalGradient(listOf(theme.top, theme.mid, theme.bottom))
+    val glow = theme.glow
 
     val tapModifier = if (animated) {
         Modifier.pointerInput(Unit) {
@@ -121,9 +120,9 @@ fun CelestialBackground(
                 .then(tapModifier)
         ) {
             if (animated) {
-                AnimatedSky(stars = stars, motion = motion, ripples = ripples)
+                AnimatedSky(stars = stars, motion = motion, ripples = ripples, glow = glow)
             } else {
-                StaticSky(stars = stars)
+                StaticSky(stars = stars, glow = glow)
             }
             content()
         }
@@ -134,7 +133,8 @@ fun CelestialBackground(
 private fun AnimatedSky(
     stars: List<StarSpec>,
     motion: BackgroundMotion,
-    ripples: List<Ripple>
+    ripples: List<Ripple>,
+    glow: Color
 ) {
     val transition = rememberInfiniteTransition(label = "sky")
     val twinkle by transition.animateFloat(
@@ -155,15 +155,16 @@ private fun AnimatedSky(
             twinklePhase = twinkle,
             driftY = (drift - 0.5f) * 0.02f,
             parallaxX = motion.parallax * 0.04f,
-            ripples = ripples
+            ripples = ripples,
+            glow = glow
         )
     }
 }
 
 @Composable
-private fun StaticSky(stars: List<StarSpec>) {
+private fun StaticSky(stars: List<StarSpec>, glow: Color) {
     Canvas(modifier = Modifier.fillMaxSize()) {
-        drawSky(stars = stars, twinklePhase = 0f, driftY = 0f, parallaxX = 0f, ripples = emptyList())
+        drawSky(stars = stars, twinklePhase = 0f, driftY = 0f, parallaxX = 0f, ripples = emptyList(), glow = glow)
     }
 }
 
@@ -172,14 +173,15 @@ private fun DrawScope.drawSky(
     twinklePhase: Float,
     driftY: Float,
     parallaxX: Float,
-    ripples: List<Ripple>
+    ripples: List<Ripple>,
+    glow: Color
 ) {
-    // Soft purple glow near the top.
+    // Soft glow near the top.
     val glowCenter = Offset(size.width * 0.5f, size.height * 0.16f)
     val glowRadius = size.maxDimension * 0.65f
     drawCircle(
         brush = Brush.radialGradient(
-            colors = listOf(AstroGlow.copy(alpha = 0.5f), Color.Transparent),
+            colors = listOf(glow.copy(alpha = 0.5f), Color.Transparent),
             center = glowCenter,
             radius = glowRadius
         ),

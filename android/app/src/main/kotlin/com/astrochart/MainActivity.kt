@@ -74,9 +74,12 @@ import com.astrochart.ui.screens.SettingsScreen
 import com.astrochart.ui.screens.SubscriptionScreen
 import java.time.LocalDate
 import java.time.YearMonth
+import com.astrochart.ui.theme.AppTheme
 import com.astrochart.ui.theme.AstroChartTheme
 import com.astrochart.ui.theme.GoldDeep
+import com.astrochart.ui.theme.LocalAppTheme
 import com.astrochart.ui.theme.TextPrimary
+import com.astrochart.ui.theme.ThemeStore
 import com.astrochart.ui.viewmodel.BirthInputViewModel
 import com.astrochart.ui.viewmodel.ChartViewModel
 import com.astrochart.ui.viewmodel.ChatViewModel
@@ -91,10 +94,20 @@ class MainActivity : ComponentActivity() {
             runCatching { MobileAds.initialize(this) }
         }
         setContent {
+            val context = LocalContext.current
+            var appTheme by remember { mutableStateOf(ThemeStore.load(context)) }
             AstroChartTheme {
-                CelestialBackground {
-                    RequestNotificationPermission()
-                    AppNavigation()
+                CompositionLocalProvider(LocalAppTheme provides appTheme) {
+                    CelestialBackground {
+                        RequestNotificationPermission()
+                        AppNavigation(
+                            appTheme = appTheme,
+                            onThemeChange = {
+                                appTheme = it
+                                ThemeStore.save(context, it)
+                            }
+                        )
+                    }
                 }
             }
         }
@@ -119,7 +132,10 @@ private fun RequestNotificationPermission() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppNavigation() {
+fun AppNavigation(
+    appTheme: AppTheme,
+    onThemeChange: (AppTheme) -> Unit
+) {
     val navController = rememberNavController()
     val chartViewModel: ChartViewModel = viewModel()
     val birthInputViewModel: BirthInputViewModel = viewModel()
@@ -271,6 +287,18 @@ fun AppNavigation() {
                     onStyleChange = {
                         chartStyle = it
                         ChartStyleStore.save(context, it)
+                    },
+                    currentLanguage = language,
+                    onLanguageChange = {
+                        language = it
+                        LanguageStore.save(context, it)
+                    },
+                    currentTheme = appTheme,
+                    onThemeChange = onThemeChange,
+                    currentLocation = panchangamLocation,
+                    onLocationChange = {
+                        panchangamLocation = it
+                        PanchangamLocationStore.save(context, it.displayName)
                     },
                     onNavigateToPremium = { navController.navigate("premium") }
                 )
