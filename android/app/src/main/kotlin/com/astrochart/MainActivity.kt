@@ -51,9 +51,11 @@ import com.astrochart.ui.i18n.LanguageStore
 import com.astrochart.ui.i18n.LocalChartStyle
 import com.astrochart.ui.i18n.LocalLanguage
 import com.astrochart.ui.i18n.LocalStrings
+import com.astrochart.core.interpret.RasiPeriod
 import com.astrochart.ui.i18n.CompatibilityStrings
 import com.astrochart.ui.i18n.PanchangamLocationStore
 import com.astrochart.ui.i18n.PanchangamStrings
+import com.astrochart.ui.i18n.RasiStrings
 import com.astrochart.ui.i18n.UiStrings
 import com.astrochart.ui.screens.BirthInputScreen
 import com.astrochart.ui.screens.CalendarScreen
@@ -61,7 +63,12 @@ import com.astrochart.ui.screens.ChartDetailScreen
 import com.astrochart.ui.screens.CompatibilityScreen
 import com.astrochart.ui.screens.ChatScreen
 import com.astrochart.ui.screens.HomeScreen
+import com.astrochart.ui.screens.NakshatraListScreen
 import com.astrochart.ui.screens.PanchangamScreen
+import com.astrochart.ui.screens.RasiHoroscopeScreen
+import com.astrochart.ui.screens.RasiHubScreen
+import com.astrochart.ui.screens.RasiInfoScreen
+import com.astrochart.ui.screens.RasiSignsScreen
 import com.astrochart.ui.screens.SavedChartsScreen
 import com.astrochart.ui.screens.SettingsScreen
 import com.astrochart.ui.screens.SubscriptionScreen
@@ -124,6 +131,9 @@ fun AppNavigation() {
     var panchangamDate by remember { mutableStateOf(LocalDate.now()) }
     var panchangamMonth by remember { mutableStateOf(YearMonth.now()) }
     var panchangamLocation by remember { mutableStateOf(PanchangamLocationStore.load(context)) }
+    var rasiPeriod by remember { mutableStateOf(RasiPeriod.DAY) }
+    var rasiInfoMode by remember { mutableStateOf(false) }
+    var rasiSign by remember { mutableStateOf(0) }
     val strings = remember(language) { UiStrings.forLanguage(language) }
 
     val backStackEntry by navController.currentBackStackEntryAsState()
@@ -145,6 +155,9 @@ fun AppNavigation() {
         "panchangam" -> PanchangamStrings.forLanguage(language).title
         "calendar" -> PanchangamStrings.forLanguage(language).calendarTitle
         "compatibility" -> CompatibilityStrings.forLanguage(language).title
+        "rasi_hub", "rasi_signs", "rasi_horoscope" -> RasiStrings.forLanguage(language).title
+        "rasi_info" -> RasiStrings.forLanguage(language).aboutSigns
+        "nakshatra_list" -> RasiStrings.forLanguage(language).aboutNakshatras
         else -> strings.appName
     }
 
@@ -218,9 +231,29 @@ fun AppNavigation() {
                     onNavigateToCompatibility = {
                         chartViewModel.clearCompatibility()
                         navController.navigate("compatibility")
-                    }
+                    },
+                    onNavigateToRasi = { navController.navigate("rasi_hub") }
                 )
             }
+
+            composable("rasi_hub") {
+                RasiHubScreen(
+                    onPeriod = { rasiPeriod = it; rasiInfoMode = false; navController.navigate("rasi_signs") },
+                    onAboutSigns = { rasiInfoMode = true; navController.navigate("rasi_signs") },
+                    onAboutNakshatras = { navController.navigate("nakshatra_list") }
+                )
+            }
+
+            composable("rasi_signs") {
+                RasiSignsScreen(onPick = { i ->
+                    rasiSign = i
+                    navController.navigate(if (rasiInfoMode) "rasi_info" else "rasi_horoscope")
+                })
+            }
+
+            composable("rasi_horoscope") { RasiHoroscopeScreen(rasiSign, rasiPeriod) }
+            composable("rasi_info") { RasiInfoScreen(rasiSign) }
+            composable("nakshatra_list") { NakshatraListScreen() }
 
             composable("compatibility") {
                 val savedCharts by chartViewModel.savedCharts.collectAsState()

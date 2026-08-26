@@ -38,6 +38,7 @@ import com.astrochart.ui.i18n.CompatibilityStrings
 import com.astrochart.ui.i18n.LocalLanguage
 import com.astrochart.ui.i18n.LocalStrings
 import com.astrochart.ui.i18n.PanchangamStrings
+import com.astrochart.ui.i18n.RasiStrings
 import com.astrochart.ui.theme.GoldDeep
 import com.astrochart.ui.theme.TextMuted
 import com.astrochart.ui.theme.TextPrimary
@@ -51,6 +52,7 @@ fun HomeScreen(
     onNavigateToPremium: () -> Unit,
     onNavigateToPanchangam: () -> Unit,
     onNavigateToCompatibility: () -> Unit,
+    onNavigateToRasi: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val strings = LocalStrings.current
@@ -118,6 +120,14 @@ fun HomeScreen(
                 modifier = Modifier.fillMaxWidth()
             )
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlineGoldButton(
+            text = RasiStrings.forLanguage(lang).entry,
+            onClick = onNavigateToRasi,
+            modifier = Modifier.fillMaxWidth()
+        )
 
         Spacer(modifier = Modifier.height(16.dp))
 
