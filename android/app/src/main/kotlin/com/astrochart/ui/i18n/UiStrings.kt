@@ -105,7 +105,27 @@ data class UiStrings(
     val chatApiKeyHint: String,
     val chatConnect: String,
     val chatApiKeyHelp: String,
-    val chatChangeApiKey: String
+    val chatChangeApiKey: String,
+    // Chart style
+    val chartLegendSouthIndian: String,
+    // Settings
+    val navSettingsTitle: String,
+    val settingsLabel: String,
+    val settingsPreferences: String,
+    val settingsChartType: String,
+    val settingsChartTypeDesc: String,
+    val settingsPremiumRow: String,
+    // Premium (coming soon)
+    val navPremiumTitle: String,
+    val premiumEntry: String,
+    val premiumComingSoon: String,
+    val premiumHeadline: String,
+    val premiumSubtitle: String,
+    val premiumPerkAdFree: String,
+    val premiumPerkAdFreeDesc: String,
+    val premiumPerkChat: String,
+    val premiumPerkChatDesc: String,
+    val premiumNotifyNote: String
 ) {
     fun ageValue(years: Int): String = when (lang) {
         Language.EN -> "$years yrs"
@@ -226,7 +246,24 @@ data class UiStrings(
             chatApiKeyHint = "Anthropic API key (sk-ant-…)",
             chatConnect = "Connect",
             chatApiKeyHelp = "Create a key at console.anthropic.com",
-            chatChangeApiKey = "Change API key"
+            chatChangeApiKey = "Change API key",
+            chartLegendSouthIndian = "Signs sit in fixed cells; each body is written into the sign it falls in. The lagnam (ascendant) leads the centre.",
+            navSettingsTitle = "Settings",
+            settingsLabel = "Settings",
+            settingsPreferences = "Preferences",
+            settingsChartType = "Chart type",
+            settingsChartTypeDesc = "Choose how your chart is drawn",
+            settingsPremiumRow = "Halo Premium",
+            navPremiumTitle = "Premium",
+            premiumEntry = "Go Premium",
+            premiumComingSoon = "Coming soon",
+            premiumHeadline = "Halo Premium",
+            premiumSubtitle = "A calmer, deeper Halo — with the extras that make it yours.",
+            premiumPerkAdFree = "Ad-free experience",
+            premiumPerkAdFreeDesc = "Enjoy every reading without a single advertisement.",
+            premiumPerkChat = "Ask the Universe",
+            premiumPerkChatDesc = "Unlock the AI astrologer to reflect on your chart in conversation.",
+            premiumNotifyNote = "Premium isn't available yet — we'll let you know the moment it's ready."
         )
 
         private val TA = UiStrings(
@@ -317,7 +354,24 @@ data class UiStrings(
             chatApiKeyHint = "Anthropic API சாவி (sk-ant-…)",
             chatConnect = "இணை",
             chatApiKeyHelp = "console.anthropic.com இல் ஒரு சாவியை உருவாக்கலாம்",
-            chatChangeApiKey = "API சாவியை மாற்று"
+            chatChangeApiKey = "API சாவியை மாற்று",
+            chartLegendSouthIndian = "ராசிகள் நிலையான கட்டங்களில் அமைகின்றன; ஒவ்வொரு கிரகமும் அது இருக்கும் ராசியில் எழுதப்படுகிறது. லக்னம் நடுவில் முதலில் வரும்.",
+            navSettingsTitle = "அமைப்புகள்",
+            settingsLabel = "அமைப்புகள்",
+            settingsPreferences = "விருப்பங்கள்",
+            settingsChartType = "ஜாதக வகை",
+            settingsChartTypeDesc = "உங்கள் ஜாதகம் எப்படி வரையப்பட வேண்டும் என்பதைத் தேர்ந்தெடுங்கள்",
+            settingsPremiumRow = "Halo பிரீமியம்",
+            navPremiumTitle = "பிரீமியம்",
+            premiumEntry = "பிரீமியம் பெறு",
+            premiumComingSoon = "விரைவில் வருகிறது",
+            premiumHeadline = "Halo பிரீமியம்",
+            premiumSubtitle = "அமைதியான, ஆழமான Halo — உங்களுக்கே உரிய கூடுதல் அம்சங்களுடன்.",
+            premiumPerkAdFree = "விளம்பரமில்லா அனுபவம்",
+            premiumPerkAdFreeDesc = "ஒரு விளம்பரம் கூட இல்லாமல் ஒவ்வொரு பலனையும் அனுபவியுங்கள்.",
+            premiumPerkChat = "பிரபஞ்சத்திடம் கேளுங்கள்",
+            premiumPerkChatDesc = "உங்கள் ஜாதகத்தைப் பற்றி உரையாடி சிந்திக்க AI ஜோதிடரைத் திறக்கவும்.",
+            premiumNotifyNote = "பிரீமியம் இன்னும் கிடைக்கவில்லை — தயாரானதும் உங்களுக்குத் தெரிவிப்போம்."
         )
 
         private val ZH = UiStrings(
@@ -408,7 +462,24 @@ data class UiStrings(
             chatApiKeyHint = "Anthropic API 密钥（sk-ant-…）",
             chatConnect = "连接",
             chatApiKeyHelp = "可在 console.anthropic.com 创建密钥",
-            chatChangeApiKey = "更改 API 密钥"
+            chatChangeApiKey = "更改 API 密钥",
+            chartLegendSouthIndian = "十二宫位置固定；每颗星体写入其所落的星座格中。命宫（上升）居于中央之首。",
+            navSettingsTitle = "设置",
+            settingsLabel = "设置",
+            settingsPreferences = "偏好",
+            settingsChartType = "星盘样式",
+            settingsChartTypeDesc = "选择星盘的绘制方式",
+            settingsPremiumRow = "Halo 高级版",
+            navPremiumTitle = "高级版",
+            premiumEntry = "升级高级版",
+            premiumComingSoon = "敬请期待",
+            premiumHeadline = "Halo 高级版",
+            premiumSubtitle = "更宁静、更深入的 Halo——附加专属于你的功能。",
+            premiumPerkAdFree = "无广告体验",
+            premiumPerkAdFreeDesc = "尽享每一次解读，没有任何广告。",
+            premiumPerkChat = "向宇宙提问",
+            premiumPerkChatDesc = "解锁 AI 星象向导，透过对话反思你的星盘。",
+            premiumNotifyNote = "高级版尚未推出——上线时我们会第一时间通知你。"
         )
     }
 }

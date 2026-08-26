@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -39,10 +40,14 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.google.android.gms.ads.MobileAds
 import com.astrochart.core.i18n.Language
 import com.astrochart.notify.NotificationScheduler
+import com.astrochart.ui.components.AdBanner
 import com.astrochart.ui.components.CelestialBackground
+import com.astrochart.ui.i18n.ChartStyleStore
 import com.astrochart.ui.i18n.LanguageStore
+import com.astrochart.ui.i18n.LocalChartStyle
 import com.astrochart.ui.i18n.LocalLanguage
 import com.astrochart.ui.i18n.LocalStrings
 import com.astrochart.ui.i18n.UiStrings
@@ -51,6 +56,8 @@ import com.astrochart.ui.screens.ChartDetailScreen
 import com.astrochart.ui.screens.ChatScreen
 import com.astrochart.ui.screens.HomeScreen
 import com.astrochart.ui.screens.SavedChartsScreen
+import com.astrochart.ui.screens.SettingsScreen
+import com.astrochart.ui.screens.SubscriptionScreen
 import com.astrochart.ui.theme.AstroChartTheme
 import com.astrochart.ui.theme.GoldDeep
 import com.astrochart.ui.theme.TextPrimary
@@ -63,6 +70,10 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         NotificationScheduler.ensureChannel(this)
         NotificationScheduler.scheduleDaily(this)
+        if (Features.ADS_ENABLED) {
+            // Safe to call repeatedly; no-ops without Play services present.
+            runCatching { MobileAds.initialize(this) }
+        }
         setContent {
             AstroChartTheme {
                 CelestialBackground {
@@ -100,6 +111,7 @@ fun AppNavigation() {
 
     val context = LocalContext.current
     var language by remember { mutableStateOf(LanguageStore.load(context)) }
+    var chartStyle by remember { mutableStateOf(ChartStyleStore.load(context)) }
     val strings = remember(language) { UiStrings.forLanguage(language) }
 
     val backStackEntry by navController.currentBackStackEntryAsState()
@@ -108,13 +120,16 @@ fun AppNavigation() {
 
     CompositionLocalProvider(
         LocalStrings provides strings,
-        LocalLanguage provides language
+        LocalLanguage provides language,
+        LocalChartStyle provides chartStyle
     ) {
     val title = when (route) {
         "birth_input" -> strings.navCalculate
         "saved_charts" -> strings.navSavedChartsTitle
         "chart_detail" -> strings.chartTitle
         "chat" -> strings.navChatTitle
+        "settings" -> strings.navSettingsTitle
+        "premium" -> strings.navPremiumTitle
         else -> strings.appName
     }
 
@@ -135,6 +150,15 @@ fun AppNavigation() {
                     }
                 },
                 actions = {
+                    if (route != "settings") {
+                        IconButton(onClick = { navController.navigate("settings") }) {
+                            Icon(
+                                imageVector = Icons.Filled.Settings,
+                                contentDescription = strings.settingsLabel,
+                                tint = GoldDeep
+                            )
+                        }
+                    }
                     LanguageSwitcher(
                         current = language,
                         label = strings.languageLabel,
@@ -150,7 +174,8 @@ fun AppNavigation() {
                     navigationIconContentColor = GoldDeep
                 )
             )
-        }
+        },
+        bottomBar = { AdBanner() }
     ) { innerPadding ->
         NavHost(
             navController = navController,
@@ -163,8 +188,24 @@ fun AppNavigation() {
                 HomeScreen(
                     onNavigateToBirthInput = { navController.navigate("birth_input") },
                     onNavigateToSavedCharts = { navController.navigate("saved_charts") },
-                    onNavigateToChat = { navController.navigate("chat") }
+                    onNavigateToChat = { navController.navigate("chat") },
+                    onNavigateToPremium = { navController.navigate("premium") }
                 )
+            }
+
+            composable("settings") {
+                SettingsScreen(
+                    currentStyle = chartStyle,
+                    onStyleChange = {
+                        chartStyle = it
+                        ChartStyleStore.save(context, it)
+                    },
+                    onNavigateToPremium = { navController.navigate("premium") }
+                )
+            }
+
+            composable("premium") {
+                SubscriptionScreen()
             }
 
             composable("birth_input") {

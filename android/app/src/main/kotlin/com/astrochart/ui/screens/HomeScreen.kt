@@ -39,6 +39,7 @@ fun HomeScreen(
     onNavigateToBirthInput: () -> Unit,
     onNavigateToSavedCharts: () -> Unit,
     onNavigateToChat: () -> Unit,
+    onNavigateToPremium: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val strings = LocalStrings.current
@@ -105,6 +106,14 @@ fun HomeScreen(
                 modifier = Modifier.fillMaxWidth()
             )
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlineGoldButton(
+            text = strings.premiumEntry,
+            onClick = onNavigateToPremium,
+            modifier = Modifier.fillMaxWidth()
+        )
 
         Spacer(modifier = Modifier.height(40.dp))
 

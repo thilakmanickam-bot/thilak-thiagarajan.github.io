@@ -11,4 +11,12 @@ object Features {
      * and navigation are gated on this flag).
      */
     const val CHAT_ENABLED = false
+
+    /**
+     * Banner ads on the basic (ad-supported) tier. When true, a banner shows to
+     * non-Premium viewers using the test ad unit in [com.astrochart.ads.Ads]
+     * (swap in real AdMob IDs before serving live inventory). Set to false to
+     * hide ads entirely.
+     */
+    const val ADS_ENABLED = true
 }

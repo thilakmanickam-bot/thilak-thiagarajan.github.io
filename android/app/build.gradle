@@ -117,6 +117,9 @@ dependencies {
     // Gson
     implementation "com.google.code.gson:gson:2.10.1"
 
+    // Google Mobile Ads (AdMob) — banner on the basic tier
+    implementation "com.google.android.gms:play-services-ads:23.6.0"
+
     // Core module
     implementation project(":core")
 
