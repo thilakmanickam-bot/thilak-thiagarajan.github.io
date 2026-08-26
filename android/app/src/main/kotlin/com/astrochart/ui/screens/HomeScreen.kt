@@ -34,6 +34,7 @@ import com.astrochart.ui.components.EyebrowLabel
 import com.astrochart.ui.components.GoldButton
 import com.astrochart.ui.components.MoonPhaseRow
 import com.astrochart.ui.components.OutlineGoldButton
+import com.astrochart.ui.i18n.CompatibilityStrings
 import com.astrochart.ui.i18n.LocalLanguage
 import com.astrochart.ui.i18n.LocalStrings
 import com.astrochart.ui.i18n.PanchangamStrings
@@ -49,9 +50,11 @@ fun HomeScreen(
     onNavigateToChat: () -> Unit,
     onNavigateToPremium: () -> Unit,
     onNavigateToPanchangam: () -> Unit,
+    onNavigateToCompatibility: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val strings = LocalStrings.current
+    val lang = LocalLanguage.current
     val title = buildAnnotatedString {
         withStyle(SpanStyle(color = TextPrimary)) { append(strings.homeTitleLine1 + "\n") }
         withStyle(SpanStyle(color = GoldDeep)) { append(strings.homeTitleLine2) }
@@ -115,6 +118,14 @@ fun HomeScreen(
                 modifier = Modifier.fillMaxWidth()
             )
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlineGoldButton(
+            text = CompatibilityStrings.forLanguage(lang).entry,
+            onClick = onNavigateToCompatibility,
+            modifier = Modifier.fillMaxWidth()
+        )
 
         Spacer(modifier = Modifier.height(16.dp))
 

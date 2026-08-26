@@ -51,12 +51,14 @@ import com.astrochart.ui.i18n.LanguageStore
 import com.astrochart.ui.i18n.LocalChartStyle
 import com.astrochart.ui.i18n.LocalLanguage
 import com.astrochart.ui.i18n.LocalStrings
+import com.astrochart.ui.i18n.CompatibilityStrings
 import com.astrochart.ui.i18n.PanchangamLocationStore
 import com.astrochart.ui.i18n.PanchangamStrings
 import com.astrochart.ui.i18n.UiStrings
 import com.astrochart.ui.screens.BirthInputScreen
 import com.astrochart.ui.screens.CalendarScreen
 import com.astrochart.ui.screens.ChartDetailScreen
+import com.astrochart.ui.screens.CompatibilityScreen
 import com.astrochart.ui.screens.ChatScreen
 import com.astrochart.ui.screens.HomeScreen
 import com.astrochart.ui.screens.PanchangamScreen
@@ -142,6 +144,7 @@ fun AppNavigation() {
         "premium" -> strings.navPremiumTitle
         "panchangam" -> PanchangamStrings.forLanguage(language).title
         "calendar" -> PanchangamStrings.forLanguage(language).calendarTitle
+        "compatibility" -> CompatibilityStrings.forLanguage(language).title
         else -> strings.appName
     }
 
@@ -211,7 +214,21 @@ fun AppNavigation() {
                     onNavigateToSavedCharts = { navController.navigate("saved_charts") },
                     onNavigateToChat = { navController.navigate("chat") },
                     onNavigateToPremium = { navController.navigate("premium") },
-                    onNavigateToPanchangam = { navController.navigate("panchangam") }
+                    onNavigateToPanchangam = { navController.navigate("panchangam") },
+                    onNavigateToCompatibility = {
+                        chartViewModel.clearCompatibility()
+                        navController.navigate("compatibility")
+                    }
+                )
+            }
+
+            composable("compatibility") {
+                val savedCharts by chartViewModel.savedCharts.collectAsState()
+                val compat by chartViewModel.compatibility.collectAsState()
+                CompatibilityScreen(
+                    charts = savedCharts,
+                    result = compat,
+                    onCompute = { a, b -> chartViewModel.computeCompatibility(a, b) }
                 )
             }
 
