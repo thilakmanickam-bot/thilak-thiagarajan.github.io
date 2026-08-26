@@ -34,6 +34,7 @@ import com.astrochart.core.interpret.ChartReading
 import com.astrochart.core.interpret.ChineseZodiac
 import com.astrochart.core.interpret.DailyReading
 import com.astrochart.core.models.Aspect
+import com.astrochart.core.models.ChartStyle
 import com.astrochart.core.models.NatalChart
 import com.astrochart.core.models.PlanetaryPosition
 import com.astrochart.core.utils.AspectInterpretationProvider
@@ -42,6 +43,8 @@ import com.astrochart.ui.components.EyebrowLabel
 import com.astrochart.ui.components.LocalBackgroundMotion
 import com.astrochart.ui.components.NatalWheel
 import com.astrochart.ui.components.SectionDivider
+import com.astrochart.ui.components.SouthIndianChartView
+import com.astrochart.ui.i18n.LocalChartStyle
 import com.astrochart.ui.i18n.LocalLanguage
 import com.astrochart.ui.i18n.LocalStrings
 import com.astrochart.ui.i18n.UiStrings
@@ -123,7 +126,7 @@ fun ChartDetailScreen(
                 .fillMaxWidth()
         ) { page ->
             when (page) {
-                0 -> WheelTab(chart)
+                0 -> WheelTab(chart, chartName)
                 1 -> PlacementsTab(chart)
                 2 -> AspectsTab(chart)
                 3 -> BalanceTab(chart)
@@ -134,7 +137,8 @@ fun ChartDetailScreen(
 }
 
 @Composable
-private fun WheelTab(chart: NatalChart) {
+private fun WheelTab(chart: NatalChart, chartName: String) {
+    val style = LocalChartStyle.current
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -142,9 +146,26 @@ private fun WheelTab(chart: NatalChart) {
             .padding(16.dp)
     ) {
         CelestialCard(contentPadding = 16) {
-            NatalWheel(chart = chart, modifier = Modifier.fillMaxWidth())
-            Spacer(modifier = Modifier.height(14.dp))
-            WheelLegend()
+            when (style) {
+                ChartStyle.WESTERN_WHEEL -> {
+                    NatalWheel(chart = chart, modifier = Modifier.fillMaxWidth())
+                    Spacer(modifier = Modifier.height(14.dp))
+                    WheelLegend()
+                }
+                ChartStyle.SOUTH_INDIAN -> {
+                    SouthIndianChartView(
+                        chart = chart,
+                        chartName = chartName,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(modifier = Modifier.height(14.dp))
+                    Text(
+                        text = LocalStrings.current.chartLegendSouthIndian,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = TextMuted
+                    )
+                }
+            }
         }
         Spacer(modifier = Modifier.height(12.dp))
         DailyReadingCard(chart)

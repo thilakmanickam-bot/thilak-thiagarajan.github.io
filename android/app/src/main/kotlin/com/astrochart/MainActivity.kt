@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -39,21 +41,45 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.google.android.gms.ads.MobileAds
 import com.astrochart.core.i18n.Language
 import com.astrochart.notify.NotificationScheduler
+import com.astrochart.ui.components.AdBanner
 import com.astrochart.ui.components.CelestialBackground
+import com.astrochart.ui.i18n.ChartStyleStore
 import com.astrochart.ui.i18n.LanguageStore
+import com.astrochart.ui.i18n.LocalChartStyle
 import com.astrochart.ui.i18n.LocalLanguage
 import com.astrochart.ui.i18n.LocalStrings
+import com.astrochart.core.interpret.RasiPeriod
+import com.astrochart.ui.i18n.CompatibilityStrings
+import com.astrochart.ui.i18n.PanchangamLocationStore
+import com.astrochart.ui.i18n.PanchangamStrings
+import com.astrochart.ui.i18n.RasiStrings
 import com.astrochart.ui.i18n.UiStrings
 import com.astrochart.ui.screens.BirthInputScreen
+import com.astrochart.ui.screens.CalendarScreen
 import com.astrochart.ui.screens.ChartDetailScreen
+import com.astrochart.ui.screens.CompatibilityScreen
 import com.astrochart.ui.screens.ChatScreen
 import com.astrochart.ui.screens.HomeScreen
+import com.astrochart.ui.screens.NakshatraListScreen
+import com.astrochart.ui.screens.PanchangamScreen
+import com.astrochart.ui.screens.RasiHoroscopeScreen
+import com.astrochart.ui.screens.RasiHubScreen
+import com.astrochart.ui.screens.RasiInfoScreen
+import com.astrochart.ui.screens.RasiSignsScreen
 import com.astrochart.ui.screens.SavedChartsScreen
+import com.astrochart.ui.screens.SettingsScreen
+import com.astrochart.ui.screens.SubscriptionScreen
+import java.time.LocalDate
+import java.time.YearMonth
+import com.astrochart.ui.theme.AppTheme
 import com.astrochart.ui.theme.AstroChartTheme
 import com.astrochart.ui.theme.GoldDeep
+import com.astrochart.ui.theme.LocalAppTheme
 import com.astrochart.ui.theme.TextPrimary
+import com.astrochart.ui.theme.ThemeStore
 import com.astrochart.ui.viewmodel.BirthInputViewModel
 import com.astrochart.ui.viewmodel.ChartViewModel
 import com.astrochart.ui.viewmodel.ChatViewModel
@@ -63,11 +89,25 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         NotificationScheduler.ensureChannel(this)
         NotificationScheduler.scheduleDaily(this)
+        if (Features.ADS_ENABLED) {
+            // Safe to call repeatedly; no-ops without Play services present.
+            runCatching { MobileAds.initialize(this) }
+        }
         setContent {
+            val context = LocalContext.current
+            var appTheme by remember { mutableStateOf(ThemeStore.load(context)) }
             AstroChartTheme {
-                CelestialBackground {
-                    RequestNotificationPermission()
-                    AppNavigation()
+                CompositionLocalProvider(LocalAppTheme provides appTheme) {
+                    CelestialBackground {
+                        RequestNotificationPermission()
+                        AppNavigation(
+                            appTheme = appTheme,
+                            onThemeChange = {
+                                appTheme = it
+                                ThemeStore.save(context, it)
+                            }
+                        )
+                    }
                 }
             }
         }
@@ -92,7 +132,10 @@ private fun RequestNotificationPermission() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppNavigation() {
+fun AppNavigation(
+    appTheme: AppTheme,
+    onThemeChange: (AppTheme) -> Unit
+) {
     val navController = rememberNavController()
     val chartViewModel: ChartViewModel = viewModel()
     val birthInputViewModel: BirthInputViewModel = viewModel()
@@ -100,6 +143,13 @@ fun AppNavigation() {
 
     val context = LocalContext.current
     var language by remember { mutableStateOf(LanguageStore.load(context)) }
+    var chartStyle by remember { mutableStateOf(ChartStyleStore.load(context)) }
+    var panchangamDate by remember { mutableStateOf(LocalDate.now()) }
+    var panchangamMonth by remember { mutableStateOf(YearMonth.now()) }
+    var panchangamLocation by remember { mutableStateOf(PanchangamLocationStore.load(context)) }
+    var rasiPeriod by remember { mutableStateOf(RasiPeriod.DAY) }
+    var rasiInfoMode by remember { mutableStateOf(false) }
+    var rasiSign by remember { mutableStateOf(0) }
     val strings = remember(language) { UiStrings.forLanguage(language) }
 
     val backStackEntry by navController.currentBackStackEntryAsState()
@@ -108,13 +158,22 @@ fun AppNavigation() {
 
     CompositionLocalProvider(
         LocalStrings provides strings,
-        LocalLanguage provides language
+        LocalLanguage provides language,
+        LocalChartStyle provides chartStyle
     ) {
     val title = when (route) {
         "birth_input" -> strings.navCalculate
         "saved_charts" -> strings.navSavedChartsTitle
         "chart_detail" -> strings.chartTitle
         "chat" -> strings.navChatTitle
+        "settings" -> strings.navSettingsTitle
+        "premium" -> strings.navPremiumTitle
+        "panchangam" -> PanchangamStrings.forLanguage(language).title
+        "calendar" -> PanchangamStrings.forLanguage(language).calendarTitle
+        "compatibility" -> CompatibilityStrings.forLanguage(language).title
+        "rasi_hub", "rasi_signs", "rasi_horoscope" -> RasiStrings.forLanguage(language).title
+        "rasi_info" -> RasiStrings.forLanguage(language).aboutSigns
+        "nakshatra_list" -> RasiStrings.forLanguage(language).aboutNakshatras
         else -> strings.appName
     }
 
@@ -135,6 +194,24 @@ fun AppNavigation() {
                     }
                 },
                 actions = {
+                    if (route != "panchangam" && route != "calendar") {
+                        IconButton(onClick = { navController.navigate("panchangam") }) {
+                            Icon(
+                                imageVector = Icons.Filled.CalendarMonth,
+                                contentDescription = PanchangamStrings.forLanguage(language).calendarLabel,
+                                tint = GoldDeep
+                            )
+                        }
+                    }
+                    if (route != "settings") {
+                        IconButton(onClick = { navController.navigate("settings") }) {
+                            Icon(
+                                imageVector = Icons.Filled.Settings,
+                                contentDescription = strings.settingsLabel,
+                                tint = GoldDeep
+                            )
+                        }
+                    }
                     LanguageSwitcher(
                         current = language,
                         label = strings.languageLabel,
@@ -150,7 +227,8 @@ fun AppNavigation() {
                     navigationIconContentColor = GoldDeep
                 )
             )
-        }
+        },
+        bottomBar = { AdBanner() }
     ) { innerPadding ->
         NavHost(
             navController = navController,
@@ -163,7 +241,100 @@ fun AppNavigation() {
                 HomeScreen(
                     onNavigateToBirthInput = { navController.navigate("birth_input") },
                     onNavigateToSavedCharts = { navController.navigate("saved_charts") },
-                    onNavigateToChat = { navController.navigate("chat") }
+                    onNavigateToChat = { navController.navigate("chat") },
+                    onNavigateToPremium = { navController.navigate("premium") },
+                    onNavigateToPanchangam = { navController.navigate("panchangam") },
+                    onNavigateToCompatibility = {
+                        chartViewModel.clearCompatibility()
+                        navController.navigate("compatibility")
+                    },
+                    onNavigateToRasi = { navController.navigate("rasi_hub") }
+                )
+            }
+
+            composable("rasi_hub") {
+                RasiHubScreen(
+                    onPeriod = { rasiPeriod = it; rasiInfoMode = false; navController.navigate("rasi_signs") },
+                    onAboutSigns = { rasiInfoMode = true; navController.navigate("rasi_signs") },
+                    onAboutNakshatras = { navController.navigate("nakshatra_list") }
+                )
+            }
+
+            composable("rasi_signs") {
+                RasiSignsScreen(onPick = { i ->
+                    rasiSign = i
+                    navController.navigate(if (rasiInfoMode) "rasi_info" else "rasi_horoscope")
+                })
+            }
+
+            composable("rasi_horoscope") { RasiHoroscopeScreen(rasiSign, rasiPeriod) }
+            composable("rasi_info") { RasiInfoScreen(rasiSign) }
+            composable("nakshatra_list") { NakshatraListScreen() }
+
+            composable("compatibility") {
+                val savedCharts by chartViewModel.savedCharts.collectAsState()
+                val compat by chartViewModel.compatibility.collectAsState()
+                CompatibilityScreen(
+                    charts = savedCharts,
+                    result = compat,
+                    onCompute = { a, b -> chartViewModel.computeCompatibility(a, b) }
+                )
+            }
+
+            composable("settings") {
+                SettingsScreen(
+                    currentStyle = chartStyle,
+                    onStyleChange = {
+                        chartStyle = it
+                        ChartStyleStore.save(context, it)
+                    },
+                    currentLanguage = language,
+                    onLanguageChange = {
+                        language = it
+                        LanguageStore.save(context, it)
+                    },
+                    currentTheme = appTheme,
+                    onThemeChange = onThemeChange,
+                    currentLocation = panchangamLocation,
+                    onLocationChange = {
+                        panchangamLocation = it
+                        PanchangamLocationStore.save(context, it.displayName)
+                    },
+                    onNavigateToPremium = { navController.navigate("premium") }
+                )
+            }
+
+            composable("premium") {
+                SubscriptionScreen()
+            }
+
+            composable("panchangam") {
+                PanchangamScreen(
+                    date = panchangamDate,
+                    onDateChange = { panchangamDate = it },
+                    location = panchangamLocation,
+                    onLocationChange = {
+                        panchangamLocation = it
+                        PanchangamLocationStore.save(context, it.displayName)
+                    },
+                    onOpenCalendar = {
+                        panchangamMonth = YearMonth.from(panchangamDate)
+                        navController.navigate("calendar")
+                    }
+                )
+            }
+
+            composable("calendar") {
+                CalendarScreen(
+                    month = panchangamMonth,
+                    onMonthChange = { panchangamMonth = it },
+                    location = panchangamLocation,
+                    onDaySelected = { selected ->
+                        panchangamDate = selected
+                        navController.navigate("panchangam") {
+                            popUpTo("panchangam") { inclusive = true }
+                        }
+                    }
                 )
             }
 

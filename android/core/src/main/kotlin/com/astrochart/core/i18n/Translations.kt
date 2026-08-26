@@ -3,6 +3,7 @@ package com.astrochart.core.i18n
 import com.astrochart.core.interpret.HouseInfo
 import com.astrochart.core.interpret.PlanetInfo
 import com.astrochart.core.interpret.SignInfo
+import com.astrochart.core.models.ChartStyle
 
 /**
  * Single source of localized astrological vocabulary and reading text for the
@@ -192,5 +193,49 @@ object Translations {
         Language.EN -> type
         Language.TA -> aspectTypeTa[type] ?: type
         Language.ZH -> aspectTypeZh[type] ?: type
+    }
+
+    // ----- Compact body abbreviations (for the South-Indian grid) ------------
+    //
+    // Short labels that fit the small cells of the square chart. Covers the ten
+    // bodies the app computes plus the ascendant/lagnam. The Tamil forms follow
+    // common almanac usage (சூரி, சந், புத, …).
+
+    private val bodyAbbrEn = mapOf(
+        "Sun" to "Su", "Moon" to "Mo", "Mercury" to "Me", "Venus" to "Ve",
+        "Mars" to "Ma", "Jupiter" to "Ju", "Saturn" to "Sa", "Uranus" to "Ur",
+        "Neptune" to "Ne", "Pluto" to "Pl", "Ascendant" to "Asc"
+    )
+    private val bodyAbbrTa = mapOf(
+        "Sun" to "சூரி", "Moon" to "சந்", "Mercury" to "புத", "Venus" to "சுக்",
+        "Mars" to "செவ்", "Jupiter" to "குரு", "Saturn" to "சனி", "Uranus" to "யுரே",
+        "Neptune" to "நெப்", "Pluto" to "புளூ", "Ascendant" to "லக்"
+    )
+    private val bodyAbbrZh = mapOf(
+        "Sun" to "日", "Moon" to "月", "Mercury" to "水", "Venus" to "金",
+        "Mars" to "火", "Jupiter" to "木", "Saturn" to "土", "Uranus" to "天",
+        "Neptune" to "海", "Pluto" to "冥", "Ascendant" to "命"
+    )
+
+    /** Compact label for a body (planet or "Ascendant"), used in the square chart. */
+    fun bodyAbbr(body: String, lang: Language): String = when (lang) {
+        Language.EN -> bodyAbbrEn[body] ?: body
+        Language.TA -> bodyAbbrTa[body] ?: body
+        Language.ZH -> bodyAbbrZh[body] ?: body
+    }
+
+    // ----- Chart-style display names ----------------------------------------
+
+    fun chartStyleName(style: ChartStyle, lang: Language): String = when (style) {
+        ChartStyle.WESTERN_WHEEL -> when (lang) {
+            Language.EN -> "Western wheel"
+            Language.TA -> "மேற்கத்திய சக்கரம்"
+            Language.ZH -> "西方星盘"
+        }
+        ChartStyle.SOUTH_INDIAN -> when (lang) {
+            Language.EN -> "South Indian (Tamil)"
+            Language.TA -> "தென்னிந்தியம் (தமிழ்)"
+            Language.ZH -> "南印度（泰米尔）"
+        }
     }
 }
