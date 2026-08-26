@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material3.DropdownMenu
@@ -50,14 +51,20 @@ import com.astrochart.ui.i18n.LanguageStore
 import com.astrochart.ui.i18n.LocalChartStyle
 import com.astrochart.ui.i18n.LocalLanguage
 import com.astrochart.ui.i18n.LocalStrings
+import com.astrochart.ui.i18n.PanchangamLocationStore
+import com.astrochart.ui.i18n.PanchangamStrings
 import com.astrochart.ui.i18n.UiStrings
 import com.astrochart.ui.screens.BirthInputScreen
+import com.astrochart.ui.screens.CalendarScreen
 import com.astrochart.ui.screens.ChartDetailScreen
 import com.astrochart.ui.screens.ChatScreen
 import com.astrochart.ui.screens.HomeScreen
+import com.astrochart.ui.screens.PanchangamScreen
 import com.astrochart.ui.screens.SavedChartsScreen
 import com.astrochart.ui.screens.SettingsScreen
 import com.astrochart.ui.screens.SubscriptionScreen
+import java.time.LocalDate
+import java.time.YearMonth
 import com.astrochart.ui.theme.AstroChartTheme
 import com.astrochart.ui.theme.GoldDeep
 import com.astrochart.ui.theme.TextPrimary
@@ -112,6 +119,9 @@ fun AppNavigation() {
     val context = LocalContext.current
     var language by remember { mutableStateOf(LanguageStore.load(context)) }
     var chartStyle by remember { mutableStateOf(ChartStyleStore.load(context)) }
+    var panchangamDate by remember { mutableStateOf(LocalDate.now()) }
+    var panchangamMonth by remember { mutableStateOf(YearMonth.now()) }
+    var panchangamLocation by remember { mutableStateOf(PanchangamLocationStore.load(context)) }
     val strings = remember(language) { UiStrings.forLanguage(language) }
 
     val backStackEntry by navController.currentBackStackEntryAsState()
@@ -130,6 +140,8 @@ fun AppNavigation() {
         "chat" -> strings.navChatTitle
         "settings" -> strings.navSettingsTitle
         "premium" -> strings.navPremiumTitle
+        "panchangam" -> PanchangamStrings.forLanguage(language).title
+        "calendar" -> PanchangamStrings.forLanguage(language).calendarTitle
         else -> strings.appName
     }
 
@@ -150,6 +162,15 @@ fun AppNavigation() {
                     }
                 },
                 actions = {
+                    if (route != "panchangam" && route != "calendar") {
+                        IconButton(onClick = { navController.navigate("panchangam") }) {
+                            Icon(
+                                imageVector = Icons.Filled.CalendarMonth,
+                                contentDescription = PanchangamStrings.forLanguage(language).calendarLabel,
+                                tint = GoldDeep
+                            )
+                        }
+                    }
                     if (route != "settings") {
                         IconButton(onClick = { navController.navigate("settings") }) {
                             Icon(
@@ -189,7 +210,8 @@ fun AppNavigation() {
                     onNavigateToBirthInput = { navController.navigate("birth_input") },
                     onNavigateToSavedCharts = { navController.navigate("saved_charts") },
                     onNavigateToChat = { navController.navigate("chat") },
-                    onNavigateToPremium = { navController.navigate("premium") }
+                    onNavigateToPremium = { navController.navigate("premium") },
+                    onNavigateToPanchangam = { navController.navigate("panchangam") }
                 )
             }
 
@@ -206,6 +228,36 @@ fun AppNavigation() {
 
             composable("premium") {
                 SubscriptionScreen()
+            }
+
+            composable("panchangam") {
+                PanchangamScreen(
+                    date = panchangamDate,
+                    onDateChange = { panchangamDate = it },
+                    location = panchangamLocation,
+                    onLocationChange = {
+                        panchangamLocation = it
+                        PanchangamLocationStore.save(context, it.displayName)
+                    },
+                    onOpenCalendar = {
+                        panchangamMonth = YearMonth.from(panchangamDate)
+                        navController.navigate("calendar")
+                    }
+                )
+            }
+
+            composable("calendar") {
+                CalendarScreen(
+                    month = panchangamMonth,
+                    onMonthChange = { panchangamMonth = it },
+                    location = panchangamLocation,
+                    onDaySelected = { selected ->
+                        panchangamDate = selected
+                        navController.navigate("panchangam") {
+                            popUpTo("panchangam") { inclusive = true }
+                        }
+                    }
+                )
             }
 
             composable("birth_input") {
