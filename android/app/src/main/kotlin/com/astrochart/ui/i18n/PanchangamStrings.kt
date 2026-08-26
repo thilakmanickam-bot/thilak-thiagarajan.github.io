@@ -33,8 +33,12 @@ data class PanchangamStrings(
     val then: String,
     val nextDay: String,
     val noSunToday: String,
-    val swipeHint: String
+    val swipeHint: String,
+    val vrathaTitle: String,
+    val vrathaNames: Map<String, String>
 ) {
+    fun vratha(key: String): String = vrathaNames[key] ?: key
+
     companion object {
         fun forLanguage(lang: Language): PanchangamStrings = when (lang) {
             Language.EN -> EN
@@ -68,7 +72,14 @@ data class PanchangamStrings(
             then = "then",
             nextDay = "(next day)",
             noSunToday = "No sunrise/sunset at this location today.",
-            swipeHint = "Swipe up for today's panchangam"
+            swipeHint = "Swipe up for today's panchangam",
+            vrathaTitle = "Vratham & special days",
+            vrathaNames = mapOf(
+                "amavasai" to "Amavasai (new moon)", "pournami" to "Pournami (full moon)",
+                "ekadasi" to "Ekadasi", "sashti" to "Sashti", "chaturthi" to "Chaturthi",
+                "sankatahara" to "Sankatahara Chaturthi", "pradosham" to "Pradosham",
+                "sivarathiri" to "Sivarathiri", "krithigai" to "Krithigai", "thiruvonam" to "Thiruvonam"
+            )
         )
 
         private val TA = PanchangamStrings(
@@ -97,7 +108,14 @@ data class PanchangamStrings(
             then = "பின்பு",
             nextDay = "(மறுநாள்)",
             noSunToday = "இந்த இடத்தில் இன்று சூரிய உதயம்/அஸ்தமனம் இல்லை.",
-            swipeHint = "இன்றைய பஞ்சாங்கத்திற்கு மேலே தள்ளுங்கள்"
+            swipeHint = "இன்றைய பஞ்சாங்கத்திற்கு மேலே தள்ளுங்கள்",
+            vrathaTitle = "விரத & விசேஷ தினங்கள்",
+            vrathaNames = mapOf(
+                "amavasai" to "அமாவாசை", "pournami" to "பௌர்ணமி",
+                "ekadasi" to "ஏகாதசி", "sashti" to "சஷ்டி", "chaturthi" to "சதுர்த்தி",
+                "sankatahara" to "சங்கடஹர சதுர்த்தி", "pradosham" to "பிரதோஷம்",
+                "sivarathiri" to "சிவராத்திரி", "krithigai" to "கிருத்திகை", "thiruvonam" to "திருவோணம்"
+            )
         )
 
         private val ZH = PanchangamStrings(
@@ -126,7 +144,14 @@ data class PanchangamStrings(
             then = "之后",
             nextDay = "（次日）",
             noSunToday = "该地点今日无日出/日落。",
-            swipeHint = "上滑查看今日黄历"
+            swipeHint = "上滑查看今日黄历",
+            vrathaTitle = "斋戒与特殊日",
+            vrathaNames = mapOf(
+                "amavasai" to "新月 (Amavasai)", "pournami" to "满月 (Pournami)",
+                "ekadasi" to "Ekadasi", "sashti" to "Sashti", "chaturthi" to "Chaturthi",
+                "sankatahara" to "Sankatahara Chaturthi", "pradosham" to "Pradosham",
+                "sivarathiri" to "Sivarathiri", "krithigai" to "Krithigai", "thiruvonam" to "Thiruvonam"
+            )
         )
     }
 }

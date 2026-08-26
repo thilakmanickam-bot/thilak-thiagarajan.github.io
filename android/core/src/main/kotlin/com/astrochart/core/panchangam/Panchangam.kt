@@ -204,6 +204,27 @@ object Panchangam {
         return todaySign to day
     }
 
+    /** The (tithi index 0–29, nakshatra index 0–26) at a UT Julian Day. */
+    fun tithiNakshatraAtJd(jdUt: Double, year: Int): Pair<Int, Int> {
+        val jde = SolarLunar.toJde(jdUt, year)
+        val sunL = SolarLunar.sunApparentLongitude(jde)
+        val moonL = SolarLunar.moonLongitude(jde)
+        val elong = SolarLunar.norm360(moonL - sunL)
+        val sidMoon = Ayanamsa.toSidereal(moonL, jde)
+        val tithi0 = floor(elong / 12.0).toInt().coerceIn(0, 29)
+        val nak0 = floor(sidMoon / NAK_SIZE).toInt().coerceIn(0, 26)
+        return tithi0 to nak0
+    }
+
+    /**
+     * (tithi, nakshatra) prevailing at sunrise — a lightweight read used to scan
+     * a month for vratham days, without the heavier work of [compute].
+     */
+    fun tithiNakshatraAtSunrise(date: LocalDate, latDeg: Double, lonEastDeg: Double, zone: ZoneId): Pair<Int, Int> {
+        val sun = SunTimes.compute(date, latDeg, lonEastDeg, zone)
+        return tithiNakshatraAtJd(sun.sunriseJdUt ?: sun.solarNoonJdUt, date.year)
+    }
+
     private fun sidSunSignAtSunrise(date: LocalDate, latDeg: Double, lonEastDeg: Double, zone: ZoneId): Int {
         val sun = SunTimes.compute(date, latDeg, lonEastDeg, zone)
         val jd = sun.sunriseJdUt ?: sun.solarNoonJdUt

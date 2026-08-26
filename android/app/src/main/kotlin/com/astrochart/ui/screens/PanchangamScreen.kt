@@ -185,36 +185,35 @@ fun PanchangamScreen(
 
         Spacer(Modifier.height(12.dp))
 
-        // Daily rasi palan (12 signs).
+        // Daily rasi palan (12 signs) — one clean row per sign so long Tamil
+        // words wrap under the value column instead of colliding with the label.
         CelestialCard {
             EyebrowLabel(text = ps.rasiPalan)
             Spacer(Modifier.height(8.dp))
             val signs = remember { ZodiacUtils.getAllSigns() }
             val epoch = date.toEpochDay()
-            signs.chunked(2).forEachIndexed { rowIdx, pair ->
-                Row(modifier = Modifier.fillMaxWidth()) {
-                    pair.forEachIndexed { colIdx, sign ->
-                        val i = rowIdx * 2 + colIdx
-                        Row(
-                            modifier = Modifier
-                                .weight(1f)
-                                .padding(vertical = 3.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(
-                                text = Translations.signName(sign, lang),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = TextPrimary
-                            )
-                            Text(
-                                text = RasiPalan.word(epoch, i, lang),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = GoldDeep
-                            )
-                        }
-                        if (colIdx == 0) Spacer(Modifier.width(16.dp))
-                    }
+            signs.forEachIndexed { i, sign ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 5.dp),
+                    verticalAlignment = Alignment.Top
+                ) {
+                    Text(
+                        text = Translations.signName(sign, lang),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = TextPrimary,
+                        modifier = Modifier.width(96.dp)
+                    )
+                    Spacer(Modifier.width(12.dp))
+                    Text(
+                        text = RasiPalan.word(epoch, i, lang),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = GoldDeep,
+                        modifier = Modifier.weight(1f)
+                    )
                 }
+                if (i < signs.lastIndex) SectionDivider()
             }
         }
 
