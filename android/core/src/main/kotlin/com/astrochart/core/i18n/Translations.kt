@@ -105,10 +105,56 @@ object Translations {
         "Pisces" to "富想象力、有同情心、爱幻想"
     )
 
-    fun signKeywords(sign: String, lang: Language): String = when (lang.content) {
-        ContentLang.EN -> SignInfo.of(sign).keywords
-        ContentLang.TA -> signKeywordsTa[sign] ?: SignInfo.of(sign).keywords
-        ContentLang.ZH -> signKeywordsZh[sign] ?: SignInfo.of(sign).keywords
+    private val signKeywordsHi = mapOf(
+        "Aries" to "साहसी, सीधा, अग्रणी", "Taurus" to "स्थिर, सुखप्रिय, व्यावहारिक",
+        "Gemini" to "जिज्ञासु, बहुमुखी, बातूनी", "Cancer" to "पोषक, रक्षक, सहजज्ञानी",
+        "Leo" to "गर्मजोश, अभिव्यक्तिशील, गर्वित", "Virgo" to "सटीक, व्यावहारिक, विश्लेषक",
+        "Libra" to "संतुलित, संबंधप्रिय, कूटनीतिक", "Scorpio" to "गहन, निजी, रूपांतरकारी",
+        "Sagittarius" to "साहसिक, ईमानदार, विस्तृत", "Capricorn" to "अनुशासित, महत्वाकांक्षी, धैर्यवान",
+        "Aquarius" to "स्वतंत्र, आविष्कारशील, मानवतावादी", "Pisces" to "कल्पनाशील, करुणामय, स्वप्निल"
+    )
+    private val signKeywordsTe = mapOf(
+        "Aries" to "సాహసం, నేరుగా, మార్గదర్శి", "Taurus" to "స్థిరం, సుఖప్రియం, ఆచరణాత్మకం",
+        "Gemini" to "జిజ్ఞాస, బహుముఖం, మాటకారి", "Cancer" to "పోషణ, రక్షణ, అంతర్జ్ఞానం",
+        "Leo" to "ఆప్యాయం, వ్యక్తీకరణ, గర్వం", "Virgo" to "ఖచ్చితం, ఆచరణాత్మకం, విశ్లేషణ",
+        "Libra" to "సమతుల్యం, సంబంధప్రియం, దౌత్యం", "Scorpio" to "తీవ్రం, గోప్యం, పరివర్తన",
+        "Sagittarius" to "సాహసికం, నిజాయితీ, విశాలం", "Capricorn" to "క్రమశిక్షణ, ఆశయం, ఓర్పు",
+        "Aquarius" to "స్వతంత్రం, ఆవిష్కరణ, మానవత", "Pisces" to "ఊహాత్మకం, కరుణ, స్వప్నిల"
+    )
+    private val signKeywordsKn = mapOf(
+        "Aries" to "ಧೈರ್ಯ, ನೇರ, ಮಾರ್ಗದರ್ಶಿ", "Taurus" to "ಸ್ಥಿರ, ಸುಖಪ್ರಿಯ, ಪ್ರಾಯೋಗಿಕ",
+        "Gemini" to "ಕುತೂಹಲ, ಬಹುಮುಖ, ಮಾತುಗಾರ", "Cancer" to "ಪೋಷಣೆ, ರಕ್ಷಣೆ, ಅಂತರ್ಬೋಧೆ",
+        "Leo" to "ಆತ್ಮೀಯ, ಅಭಿವ್ಯಕ್ತಿ, ಹೆಮ್ಮೆ", "Virgo" to "ನಿಖರ, ಪ್ರಾಯೋಗಿಕ, ವಿಶ್ಲೇಷಣೆ",
+        "Libra" to "ಸಮತೋಲನ, ಸಂಬಂಧಪ್ರಿಯ, ರಾಜತಂತ್ರ", "Scorpio" to "ತೀವ್ರ, ಖಾಸಗಿ, ಪರಿವರ್ತನೆ",
+        "Sagittarius" to "ಸಾಹಸ, ಪ್ರಾಮಾಣಿಕ, ವಿಶಾಲ", "Capricorn" to "ಶಿಸ್ತು, ಮಹತ್ವಾಕಾಂಕ್ಷೆ, ತಾಳ್ಮೆ",
+        "Aquarius" to "ಸ್ವತಂತ್ರ, ಆವಿಷ್ಕಾರ, ಮಾನವೀಯ", "Pisces" to "ಕಲ್ಪನಾಶೀಲ, ಕರುಣಾಮಯ, ಸ್ವಪ್ನಶೀಲ"
+    )
+    private val signKeywordsMl = mapOf(
+        "Aries" to "ധൈര്യം, നേരിട്ട്, മുൻനിര", "Taurus" to "സ്ഥിരം, സുഖപ്രിയം, പ്രായോഗികം",
+        "Gemini" to "ജിജ്ഞാസ, ബഹുമുഖം, സംസാരപ്രിയം", "Cancer" to "പരിപാലനം, സംരക്ഷണം, അന്തർജ്ഞാനം",
+        "Leo" to "ഊഷ്മളം, ആവിഷ്കാരം, അഭിമാനം", "Virgo" to "കൃത്യം, പ്രായോഗികം, വിശകലനം",
+        "Libra" to "സന്തുലനം, ബന്ധപ്രിയം, നയതന്ത്രം", "Scorpio" to "തീവ്രം, സ്വകാര്യം, പരിവർത്തനം",
+        "Sagittarius" to "സാഹസികം, സത്യസന്ധം, വിശാലം", "Capricorn" to "അച്ചടക്കം, മോഹം, ക്ഷമ",
+        "Aquarius" to "സ്വതന്ത്രം, കണ്ടുപിടിത്തം, മാനവികം", "Pisces" to "ഭാവനാത്മകം, കാരുണ്യം, സ്വപ്നാത്മകം"
+    )
+    private val signKeywordsMr = mapOf(
+        "Aries" to "धाडसी, थेट, अग्रेसर", "Taurus" to "स्थिर, सुखप्रिय, व्यावहारिक",
+        "Gemini" to "जिज्ञासू, बहुमुखी, बोलका", "Cancer" to "पालनपोषण, रक्षक, अंतर्ज्ञानी",
+        "Leo" to "उबदार, अभिव्यक्त, अभिमानी", "Virgo" to "अचूक, व्यावहारिक, विश्लेषक",
+        "Libra" to "संतुलित, नातेप्रिय, कूटनीतिक", "Scorpio" to "तीव्र, खाजगी, परिवर्तनशील",
+        "Sagittarius" to "साहसी, प्रामाणिक, विस्तृत", "Capricorn" to "शिस्तबद्ध, महत्त्वाकांक्षी, संयमी",
+        "Aquarius" to "स्वतंत्र, नवोन्मेषी, मानवतावादी", "Pisces" to "कल्पक, करुणामय, स्वप्नाळू"
+    )
+
+    fun signKeywords(sign: String, lang: Language): String = when (lang) {
+        Language.TA -> signKeywordsTa[sign] ?: SignInfo.of(sign).keywords
+        Language.ZH -> signKeywordsZh[sign] ?: SignInfo.of(sign).keywords
+        Language.HI -> signKeywordsHi[sign] ?: SignInfo.of(sign).keywords
+        Language.TE -> signKeywordsTe[sign] ?: SignInfo.of(sign).keywords
+        Language.KN -> signKeywordsKn[sign] ?: SignInfo.of(sign).keywords
+        Language.ML -> signKeywordsMl[sign] ?: SignInfo.of(sign).keywords
+        Language.MR -> signKeywordsMr[sign] ?: SignInfo.of(sign).keywords
+        else -> SignInfo.of(sign).keywords
     }
 
     // ----- Elements & modalities --------------------------------------------
@@ -223,10 +269,51 @@ object Translations {
         else -> p
     }
 
-    fun planetRole(p: String, lang: Language): String = when (lang.content) {
-        ContentLang.EN -> PlanetInfo.of(p)?.role ?: "energy"
-        ContentLang.TA -> planetRoleTa[p] ?: (PlanetInfo.of(p)?.role ?: "")
-        ContentLang.ZH -> planetRoleZh[p] ?: (PlanetInfo.of(p)?.role ?: "")
+    private val planetRoleHi = mapOf(
+        "Sun" to "मूल पहचान और जीवनशक्ति", "Moon" to "भावनात्मक स्वभाव और अंतर्ज्ञान",
+        "Mercury" to "मन और संवाद", "Venus" to "प्रेम, मूल्य, सौंदर्यबोध",
+        "Mars" to "प्रेरणा, साहस, इच्छा", "Jupiter" to "वृद्धि, भाग्य, आशावाद",
+        "Saturn" to "अनुशासन, संरचना, जिम्मेदारी", "Uranus" to "विशिष्टता और परिवर्तन की चाह",
+        "Neptune" to "कल्पना, स्वप्न, आध्यात्म", "Pluto" to "शक्ति और रूपांतरण की क्षमता"
+    )
+    private val planetRoleTe = mapOf(
+        "Sun" to "మూల గుర్తింపు, జీవశక్తి", "Moon" to "భావోద్వేగ స్వభావం, అంతర్జ్ఞానం",
+        "Mercury" to "మనసు, సంభాషణ", "Venus" to "ప్రేమ, విలువలు, సౌందర్యం",
+        "Mars" to "ప్రేరణ, ధైర్యం, కోరిక", "Jupiter" to "వృద్ధి, అదృష్టం, ఆశావాదం",
+        "Saturn" to "క్రమశిక్షణ, నిర్మాణం, బాధ్యత", "Uranus" to "విశిష్టత, మార్పు అవసరం",
+        "Neptune" to "ఊహ, కలలు, ఆధ్యాత్మికత", "Pluto" to "శక్తి, పరివర్తన సామర్థ్యం"
+    )
+    private val planetRoleKn = mapOf(
+        "Sun" to "ಮೂಲ ಗುರುತು, ಜೀವಶಕ್ತಿ", "Moon" to "ಭಾವನಾತ್ಮಕ ಸ್ವಭಾವ, ಅಂತರ್ಬೋಧೆ",
+        "Mercury" to "ಮನಸ್ಸು, ಸಂವಹನ", "Venus" to "ಪ್ರೀತಿ, ಮೌಲ್ಯ, ಸೌಂದರ್ಯ",
+        "Mars" to "ಪ್ರೇರಣೆ, ಧೈರ್ಯ, ಬಯಕೆ", "Jupiter" to "ಬೆಳವಣಿಗೆ, ಅದೃಷ್ಟ, ಆಶಾವಾದ",
+        "Saturn" to "ಶಿಸ್ತು, ರಚನೆ, ಜವಾಬ್ದಾರಿ", "Uranus" to "ವಿಶಿಷ್ಟತೆ, ಬದಲಾವಣೆಯ ಅಗತ್ಯ",
+        "Neptune" to "ಕಲ್ಪನೆ, ಕನಸು, ಆಧ್ಯಾತ್ಮ", "Pluto" to "ಶಕ್ತಿ, ಪರಿವರ್ತನೆ ಸಾಮರ್ಥ್ಯ"
+    )
+    private val planetRoleMl = mapOf(
+        "Sun" to "അടിസ്ഥാന വ്യക്തിത്വം, ജീവശക്തി", "Moon" to "വൈകാരിക സ്വഭാവം, അന്തർജ്ഞാനം",
+        "Mercury" to "മനസ്സ്, ആശയവിനിമയം", "Venus" to "സ്നേഹം, മൂല്യങ്ങൾ, സൗന്ദര്യം",
+        "Mars" to "പ്രേരണ, ധൈര്യം, ആഗ്രഹം", "Jupiter" to "വളർച്ച, ഭാഗ്യം, ശുഭാപ്തി",
+        "Saturn" to "അച്ചടക്കം, ഘടന, ഉത്തരവാദിത്വം", "Uranus" to "വ്യക്തിത്വം, മാറ്റത്തിന്റെ ആവശ്യം",
+        "Neptune" to "ഭാവന, സ്വപ്നം, ആത്മീയത", "Pluto" to "ശക്തി, പരിവർത്തന ശേഷി"
+    )
+    private val planetRoleMr = mapOf(
+        "Sun" to "मूळ ओळख, जीवनशक्ती", "Moon" to "भावनिक स्वभाव, अंतर्ज्ञान",
+        "Mercury" to "मन, संवाद", "Venus" to "प्रेम, मूल्ये, सौंदर्यदृष्टी",
+        "Mars" to "प्रेरणा, धैर्य, इच्छा", "Jupiter" to "वाढ, भाग्य, आशावाद",
+        "Saturn" to "शिस्त, रचना, जबाबदारी", "Uranus" to "वेगळेपण, बदलाची गरज",
+        "Neptune" to "कल्पना, स्वप्ने, अध्यात्म", "Pluto" to "शक्ती, परिवर्तनक्षमता"
+    )
+
+    fun planetRole(p: String, lang: Language): String = when (lang) {
+        Language.TA -> planetRoleTa[p] ?: (PlanetInfo.of(p)?.role ?: "")
+        Language.ZH -> planetRoleZh[p] ?: (PlanetInfo.of(p)?.role ?: "")
+        Language.HI -> planetRoleHi[p] ?: (PlanetInfo.of(p)?.role ?: "")
+        Language.TE -> planetRoleTe[p] ?: (PlanetInfo.of(p)?.role ?: "")
+        Language.KN -> planetRoleKn[p] ?: (PlanetInfo.of(p)?.role ?: "")
+        Language.ML -> planetRoleMl[p] ?: (PlanetInfo.of(p)?.role ?: "")
+        Language.MR -> planetRoleMr[p] ?: (PlanetInfo.of(p)?.role ?: "")
+        else -> PlanetInfo.of(p)?.role ?: "energy"
     }
 
     // ----- House areas -------------------------------------------------------
@@ -260,10 +347,51 @@ object Translations {
         12 to "内在世界、休息与潜意识"
     )
 
-    fun houseArea(house: Int, lang: Language): String = when (lang.content) {
-        ContentLang.EN -> HouseInfo.of(house)
-        ContentLang.TA -> houseAreaTa[house] ?: HouseInfo.of(house)
-        ContentLang.ZH -> houseAreaZh[house] ?: HouseInfo.of(house)
+    private val houseAreaHi = mapOf(
+        1 to "स्वयं, पहचान, रूप", 2 to "धन, संसाधन, मूल्य", 3 to "संवाद, सीखना, भाई-बहन",
+        4 to "घर, परिवार, जड़ें", 5 to "रचनात्मकता, प्रेम, खेल", 6 to "काम, दिनचर्या, स्वास्थ्य",
+        7 to "साझेदारी और घनिष्ठ संबंध", 8 to "घनिष्ठता, साझा संसाधन, रूपांतरण",
+        9 to "विश्वास, उच्च शिक्षा, यात्रा", 10 to "करियर, प्रतिष्ठा, सार्वजनिक जीवन",
+        11 to "मित्र, समुदाय, आशाएँ", 12 to "आंतरिक जगत, विश्राम, अवचेतन"
+    )
+    private val houseAreaTe = mapOf(
+        1 to "స్వీయం, గుర్తింపు, రూపం", 2 to "ధనం, వనరులు, విలువలు", 3 to "సంభాషణ, నేర్చుకోవడం, తోబుట్టువులు",
+        4 to "ఇల్లు, కుటుంబం, మూలాలు", 5 to "సృజనాత్మకత, ప్రేమ, ఆట", 6 to "పని, దినచర్య, ఆరోగ్యం",
+        7 to "భాగస్వామ్యం, సన్నిహిత బంధాలు", 8 to "సాన్నిహిత్యం, భాగస్వామ్య వనరులు, పరివర్తన",
+        9 to "నమ్మకాలు, ఉన్నత విద్య, ప్రయాణం", 10 to "వృత్తి, ప్రతిష్ఠ, ప్రజా జీవితం",
+        11 to "స్నేహితులు, సమాజం, ఆశలు", 12 to "అంతరంగం, విశ్రాంతి, ఉపచేతన"
+    )
+    private val houseAreaKn = mapOf(
+        1 to "ಸ್ವಯಂ, ಗುರುತು, ರೂಪ", 2 to "ಹಣ, ಸಂಪನ್ಮೂಲ, ಮೌಲ್ಯ", 3 to "ಸಂವಹನ, ಕಲಿಕೆ, ಒಡಹುಟ್ಟಿದವರು",
+        4 to "ಮನೆ, ಕುಟುಂಬ, ಬೇರುಗಳು", 5 to "ಸೃಜನಶೀಲತೆ, ಪ್ರೀತಿ, ಆಟ", 6 to "ಕೆಲಸ, ದಿನಚರಿ, ಆರೋಗ್ಯ",
+        7 to "ಪಾಲುದಾರಿಕೆ, ಆಪ್ತ ಸಂಬಂಧಗಳು", 8 to "ಆತ್ಮೀಯತೆ, ಹಂಚಿಕೆ ಸಂಪನ್ಮೂಲ, ಪರಿವರ್ತನೆ",
+        9 to "ನಂಬಿಕೆ, ಉನ್ನತ ಶಿಕ್ಷಣ, ಪ್ರಯಾಣ", 10 to "ವೃತ್ತಿ, ಪ್ರತಿಷ್ಠೆ, ಸಾರ್ವಜನಿಕ ಜೀವನ",
+        11 to "ಸ್ನೇಹಿತರು, ಸಮುದಾಯ, ಆಶಯಗಳು", 12 to "ಅಂತರಂಗ, ವಿಶ್ರಾಂತಿ, ಸುಪ್ತಪ್ರಜ್ಞೆ"
+    )
+    private val houseAreaMl = mapOf(
+        1 to "സ്വയം, വ്യക്തിത്വം, രൂപം", 2 to "പണം, വിഭവങ്ങൾ, മൂല്യങ്ങൾ", 3 to "ആശയവിനിമയം, പഠനം, സഹോദരങ്ങൾ",
+        4 to "വീട്, കുടുംബം, വേരുകൾ", 5 to "സർഗാത്മകത, സ്നേഹം, കളി", 6 to "ജോലി, ദിനചര്യ, ആരോഗ്യം",
+        7 to "പങ്കാളിത്തം, അടുത്ത ബന്ധങ്ങൾ", 8 to "അടുപ്പം, പങ്കിട്ട വിഭവങ്ങൾ, പരിവർത്തനം",
+        9 to "വിശ്വാസങ്ങൾ, ഉന്നത വിദ്യാഭ്യാസം, യാത്ര", 10 to "ജീവിതവൃത്തി, പ്രശസ്തി, പൊതുജീവിതം",
+        11 to "സുഹൃത്തുക്കൾ, സമൂഹം, പ്രതീക്ഷകൾ", 12 to "ആന്തരികലോകം, വിശ്രമം, ഉപബോധമനസ്സ്"
+    )
+    private val houseAreaMr = mapOf(
+        1 to "स्वतः, ओळख, रूप", 2 to "पैसा, संसाधने, मूल्ये", 3 to "संवाद, शिक्षण, भावंडे",
+        4 to "घर, कुटुंब, मुळे", 5 to "सर्जनशीलता, प्रेम, खेळ", 6 to "काम, दिनचर्या, आरोग्य",
+        7 to "भागीदारी आणि जवळचे नाते", 8 to "जवळीक, सामायिक संसाधने, परिवर्तन",
+        9 to "श्रद्धा, उच्च शिक्षण, प्रवास", 10 to "करिअर, प्रतिष्ठा, सार्वजनिक जीवन",
+        11 to "मित्र, समुदाय, आशा", 12 to "अंतर्विश्व, विश्रांती, अवचेतन"
+    )
+
+    fun houseArea(house: Int, lang: Language): String = when (lang) {
+        Language.TA -> houseAreaTa[house] ?: HouseInfo.of(house)
+        Language.ZH -> houseAreaZh[house] ?: HouseInfo.of(house)
+        Language.HI -> houseAreaHi[house] ?: HouseInfo.of(house)
+        Language.TE -> houseAreaTe[house] ?: HouseInfo.of(house)
+        Language.KN -> houseAreaKn[house] ?: HouseInfo.of(house)
+        Language.ML -> houseAreaMl[house] ?: HouseInfo.of(house)
+        Language.MR -> houseAreaMr[house] ?: HouseInfo.of(house)
+        else -> HouseInfo.of(house)
     }
 
     // ----- Aspect type names -------------------------------------------------
