@@ -58,6 +58,7 @@ import com.astrochart.core.interpret.RasiPeriod
 import com.astrochart.ui.i18n.PoruthamStrings
 import com.astrochart.ui.i18n.PanchangamLocationStore
 import com.astrochart.ui.i18n.PanchangamStrings
+import com.astrochart.ui.i18n.PrimaryProfileStore
 import com.astrochart.ui.i18n.RasiStrings
 import com.astrochart.ui.i18n.UiStrings
 import com.astrochart.ui.screens.BirthInputScreen
@@ -170,9 +171,10 @@ fun AppNavigation(
     var panchangamDate by remember { mutableStateOf(LocalDate.now()) }
     var panchangamMonth by remember { mutableStateOf(YearMonth.now()) }
     var panchangamLocation by remember { mutableStateOf(PanchangamLocationStore.load(context)) }
+    var primaryProfile by remember { mutableStateOf(PrimaryProfileStore.load(context)) }
     var rasiPeriod by remember { mutableStateOf(RasiPeriod.DAY) }
     var rasiInfoMode by remember { mutableStateOf(false) }
-    var rasiSign by remember { mutableStateOf(0) }
+    var rasiSign by remember { mutableStateOf(primaryProfile?.rasi ?: 0) }
     val strings = remember(language) { UiStrings.forLanguage(language) }
 
     val backStackEntry by navController.currentBackStackEntryAsState()
@@ -313,6 +315,14 @@ fun AppNavigation(
                     onLocationChange = {
                         panchangamLocation = it
                         PanchangamLocationStore.save(context, it.displayName)
+                    },
+                    primary = primaryProfile,
+                    onPrimaryChange = { profile ->
+                        primaryProfile = profile
+                        if (profile != null) {
+                            PrimaryProfileStore.save(context, profile)
+                            rasiSign = profile.rasi
+                        }
                     },
                     onNavigateToPremium = { navController.navigate("premium") }
                 )
