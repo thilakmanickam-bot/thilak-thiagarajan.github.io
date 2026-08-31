@@ -101,6 +101,7 @@ class MainActivity : ComponentActivity() {
         if (Features.ADS_ENABLED) {
             // Safe to call repeatedly; no-ops without Play services present.
             runCatching { MobileAds.initialize(this) }
+            com.astrochart.ads.InterstitialAds.preload(this)
         }
         updateLauncher = registerForActivityResult(
             ActivityResultContracts.StartIntentSenderForResult()

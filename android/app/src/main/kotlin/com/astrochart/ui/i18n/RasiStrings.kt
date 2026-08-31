@@ -1,9 +1,8 @@
 package com.astrochart.ui.i18n
 
-import com.astrochart.core.i18n.ContentLang
 import com.astrochart.core.i18n.Language
 
-/** Localized labels for the Rasi Palan hub and its detail screens (EN / TA / ZH). */
+/** Localized labels for the Rasi Palan hub and its detail screens. */
 data class RasiStrings(
     val title: String,
     val entry: String,
@@ -25,10 +24,15 @@ data class RasiStrings(
     val nakshatraLord: String
 ) {
     companion object {
-        fun forLanguage(lang: Language): RasiStrings = when (lang.content) {
-            ContentLang.EN -> EN
-            ContentLang.TA -> TA
-            ContentLang.ZH -> ZH
+        fun forLanguage(lang: Language): RasiStrings = when (lang) {
+            Language.TA -> TA
+            Language.ZH -> ZH
+            Language.HI -> HI
+            Language.TE -> TE
+            Language.KN -> KN
+            Language.ML -> ML
+            Language.MR -> MR
+            else -> EN
         }
 
         private val EN = RasiStrings(
@@ -50,6 +54,111 @@ data class RasiStrings(
             gemstone = "Gemstone",
             character = "Character",
             nakshatraLord = "Lord"
+        )
+
+        private val HI = RasiStrings(
+            title = "राशिफल",
+            entry = "राशिफल",
+            today = "आज",
+            weekly = "साप्ताहिक",
+            monthly = "मासिक",
+            yearly = "वार्षिक",
+            aboutSigns = "राशियों के बारे में",
+            aboutNakshatras = "नक्षत्रों के बारे में",
+            chooseSign = "अपनी राशि चुनें",
+            rulingPlanet = "स्वामी ग्रह",
+            friendlySigns = "मित्र राशियाँ",
+            luckyColor = "शुभ रंग",
+            luckyDay = "शुभ दिन",
+            luckyNumber = "शुभ अंक",
+            deity = "देवता",
+            gemstone = "रत्न",
+            character = "स्वभाव",
+            nakshatraLord = "स्वामी"
+        )
+
+        private val TE = RasiStrings(
+            title = "రాశిఫలం",
+            entry = "రాశిఫలం",
+            today = "నేడు",
+            weekly = "వారం",
+            monthly = "నెల",
+            yearly = "సంవత్సరం",
+            aboutSigns = "రాశుల గురించి",
+            aboutNakshatras = "నక్షత్రాల గురించి",
+            chooseSign = "మీ రాశిని ఎంచుకోండి",
+            rulingPlanet = "అధిపతి గ్రహం",
+            friendlySigns = "మిత్ర రాశులు",
+            luckyColor = "అదృష్ట రంగు",
+            luckyDay = "అదృష్ట రోజు",
+            luckyNumber = "అదృష్ట సంఖ్య",
+            deity = "దేవత",
+            gemstone = "రత్నం",
+            character = "స్వభావం",
+            nakshatraLord = "అధిపతి"
+        )
+
+        private val KN = RasiStrings(
+            title = "ರಾಶಿಫಲ",
+            entry = "ರಾಶಿಫಲ",
+            today = "ಇಂದು",
+            weekly = "ವಾರ",
+            monthly = "ಮಾಸ",
+            yearly = "ವರ್ಷ",
+            aboutSigns = "ರಾಶಿಗಳ ಬಗ್ಗೆ",
+            aboutNakshatras = "ನಕ್ಷತ್ರಗಳ ಬಗ್ಗೆ",
+            chooseSign = "ನಿಮ್ಮ ರಾಶಿ ಆಯ್ಕೆಮಾಡಿ",
+            rulingPlanet = "ಅಧಿಪತಿ ಗ್ರಹ",
+            friendlySigns = "ಮಿತ್ರ ರಾಶಿಗಳು",
+            luckyColor = "ಅದೃಷ್ಟ ಬಣ್ಣ",
+            luckyDay = "ಅದೃಷ್ಟ ದಿನ",
+            luckyNumber = "ಅದೃಷ್ಟ ಸಂಖ್ಯೆ",
+            deity = "ದೇವತೆ",
+            gemstone = "ರತ್ನ",
+            character = "ಸ್ವಭಾವ",
+            nakshatraLord = "ಅಧಿಪತಿ"
+        )
+
+        private val ML = RasiStrings(
+            title = "രാശിഫലം",
+            entry = "രാശിഫലം",
+            today = "ഇന്ന്",
+            weekly = "ആഴ്ച",
+            monthly = "മാസം",
+            yearly = "വർഷം",
+            aboutSigns = "രാശികളെക്കുറിച്ച്",
+            aboutNakshatras = "നക്ഷത്രങ്ങളെക്കുറിച്ച്",
+            chooseSign = "നിങ്ങളുടെ രാശി തിരഞ്ഞെടുക്കുക",
+            rulingPlanet = "അധിപതി ഗ്രഹം",
+            friendlySigns = "മിത്ര രാശികൾ",
+            luckyColor = "ഭാഗ്യ നിറം",
+            luckyDay = "ഭാഗ്യ ദിവസം",
+            luckyNumber = "ഭാഗ്യ സംഖ്യ",
+            deity = "ദേവത",
+            gemstone = "രത്നം",
+            character = "സ്വഭാവം",
+            nakshatraLord = "അധിപതി"
+        )
+
+        private val MR = RasiStrings(
+            title = "राशीफल",
+            entry = "राशीफल",
+            today = "आज",
+            weekly = "साप्ताहिक",
+            monthly = "मासिक",
+            yearly = "वार्षिक",
+            aboutSigns = "राशींबद्दल",
+            aboutNakshatras = "नक्षत्रांबद्दल",
+            chooseSign = "तुमची राशी निवडा",
+            rulingPlanet = "स्वामी ग्रह",
+            friendlySigns = "मित्र राशी",
+            luckyColor = "शुभ रंग",
+            luckyDay = "शुभ दिवस",
+            luckyNumber = "शुभ अंक",
+            deity = "देवता",
+            gemstone = "रत्न",
+            character = "स्वभाव",
+            nakshatraLord = "स्वामी"
         )
 
         private val TA = RasiStrings(

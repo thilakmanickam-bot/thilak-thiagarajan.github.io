@@ -31,7 +31,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.astrochart.core.i18n.ContentLang
 import com.astrochart.core.i18n.Language
 import com.astrochart.core.i18n.Translations
 import com.astrochart.core.models.ChartStyle
@@ -235,10 +234,15 @@ private fun PrimaryProfileCard(
     }
 }
 
-private fun themeLabel(theme: AppTheme, lang: Language): String = when (lang.content) {
-    ContentLang.EN -> theme.labelEn
-    ContentLang.TA -> theme.labelTa
-    ContentLang.ZH -> theme.labelZh
+private fun themeLabel(theme: AppTheme, lang: Language): String = when (lang) {
+    Language.TA -> theme.labelTa
+    Language.ZH -> theme.labelZh
+    Language.HI -> theme.labelHi
+    Language.TE -> theme.labelTe
+    Language.KN -> theme.labelKn
+    Language.ML -> theme.labelMl
+    Language.MR -> theme.labelMr
+    else -> theme.labelEn
 }
 
 @Composable
