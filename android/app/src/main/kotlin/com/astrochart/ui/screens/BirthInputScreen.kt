@@ -56,7 +56,7 @@ fun BirthInputScreen(
     var hour by remember { mutableStateOf(12) }
     var minute by remember { mutableStateOf(0) }
     var location by remember { mutableStateOf<LocationOption?>(null) }
-    var timeZone by remember { mutableStateOf("UTC") }
+    var timeZone by remember { mutableStateOf("Asia/Singapore") }
 
     // Canonical gender codes with localized labels for display.
     val genderOptions = listOf("Female", "Male", "Other")

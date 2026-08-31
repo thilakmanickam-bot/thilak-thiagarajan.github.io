@@ -18,8 +18,8 @@ package com.astrochart.ads
  */
 object Ads {
     // ---- Paste your real AdMob ad-unit IDs here (leave blank to use test). ----
-    private const val REAL_BANNER_UNIT_ID = ""
-    private const val REAL_INTERSTITIAL_UNIT_ID = ""
+    private const val REAL_BANNER_UNIT_ID = "ca-app-pub-2807860736270523/7499522505"
+    private const val REAL_INTERSTITIAL_UNIT_ID = "ca-app-pub-2807860736270523/5827453384"
 
     // Google's official test ad units — safe fallbacks, no revenue.
     private const val TEST_BANNER_UNIT_ID = "ca-app-pub-3940256099942544/6300978111"
