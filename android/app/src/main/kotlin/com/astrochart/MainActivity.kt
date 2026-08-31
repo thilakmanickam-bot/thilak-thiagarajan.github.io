@@ -52,7 +52,7 @@ import com.astrochart.ui.i18n.LocalChartStyle
 import com.astrochart.ui.i18n.LocalLanguage
 import com.astrochart.ui.i18n.LocalStrings
 import com.astrochart.core.interpret.RasiPeriod
-import com.astrochart.ui.i18n.CompatibilityStrings
+import com.astrochart.ui.i18n.PoruthamStrings
 import com.astrochart.ui.i18n.PanchangamLocationStore
 import com.astrochart.ui.i18n.PanchangamStrings
 import com.astrochart.ui.i18n.RasiStrings
@@ -170,7 +170,7 @@ fun AppNavigation(
         "premium" -> strings.navPremiumTitle
         "panchangam" -> PanchangamStrings.forLanguage(language).title
         "calendar" -> PanchangamStrings.forLanguage(language).calendarTitle
-        "compatibility" -> CompatibilityStrings.forLanguage(language).title
+        "compatibility" -> PoruthamStrings.forLanguage(language).title
         "rasi_hub", "rasi_signs", "rasi_horoscope" -> RasiStrings.forLanguage(language).title
         "rasi_info" -> RasiStrings.forLanguage(language).aboutSigns
         "nakshatra_list" -> RasiStrings.forLanguage(language).aboutNakshatras
@@ -244,10 +244,7 @@ fun AppNavigation(
                     onNavigateToChat = { navController.navigate("chat") },
                     onNavigateToPremium = { navController.navigate("premium") },
                     onNavigateToPanchangam = { navController.navigate("panchangam") },
-                    onNavigateToCompatibility = {
-                        chartViewModel.clearCompatibility()
-                        navController.navigate("compatibility")
-                    },
+                    onNavigateToCompatibility = { navController.navigate("compatibility") },
                     onNavigateToRasi = { navController.navigate("rasi_hub") }
                 )
             }
@@ -272,13 +269,7 @@ fun AppNavigation(
             composable("nakshatra_list") { NakshatraListScreen() }
 
             composable("compatibility") {
-                val savedCharts by chartViewModel.savedCharts.collectAsState()
-                val compat by chartViewModel.compatibility.collectAsState()
-                CompatibilityScreen(
-                    charts = savedCharts,
-                    result = compat,
-                    onCompute = { a, b -> chartViewModel.computeCompatibility(a, b) }
-                )
+                CompatibilityScreen()
             }
 
             composable("settings") {
