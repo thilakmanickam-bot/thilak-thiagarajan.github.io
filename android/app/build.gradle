@@ -120,6 +120,10 @@ dependencies {
     // Google Mobile Ads (AdMob) — banner on the basic tier
     implementation "com.google.android.gms:play-services-ads:23.6.0"
 
+    // Google Play in-app updates — prompt installed users to update
+    implementation "com.google.android.play:app-update:2.1.0"
+    implementation "com.google.android.play:app-update-ktx:2.1.0"
+
     // Core module
     implementation project(":core")
 

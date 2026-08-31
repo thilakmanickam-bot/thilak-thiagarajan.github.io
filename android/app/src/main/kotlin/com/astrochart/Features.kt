@@ -19,4 +19,12 @@ object Features {
      * hide ads entirely.
      */
     const val ADS_ENABLED = true
+
+    /**
+     * Google Play in-app updates. When true, the app asks Play on launch whether
+     * a newer version is live and, if so, shows Play's built-in flexible
+     * "update available" flow so already-installed users can update to get new
+     * features. Requires no backend and is a no-op for non-Play installs.
+     */
+    const val IN_APP_UPDATE_ENABLED = true
 }

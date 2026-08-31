@@ -7,6 +7,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -44,6 +46,7 @@ import androidx.navigation.compose.rememberNavController
 import com.google.android.gms.ads.MobileAds
 import com.astrochart.core.i18n.Language
 import com.astrochart.notify.NotificationScheduler
+import com.astrochart.update.InAppUpdate
 import com.astrochart.ui.components.AdBanner
 import com.astrochart.ui.components.CelestialBackground
 import com.astrochart.ui.i18n.ChartStyleStore
@@ -85,6 +88,10 @@ import com.astrochart.ui.viewmodel.ChartViewModel
 import com.astrochart.ui.viewmodel.ChatViewModel
 
 class MainActivity : ComponentActivity() {
+
+    private var inAppUpdate: InAppUpdate? = null
+    private lateinit var updateLauncher: ActivityResultLauncher<IntentSenderRequest>
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         NotificationScheduler.ensureChannel(this)
@@ -92,6 +99,12 @@ class MainActivity : ComponentActivity() {
         if (Features.ADS_ENABLED) {
             // Safe to call repeatedly; no-ops without Play services present.
             runCatching { MobileAds.initialize(this) }
+        }
+        updateLauncher = registerForActivityResult(
+            ActivityResultContracts.StartIntentSenderForResult()
+        ) { /* user accepted/declined the Play update; nothing more to do here */ }
+        if (Features.IN_APP_UPDATE_ENABLED) {
+            inAppUpdate = InAppUpdate(this).also { it.checkForUpdate(updateLauncher) }
         }
         setContent {
             val context = LocalContext.current
@@ -111,6 +124,16 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        inAppUpdate?.onResume()
+    }
+
+    override fun onDestroy() {
+        inAppUpdate?.unregister()
+        super.onDestroy()
     }
 }
 
