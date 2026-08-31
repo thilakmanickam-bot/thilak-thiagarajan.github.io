@@ -297,7 +297,9 @@ fun AppNavigation(
             composable("nakshatra_list") { NakshatraListScreen() }
 
             composable("compatibility") {
-                CompatibilityScreen()
+                CompatibilityScreen(
+                    onNavigateToPremium = { navController.navigate("premium") }
+                )
             }
 
             composable("settings") {

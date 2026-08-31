@@ -72,7 +72,10 @@ private val SIGN_ORDER = listOf(
  * never crash on missing birth data.
  */
 @Composable
-fun CompatibilityScreen(modifier: Modifier = Modifier) {
+fun CompatibilityScreen(
+    onNavigateToPremium: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     val lang = LocalLanguage.current
     val ps = remember(lang) { PoruthamStrings.forLanguage(lang) }
     val activity = LocalContext.current as? Activity
@@ -171,10 +174,10 @@ fun CompatibilityScreen(modifier: Modifier = Modifier) {
             SummaryCard(r, ps)
             Spacer(Modifier.height(16.dp))
             OutlinedButton(
-                onClick = { /* Expert connect — coming soon */ },
+                onClick = onNavigateToPremium,
                 modifier = Modifier.fillMaxWidth().height(50.dp)
             ) {
-                Text(ps.expertConnect, color = GoldDeep, style = MaterialTheme.typography.titleMedium)
+                Text(ps.askUniverse, color = GoldDeep, style = MaterialTheme.typography.titleMedium)
             }
         }
 
