@@ -118,7 +118,7 @@ data class PanchangamStrings(
             vrathaNames = mapOf(
                 "amavasai" to "अमावस्या", "pournami" to "पूर्णिमा",
                 "ekadasi" to "एकादशी", "sashti" to "षष्ठी", "chaturthi" to "चतुर्थी",
-                "sankatahara" to "संकटहरा चतुर्थी", "pradosham" to "प्रदोष",
+                "sankatahara" to "संकष्टी चतुर्थी", "pradosham" to "प्रदोष",
                 "sivarathiri" to "शिवरात्रि", "krithigai" to "कृत्तिका", "thiruvonam" to "तिरुवोणम"
             )
         )
@@ -138,7 +138,7 @@ data class PanchangamStrings(
             brahmaMuhurta = "బ్రహ్మ ముహూర్తం",
             rahu = "రాహు కాలం",
             yamagandam = "యమగండం",
-            gulikai = "గుళికై",
+            gulikai = "గుళిక కాలం",
             tithi = "తిథి",
             nakshatra = "నక్షత్రం",
             yoga = "యోగం",
