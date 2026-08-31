@@ -1,6 +1,5 @@
 package com.astrochart.ui.i18n
 
-import com.astrochart.core.i18n.ContentLang
 import com.astrochart.core.i18n.Language
 import com.astrochart.core.interpret.Koota
 
@@ -53,9 +52,10 @@ data class PoruthamStrings(
     }
 
     companion object {
-        fun forLanguage(lang: Language): PoruthamStrings = when (lang.content) {
-            ContentLang.TA -> TA
-            ContentLang.ZH -> ZH
+        fun forLanguage(lang: Language): PoruthamStrings = when (lang) {
+            Language.TA -> TA
+            Language.ZH -> ZH
+            Language.HI -> HI
             else -> EN
         }
 
@@ -118,6 +118,68 @@ data class PoruthamStrings(
                 "vedha" to "Vedha is absent, which may bring hardships and impediments in marital life.",
                 "varna" to "Varna is absent, which may lead to differences in temperament and ego clashes.",
                 "nadi" to "Nadi is absent, which may cause health issues and hereditary problems. Marriage is not recommended."
+            )
+        )
+
+        private val HI = PoruthamStrings(
+            title = "विवाह मिलान",
+            entry = "विवाह मिलान",
+            subtitle = "उत्तम जोड़ी के लिए ज्योतिषीय अनुकूलता जाँचें",
+            boyDetails = "वर का विवरण",
+            girlDetails = "वधू का विवरण",
+            name = "नाम",
+            enterBoyName = "वर का नाम भरें",
+            enterGirlName = "वधू का नाम भरें",
+            rasi = "राशि",
+            nakshatram = "नक्षत्र",
+            calculate = "मिलान करें",
+            boyName = "वर का नाम",
+            girlName = "वधू का नाम",
+            totalScore = "कुल अनुकूलता अंक",
+            kuta = "कूट",
+            gained = "प्राप्त",
+            max = "अधिकतम",
+            present = "उपस्थित",
+            absent = "अनुपस्थित",
+            expertConnect = "विशेषज्ञ से जुड़ें",
+            fillAll = "दोनों के लिए राशि और नक्षत्र चुनें।",
+            summaryGood = "मुख्य ज्योतिषीय कारक भली-भाँति मिलते हैं। सुखद और समृद्ध दांपत्य का संकेत है।",
+            summaryFair = "अनुकूलता और दीर्घायु का विश्लेषण किया गया। कुछ बिंदुओं पर विचार के साथ यह एक ठीक-ठाक मिलान है।",
+            summaryPoor = "कई कारक अनुपस्थित हैं। आगे बढ़ने से पहले किसी ज्योतिषी से परामर्श करें।",
+            summaryCritical = "अनुकूलता और दीर्घायु का विश्लेषण किया गया। कई महत्वपूर्ण कारक अनुपस्थित हैं। स्वास्थ्य और दीर्घायु संबंधी चिंताएँ हैं।",
+            kootaNames = mapOf(
+                "dina" to "दिन", "gana" to "गण", "mahendra" to "महेंद्र",
+                "streeDeergha" to "स्त्री दीर्घ", "yoni" to "योनि", "rasi" to "राशि",
+                "rasiAdhipathi" to "राशि अधिपति", "vasya" to "वश्य", "rajju" to "रज्जु",
+                "vedha" to "वेध", "varna" to "वर्ण", "nadi" to "नाड़ी"
+            ),
+            presentDesc = mapOf(
+                "dina" to "दिन कूट उपस्थित है; दंपति के स्वास्थ्य और समृद्धि के लिए शुभ।",
+                "gana" to "गण कूट उपस्थित है; अच्छा स्वभाव और चारित्रिक अनुकूलता।",
+                "mahendra" to "महेंद्र कूट उपस्थित है; संतान और कल्याण के लिए अनुकूल।",
+                "streeDeergha" to "स्त्री दीर्घ उपस्थित है; वधू की दीर्घायु के लिए सहायक।",
+                "yoni" to "योनि कूट उपस्थित है; अच्छी शारीरिक अनुकूलता का संकेत।",
+                "rasi" to "राशि कूट उपस्थित है; दंपति में प्रेम और स्नेह का सूचक।",
+                "rasiAdhipathi" to "राशि अधिपति उपस्थित है; मानसिक अनुकूलता का संकेत।",
+                "vasya" to "वश्य कूट उपस्थित है; परस्पर आकर्षण का सूचक।",
+                "rajju" to "रज्जु कूट उपस्थित है; विवाह की दीर्घता के लिए सहायक।",
+                "vedha" to "वेध कूट उपस्थित है; दांपत्य जीवन में कम बाधाओं का संकेत।",
+                "varna" to "वर्ण कूट उपस्थित है; स्वभाव में सामंजस्य और कम अहं-टकराव।",
+                "nadi" to "नाड़ी कूट उपस्थित है; अच्छे स्वास्थ्य और स्वस्थ संतान के लिए शुभ।"
+            ),
+            absentDesc = mapOf(
+                "dina" to "दिन कूट अनुपस्थित है; स्वास्थ्य और समृद्धि पर प्रतिकूल प्रभाव संभव।",
+                "gana" to "गण कूट अनुपस्थित है; स्वभाव में मतभेद हो सकते हैं।",
+                "mahendra" to "महेंद्र कूट अनुपस्थित है; संतान में विलंब हो सकता है।",
+                "streeDeergha" to "स्त्री दीर्घ अनुपस्थित है; वधू की आयु पर प्रभाव संभव।",
+                "yoni" to "योनि कूट अनुपस्थित है; शारीरिक अनुकूलता पर प्रभाव पड़ सकता है।",
+                "rasi" to "राशि कूट अनुपस्थित है; प्रेम और स्नेह पर प्रभाव पड़ सकता है।",
+                "rasiAdhipathi" to "राशि अधिपति अनुपस्थित है; मानसिक अनुकूलता पर प्रभाव संभव।",
+                "vasya" to "वश्य कूट अनुपस्थित है; परस्पर आकर्षण घट सकता है।",
+                "rajju" to "रज्जु कूट अनुपस्थित है; यह अत्यंत महत्वपूर्ण है और विवाह की दीर्घता के लिए संकटपूर्ण हो सकता है। विवाह की अनुशंसा नहीं की जाती।",
+                "vedha" to "वेध कूट अनुपस्थित है; दांपत्य जीवन में बाधाएँ आ सकती हैं।",
+                "varna" to "वर्ण कूट अनुपस्थित है; स्वभाव में मतभेद और अहं-टकराव हो सकते हैं।",
+                "nadi" to "नाड़ी कूट अनुपस्थित है; स्वास्थ्य और आनुवंशिक समस्याएँ हो सकती हैं। विवाह की अनुशंसा नहीं की जाती।"
             )
         )
 

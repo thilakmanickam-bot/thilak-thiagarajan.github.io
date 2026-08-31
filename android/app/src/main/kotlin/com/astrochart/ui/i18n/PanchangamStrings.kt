@@ -1,6 +1,5 @@
 package com.astrochart.ui.i18n
 
-import com.astrochart.core.i18n.ContentLang
 import com.astrochart.core.i18n.Language
 
 /**
@@ -41,10 +40,11 @@ data class PanchangamStrings(
     fun vratha(key: String): String = vrathaNames[key] ?: key
 
     companion object {
-        fun forLanguage(lang: Language): PanchangamStrings = when (lang.content) {
-            ContentLang.EN -> EN
-            ContentLang.TA -> TA
-            ContentLang.ZH -> ZH
+        fun forLanguage(lang: Language): PanchangamStrings = when (lang) {
+            Language.TA -> TA
+            Language.ZH -> ZH
+            Language.HI -> HI
+            else -> EN
         }
 
         private val EN = PanchangamStrings(
@@ -80,6 +80,42 @@ data class PanchangamStrings(
                 "ekadasi" to "Ekadasi", "sashti" to "Sashti", "chaturthi" to "Chaturthi",
                 "sankatahara" to "Sankatahara Chaturthi", "pradosham" to "Pradosham",
                 "sivarathiri" to "Sivarathiri", "krithigai" to "Krithigai", "thiruvonam" to "Thiruvonam"
+            )
+        )
+
+        private val HI = PanchangamStrings(
+            title = "पंचांग",
+            calendarTitle = "कैलेंडर",
+            calendarLabel = "कैलेंडर",
+            monthCalendar = "मासिक कैलेंडर",
+            today = "आज",
+            location = "स्थान",
+            sunrise = "सूर्योदय",
+            sunset = "सूर्यास्त",
+            auspicious = "शुभ समय",
+            inauspicious = "अशुभ समय",
+            abhijit = "अभिजित मुहूर्त",
+            brahmaMuhurta = "ब्रह्म मुहूर्त",
+            rahu = "राहु काल",
+            yamagandam = "यमगंड",
+            gulikai = "गुलिक काल",
+            tithi = "तिथि",
+            nakshatra = "नक्षत्र",
+            yoga = "योग",
+            karana = "करण",
+            paksha = "पक्ष",
+            rasiPalan = "आज का राशिफल",
+            until = "तक",
+            then = "फिर",
+            nextDay = "(अगले दिन)",
+            noSunToday = "इस स्थान पर आज सूर्योदय/सूर्यास्त नहीं है।",
+            swipeHint = "आज के पंचांग के लिए ऊपर स्वाइप करें",
+            vrathaTitle = "व्रत और विशेष दिन",
+            vrathaNames = mapOf(
+                "amavasai" to "अमावस्या", "pournami" to "पूर्णिमा",
+                "ekadasi" to "एकादशी", "sashti" to "षष्ठी", "chaturthi" to "चतुर्थी",
+                "sankatahara" to "संकटहरा चतुर्थी", "pradosham" to "प्रदोष",
+                "sivarathiri" to "शिवरात्रि", "krithigai" to "कृत्तिका", "thiruvonam" to "तिरुवोणम"
             )
         )
 

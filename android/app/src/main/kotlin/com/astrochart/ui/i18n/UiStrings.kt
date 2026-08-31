@@ -1,7 +1,6 @@
 package com.astrochart.ui.i18n
 
 import androidx.compose.runtime.staticCompositionLocalOf
-import com.astrochart.core.i18n.ContentLang
 import com.astrochart.core.i18n.Language
 
 /**
@@ -137,35 +136,40 @@ data class UiStrings(
     val premiumPerkChatDesc: String,
     val premiumNotifyNote: String
 ) {
-    fun ageValue(years: Int): String = when (lang.content) {
-        ContentLang.EN -> "$years yrs"
-        ContentLang.TA -> "$years வயது"
-        ContentLang.ZH -> "${years}岁"
+    fun ageValue(years: Int): String = when (lang) {
+        Language.TA -> "$years வயது"
+        Language.ZH -> "${years}岁"
+        Language.HI -> "$years वर्ष"
+        else -> "$years yrs"
     }
 
-    fun houseLabel(house: Int): String = when (lang.content) {
-        ContentLang.EN -> "House $house"
-        ContentLang.TA -> "$house ஆம் வீடு"
-        ContentLang.ZH -> "第${house}宫"
+    fun houseLabel(house: Int): String = when (lang) {
+        Language.TA -> "$house ஆம் வீடு"
+        Language.ZH -> "第${house}宫"
+        Language.HI -> "भाव $house"
+        else -> "House $house"
     }
 
-    fun bodyCount(count: Int): String = when (lang.content) {
-        ContentLang.EN -> if (count == 1) "1 body" else "$count bodies"
-        ContentLang.TA -> "$count கிரகம்"
-        ContentLang.ZH -> "${count}颗"
+    fun bodyCount(count: Int): String = when (lang) {
+        Language.TA -> "$count கிரகம்"
+        Language.ZH -> "${count}颗"
+        Language.HI -> "$count ग्रह"
+        else -> if (count == 1) "1 body" else "$count bodies"
     }
 
-    fun deleteMessage(name: String): String = when (lang.content) {
-        ContentLang.EN -> "\"$name\" will be permanently removed."
-        ContentLang.TA -> "\"$name\" நிரந்தரமாக நீக்கப்படும்."
-        ContentLang.ZH -> "将永久删除“$name”。"
+    fun deleteMessage(name: String): String = when (lang) {
+        Language.TA -> "\"$name\" நிரந்தரமாக நீக்கப்படும்."
+        Language.ZH -> "将永久删除“$name”。"
+        Language.HI -> "\"$name\" स्थायी रूप से हटा दिया जाएगा।"
+        else -> "\"$name\" will be permanently removed."
     }
 
     companion object {
-        fun forLanguage(lang: Language): UiStrings = when (lang.content) {
-            ContentLang.EN -> EN
-            ContentLang.TA -> TA
-            ContentLang.ZH -> ZH
+        fun forLanguage(lang: Language): UiStrings = when (lang) {
+            Language.TA -> TA
+            Language.ZH -> ZH
+            Language.HI -> HI
+            else -> EN
         }
 
         private val EN = UiStrings(
@@ -283,6 +287,123 @@ data class UiStrings(
             premiumPerkChat = "Ask the Universe",
             premiumPerkChatDesc = "Unlock the AI astrologer to reflect on your chart in conversation.",
             premiumNotifyNote = "Premium isn't available yet — we'll let you know the moment it's ready."
+        )
+
+        private val HI = UiStrings(
+            lang = Language.HI,
+            appName = "Halo",
+            navCalculate = "मेरी कुंडली बनाएँ",
+            navSavedChartsTitle = "सहेजी गई कुंडलियाँ",
+            chartTitle = "कुंडली",
+            back = "वापस",
+            languageLabel = "भाषा",
+            homeEyebrow = "आपका ब्रह्मांडीय मार्गदर्शक",
+            homeTitleLine1 = "जानिए अपनी",
+            homeTitleLine2 = "जन्म कुंडली",
+            homeSubtitle = "अपना जन्म विवरण भरें और अपने ग्रह-स्थान, दृष्टियाँ और तत्व-संतुलन देखें — सब आपके डिवाइस पर ही।",
+            homeViewSaved = "सहेजी गई कुंडलियाँ देखें",
+            biEyebrow = "नई कुंडली",
+            biHeading = "जन्म विवरण भरें",
+            name = "नाम",
+            nameRequired = "आवश्यक — कुंडली इसी नाम से सहेजी जाएगी",
+            gender = "लिंग",
+            genderFemale = "महिला",
+            genderMale = "पुरुष",
+            genderOther = "अन्य",
+            genderUnset = "बताना नहीं चाहते",
+            dob = "जन्म तिथि",
+            tob = "जन्म समय (24-घंटे)",
+            pob = "जन्म स्थान",
+            day = "दिन",
+            month = "माह",
+            year = "वर्ष",
+            hour = "घंटा",
+            minute = "मिनट",
+            location = "स्थान",
+            selectCity = "शहर चुनें",
+            timeZone = "समय क्षेत्र",
+            dropdownDefault = "चुनें…",
+            tabWheel = "चक्र",
+            tabPlacements = "स्थान",
+            tabAspects = "दृष्टियाँ",
+            tabBalance = "संतुलन",
+            tabReading = "फल",
+            labelSun = "सूर्य",
+            labelMoon = "चंद्र",
+            labelRising = "लग्न",
+            labelAge = "आयु",
+            labelGender = "लिंग",
+            labelChineseZodiac = "चीनी राशि",
+            angles = "कोण",
+            planets = "ग्रह",
+            orb = "अंतर",
+            noAspects = "इस कुंडली में सीमा के भीतर कोई प्रमुख दृष्टि नहीं है।",
+            elements = "तत्व",
+            modalities = "स्वभाव",
+            wheelLegendAxis = "लग्न 9 बजे की स्थिति पर है; राशिचक्र वामावर्त चलता है।",
+            wheelLegendSoft = "— शुभ (त्रिकोण/षष्ठक)",
+            wheelLegendHard = "— चुनौतीपूर्ण (चतुष्क/विरोध)",
+            noSaved = "अभी कोई कुंडली सहेजी नहीं गई। एक कुंडली बनाएँ, वह स्वतः यहाँ सहेज ली जाएगी।",
+            untitled = "बिना शीर्षक कुंडली",
+            rename = "नाम बदलें",
+            delete = "हटाएँ",
+            deleteTitle = "कुंडली हटाएँ?",
+            cancel = "रद्द करें",
+            renameTitle = "कुंडली का नाम बदलें",
+            save = "सहेजें",
+            dailyTitle = "आज",
+            dailyGood = "करने योग्य",
+            dailyAvoid = "टालें",
+            dailyFocus = "ध्यान",
+            dailyLuckyColor = "शुभ रंग",
+            dailyAvoidColor = "टालने योग्य रंग",
+            notifTitle = "आपका दैनिक फल",
+            notifChannelName = "दैनिक फल",
+            chatEntry = "ब्रह्मांड से पूछें",
+            navChatTitle = "ज्योतिषी",
+            chatChoosePrompt = "किसकी कुंडली पर विचार करें?",
+            chatEmptyMessage = "अभी आपकी कोई कुंडली सहेजी नहीं है। एक बनाएँ, फिर हम मिलकर उस पर विचार कर सकते हैं।",
+            chatCreateChart = "कुंडली बनाएँ",
+            chatChangeChart = "कुंडली बदलें",
+            chatInputHint = "जो मन में है, साझा करें…",
+            chatSend = "भेजें",
+            chatSuggestionsHeader = "आप पूछ सकते हैं…",
+            chatThinking = "विचार हो रहा है…",
+            chatNotConfigured = "ज्योतिषी अभी जुड़ा नहीं है। शुरू करने के लिए अपनी Anthropic API कुंजी जोड़ें।",
+            chatError = "हमारा संपर्क बाधित हुआ। कृपया थोड़ी देर में पुनः प्रयास करें।",
+            chatLoadFailed = "वह कुंडली नहीं खुल सकी। कृपया दूसरी चुनें।",
+            chatConnectTitle = "ज्योतिषी को जोड़ें",
+            chatApiKeyPrompt = "शुरू करने के लिए अपनी Anthropic API कुंजी पेस्ट करें। यह केवल इसी डिवाइस पर संग्रहीत होती है और Claude से बात करने के लिए उपयोग होती है।",
+            chatApiKeyHint = "Anthropic API कुंजी (sk-ant-…)",
+            chatConnect = "जोड़ें",
+            chatApiKeyHelp = "console.anthropic.com पर कुंजी बनाएँ",
+            chatChangeApiKey = "API कुंजी बदलें",
+            chartLegendSouthIndian = "राशियाँ निश्चित खानों में रहती हैं; प्रत्येक ग्रह उसी राशि में लिखा जाता है जिसमें वह पड़ता है। लग्न केंद्र में अग्रणी रहता है।",
+            navSettingsTitle = "सेटिंग्स",
+            settingsLabel = "सेटिंग्स",
+            settingsPreferences = "प्राथमिकताएँ",
+            settingsChartType = "कुंडली शैली",
+            settingsChartTypeDesc = "चुनें कि आपकी कुंडली कैसे बनाई जाए",
+            settingsPremiumRow = "Halo प्रीमियम",
+            settingsAppearance = "रूप-रंग",
+            settingsTheme = "थीम",
+            settingsThemeDesc = "पृष्ठभूमि का भाव",
+            settingsDefaults = "डिफ़ॉल्ट",
+            settingsCity = "डिफ़ॉल्ट शहर",
+            settingsPrimary = "मुख्य प्रोफ़ाइल",
+            settingsPrimaryDesc = "दैनिक, साप्ताहिक और मासिक फल तथा दैनिक सूचना इसी व्यक्ति के लिए दिखाए जाते हैं।",
+            settingsPrimaryRasi = "राशि",
+            settingsPrimaryNak = "नक्षत्र",
+            navPremiumTitle = "प्रीमियम",
+            premiumEntry = "प्रीमियम लें",
+            premiumComingSoon = "जल्द आ रहा है",
+            premiumHeadline = "Halo प्रीमियम",
+            premiumSubtitle = "एक शांत, गहरा Halo — उन सुविधाओं के साथ जो इसे आपका बनाती हैं।",
+            premiumPerkAdFree = "विज्ञापन-मुक्त अनुभव",
+            premiumPerkAdFreeDesc = "हर फल का आनंद लें, बिना किसी विज्ञापन के।",
+            premiumPerkChat = "ब्रह्मांड से पूछें",
+            premiumPerkChatDesc = "अपनी कुंडली पर संवाद के लिए AI ज्योतिषी को अनलॉक करें।",
+            premiumNotifyNote = "प्रीमियम अभी उपलब्ध नहीं है — तैयार होते ही हम आपको बता देंगे।"
         )
 
         private val TA = UiStrings(

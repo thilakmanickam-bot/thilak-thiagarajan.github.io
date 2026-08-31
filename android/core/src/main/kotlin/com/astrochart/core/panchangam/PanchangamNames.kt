@@ -2,9 +2,17 @@ package com.astrochart.core.panchangam
 
 import com.astrochart.core.i18n.Language
 
-/** A panchangam term with an English (romanized) and a Tamil-script form. */
-data class PName(val en: String, val ta: String) {
-    fun get(lang: Language): String = if (lang == Language.TA) ta else en
+/**
+ * A panchangam term with an English (romanized) form, a Tamil-script form and an
+ * optional Hindi (Devanagari) form. [hi] defaults to the English romanization for
+ * terms not yet given a Devanagari name.
+ */
+data class PName(val en: String, val ta: String, val hi: String = en) {
+    fun get(lang: Language): String = when (lang) {
+        Language.TA -> ta
+        Language.HI -> hi
+        else -> en
+    }
 }
 
 /**
@@ -16,31 +24,38 @@ object PanchangamNames {
 
     /** Index 0 = Sunday … 6 = Saturday. */
     val weekdays = listOf(
-        PName("Sunday", "ஞாயிறு"), PName("Monday", "திங்கள்"), PName("Tuesday", "செவ்வாய்"),
-        PName("Wednesday", "புதன்"), PName("Thursday", "வியாழன்"), PName("Friday", "வெள்ளி"),
-        PName("Saturday", "சனி")
+        PName("Sunday", "ஞாயிறு", "रविवार"), PName("Monday", "திங்கள்", "सोमवार"),
+        PName("Tuesday", "செவ்வாய்", "मंगलवार"), PName("Wednesday", "புதன்", "बुधवार"),
+        PName("Thursday", "வியாழன்", "गुरुवार"), PName("Friday", "வெள்ளி", "शुक्रवार"),
+        PName("Saturday", "சனி", "शनिवार")
     )
 
     /** Tamil solar months, index 0 = Chithirai (sidereal Aries) … 11 = Panguni. */
     val tamilMonths = listOf(
-        PName("Chithirai", "சித்திரை"), PName("Vaikasi", "வைகாசி"), PName("Aani", "ஆனி"),
-        PName("Aadi", "ஆடி"), PName("Aavani", "ஆவணி"), PName("Purattasi", "புரட்டாசி"),
-        PName("Aippasi", "ஐப்பசி"), PName("Karthigai", "கார்த்திகை"), PName("Margazhi", "மார்கழி"),
-        PName("Thai", "தை"), PName("Maasi", "மாசி"), PName("Panguni", "பங்குனி")
+        PName("Chithirai", "சித்திரை", "चित्तिरै"), PName("Vaikasi", "வைகாசி", "वैकासि"),
+        PName("Aani", "ஆனி", "आनि"), PName("Aadi", "ஆடி", "आडि"),
+        PName("Aavani", "ஆவணி", "आवणि"), PName("Purattasi", "புரட்டாசி", "पुरट्टासि"),
+        PName("Aippasi", "ஐப்பசி", "ऐप्पसि"), PName("Karthigai", "கார்த்திகை", "कार्त्तिगै"),
+        PName("Margazhi", "மார்கழி", "मार्गऴि"), PName("Thai", "தை", "तै"),
+        PName("Maasi", "மாசி", "मासि"), PName("Panguni", "பங்குனி", "पंगुनि")
     )
 
     /** 27 nakshatras, index 0 = Ashwini. */
     val nakshatras = listOf(
-        PName("Ashwini", "அசுவினி"), PName("Bharani", "பரணி"), PName("Krittika", "கார்த்திகை"),
-        PName("Rohini", "ரோகிணி"), PName("Mrigashira", "மிருகசீரிடம்"), PName("Ardra", "திருவாதிரை"),
-        PName("Punarvasu", "புனர்பூசம்"), PName("Pushya", "பூசம்"), PName("Ashlesha", "ஆயில்யம்"),
-        PName("Magha", "மகம்"), PName("Purva Phalguni", "பூரம்"), PName("Uttara Phalguni", "உத்திரம்"),
-        PName("Hasta", "அஸ்தம்"), PName("Chitra", "சித்திரை"), PName("Swati", "சுவாதி"),
-        PName("Vishakha", "விசாகம்"), PName("Anuradha", "அனுஷம்"), PName("Jyeshtha", "கேட்டை"),
-        PName("Mula", "மூலம்"), PName("Purva Ashadha", "பூராடம்"), PName("Uttara Ashadha", "உத்திராடம்"),
-        PName("Shravana", "திருவோணம்"), PName("Dhanishta", "அவிட்டம்"), PName("Shatabhisha", "சதயம்"),
-        PName("Purva Bhadrapada", "பூரட்டாதி"), PName("Uttara Bhadrapada", "உத்திரட்டாதி"),
-        PName("Revati", "ரேவதி")
+        PName("Ashwini", "அசுவினி", "अश्विनी"), PName("Bharani", "பரணி", "भरणी"),
+        PName("Krittika", "கார்த்திகை", "कृत्तिका"), PName("Rohini", "ரோகிணி", "रोहिणी"),
+        PName("Mrigashira", "மிருகசீரிடம்", "मृगशिरा"), PName("Ardra", "திருவாதிரை", "आर्द्रा"),
+        PName("Punarvasu", "புனர்பூசம்", "पुनर्वसु"), PName("Pushya", "பூசம்", "पुष्य"),
+        PName("Ashlesha", "ஆயில்யம்", "आश्लेषा"), PName("Magha", "மகம்", "मघा"),
+        PName("Purva Phalguni", "பூரம்", "पूर्वा फाल्गुनी"), PName("Uttara Phalguni", "உத்திரம்", "उत्तरा फाल्गुनी"),
+        PName("Hasta", "அஸ்தம்", "हस्त"), PName("Chitra", "சித்திரை", "चित्रा"),
+        PName("Swati", "சுவாதி", "स्वाति"), PName("Vishakha", "விசாகம்", "विशाखा"),
+        PName("Anuradha", "அனுஷம்", "अनुराधा"), PName("Jyeshtha", "கேட்டை", "ज्येष्ठा"),
+        PName("Mula", "மூலம்", "मूल"), PName("Purva Ashadha", "பூராடம்", "पूर्वाषाढ़ा"),
+        PName("Uttara Ashadha", "உத்திராடம்", "उत्तराषाढ़ा"), PName("Shravana", "திருவோணம்", "श्रवण"),
+        PName("Dhanishta", "அவிட்டம்", "धनिष्ठा"), PName("Shatabhisha", "சதயம்", "शतभिषा"),
+        PName("Purva Bhadrapada", "பூரட்டாதி", "पूर्व भाद्रपद"), PName("Uttara Bhadrapada", "உத்திரட்டாதி", "उत्तर भाद्रपद"),
+        PName("Revati", "ரேவதி", "रेवती")
     )
 
     /** 27 yogas, index 0 = Vishkambha. */
@@ -58,14 +73,16 @@ object PanchangamNames {
 
     /** Tithi names within a paksha, index 0 = Prathama … 13 = Chaturdashi, 14 = Purnima/Amavasya. */
     private val tithiBase = listOf(
-        PName("Prathama", "பிரதமை"), PName("Dwitiya", "துவிதியை"), PName("Tritiya", "திருதியை"),
-        PName("Chaturthi", "சதுர்த்தி"), PName("Panchami", "பஞ்சமி"), PName("Shashti", "சஷ்டி"),
-        PName("Saptami", "சப்தமி"), PName("Ashtami", "அஷ்டமி"), PName("Navami", "நவமி"),
-        PName("Dashami", "தசமி"), PName("Ekadashi", "ஏகாதசி"), PName("Dwadashi", "துவாதசி"),
-        PName("Trayodashi", "திரயோதசி"), PName("Chaturdashi", "சதுர்த்தசி")
+        PName("Prathama", "பிரதமை", "प्रतिपदा"), PName("Dwitiya", "துவிதியை", "द्वितीया"),
+        PName("Tritiya", "திருதியை", "तृतीया"), PName("Chaturthi", "சதுர்த்தி", "चतुर्थी"),
+        PName("Panchami", "பஞ்சமி", "पंचमी"), PName("Shashti", "சஷ்டி", "षष्ठी"),
+        PName("Saptami", "சப்தமி", "सप्तमी"), PName("Ashtami", "அஷ்டமி", "अष्टमी"),
+        PName("Navami", "நவமி", "नवमी"), PName("Dashami", "தசமி", "दशमी"),
+        PName("Ekadashi", "ஏகாதசி", "एकादशी"), PName("Dwadashi", "துவாதசி", "द्वादशी"),
+        PName("Trayodashi", "திரயோதசி", "त्रयोदशी"), PName("Chaturdashi", "சதுர்த்தசி", "चतुर्दशी")
     )
-    private val purnima = PName("Purnima", "பௌர்ணமி")
-    private val amavasya = PName("Amavasya", "அமாவாசை")
+    private val purnima = PName("Purnima", "பௌர்ணமி", "पूर्णिमा")
+    private val amavasya = PName("Amavasya", "அமாவாசை", "अमावस्या")
 
     /** Localized tithi name for a 0-based tithi index (0..29). */
     fun tithiName(tithi0: Int): PName {
@@ -79,7 +96,7 @@ object PanchangamNames {
 
     /** Paksha (fortnight): 0 = Shukla (waxing), 1 = Krishna (waning). */
     fun paksha(tithi0: Int): PName =
-        if (tithi0 < 15) PName("Shukla", "வளர்பிறை") else PName("Krishna", "தேய்பிறை")
+        if (tithi0 < 15) PName("Shukla", "வளர்பிறை", "शुक्ल") else PName("Krishna", "தேய்பிறை", "कृष्ण")
 
     private val movableKaranas = listOf(
         PName("Bava", "பவ"), PName("Balava", "பாலவ"), PName("Kaulava", "கௌலவ"),

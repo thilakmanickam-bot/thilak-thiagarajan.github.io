@@ -18,18 +18,19 @@ enum class AppTheme(
     val glow: Color,
     val labelEn: String,
     val labelTa: String,
-    val labelZh: String
+    val labelZh: String,
+    val labelHi: String
 ) {
     MIDNIGHT("midnight", Color(0xFF241A54), Color(0xFF141138), Color(0xFF08061C), Color(0xFF3A2A78),
-        "Midnight", "நள்ளிரவு", "午夜"),
+        "Midnight", "நள்ளிரவு", "午夜", "मध्यरात्रि"),
     TWILIGHT("twilight", Color(0xFF3B2A5A), Color(0xFF2A1B44), Color(0xFF140C24), Color(0xFF6B4AA0),
-        "Twilight", "அந்தி", "暮色"),
+        "Twilight", "அந்தி", "暮色", "संध्या"),
     DEEP_SPACE("deep_space", Color(0xFF11131A), Color(0xFF080A10), Color(0xFF000000), Color(0xFF1E2A45),
-        "Deep space", "ஆழ்வெளி", "深空"),
+        "Deep space", "ஆழ்வெளி", "深空", "गहन अंतरिक्ष"),
     OCEAN("ocean", Color(0xFF123A4A), Color(0xFF0B2634), Color(0xFF041018), Color(0xFF1E6B7A),
-        "Ocean", "கடல்", "海洋"),
+        "Ocean", "கடல்", "海洋", "महासागर"),
     ROSE("rose", Color(0xFF4A1F35), Color(0xFF321226), Color(0xFF180814), Color(0xFF8A3A5A),
-        "Rose", "ரோஜா", "玫瑰");
+        "Rose", "ரோஜா", "玫瑰", "गुलाब");
 
     companion object {
         val DEFAULT = MIDNIGHT
