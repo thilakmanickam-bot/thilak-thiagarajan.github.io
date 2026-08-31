@@ -1,6 +1,5 @@
 package com.astrochart.core.utils
 
-import com.astrochart.core.i18n.ContentLang
 import com.astrochart.core.i18n.Language
 import com.astrochart.core.i18n.Translations
 import com.astrochart.core.models.AspectInterpretation
@@ -28,11 +27,36 @@ object AspectInterpretationProvider {
             "Trine", "Sextile" -> 1 // harmonious
             else -> 2            // challenging
         }
-        return when (lang.content) {
-            ContentLang.TA -> when (nature) {
+        return when (lang) {
+            Language.TA -> when (nature) {
                 0 -> "$a – $b: இந்த இணைப்பு அவற்றின் ஆற்றல்களை ஒன்றிணைக்கிறது."
                 1 -> "$a – $b: இவை இணக்கமாகப் பாய்கின்றன, இயல்பான திறமையையும் எளிமையையும் தருகின்றன."
                 else -> "$a – $b: இவற்றுக்கிடையே பதற்றம் உள்ளது, வளர்ச்சிக்கான உந்துதலைத் தருகிறது."
+            }
+            Language.HI -> when (nature) {
+                0 -> "$a – $b: यह युति उनकी ऊर्जाओं को मिला देती है।"
+                1 -> "$a – $b: ये सामंजस्य से प्रवाहित होते हैं, सहज प्रतिभा और सरलता देते हैं।"
+                else -> "$a – $b: इनके बीच तनाव है, जो विकास के लिए प्रेरणा देता है।"
+            }
+            Language.TE -> when (nature) {
+                0 -> "$a – $b: ఈ కలయిక వాటి శక్తులను మేళవిస్తుంది."
+                1 -> "$a – $b: ఇవి సామరస్యంగా ప్రవహిస్తాయి, సహజ ప్రతిభను, సౌలభ్యాన్ని ఇస్తాయి."
+                else -> "$a – $b: వీటి మధ్య ఉద్రిక్తత ఉంది, ఇది ఎదుగుదలకు ప్రేరణ ఇస్తుంది."
+            }
+            Language.KN -> when (nature) {
+                0 -> "$a – $b: ಈ ಸಂಯೋಗ ಅವುಗಳ ಶಕ್ತಿಗಳನ್ನು ಬೆಸೆಯುತ್ತದೆ."
+                1 -> "$a – $b: ಇವು ಸಾಮರಸ್ಯದಿಂದ ಹರಿಯುತ್ತವೆ, ಸಹಜ ಪ್ರತಿಭೆ ಮತ್ತು ಸುಲಭತೆಯನ್ನು ನೀಡುತ್ತವೆ."
+                else -> "$a – $b: ಇವುಗಳ ನಡುವೆ ಒತ್ತಡವಿದೆ, ಬೆಳವಣಿಗೆಗೆ ಪ್ರಚೋದನೆ ನೀಡುತ್ತದೆ."
+            }
+            Language.ML -> when (nature) {
+                0 -> "$a – $b: ഈ യോഗം അവയുടെ ഊർജങ്ങളെ ലയിപ്പിക്കുന്നു."
+                1 -> "$a – $b: ഇവ ഇണക്കത്തോടെ ഒഴുകുന്നു, സഹജമായ കഴിവും അനായാസതയും നൽകുന്നു."
+                else -> "$a – $b: ഇവയ്ക്കിടയിൽ പിരിമുറുക്കമുണ്ട്, വളർച്ചയ്ക്ക് പ്രേരണ നൽകുന്നു."
+            }
+            Language.MR -> when (nature) {
+                0 -> "$a – $b: ही युती त्यांच्या ऊर्जा एकत्र करते."
+                1 -> "$a – $b: या सामंजस्याने वाहतात, सहज प्रतिभा व सुलभता देतात."
+                else -> "$a – $b: यांच्यात तणाव आहे, जो वाढीसाठी प्रेरणा देतो."
             }
             else -> when (nature) {
                 0 -> "${a}与${b}：能量融合，共同运作。"

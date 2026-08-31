@@ -457,26 +457,66 @@ object Translations {
         "Mars" to "火", "Jupiter" to "木", "Saturn" to "土", "Uranus" to "天",
         "Neptune" to "海", "Pluto" to "冥", "Ascendant" to "命"
     )
+    private val bodyAbbrHi = mapOf(
+        "Sun" to "सू", "Moon" to "चं", "Mercury" to "बु", "Venus" to "शु",
+        "Mars" to "मं", "Jupiter" to "गु", "Saturn" to "श", "Uranus" to "यु",
+        "Neptune" to "ने", "Pluto" to "प्लू", "Ascendant" to "लग्न"
+    )
+    private val bodyAbbrTe = mapOf(
+        "Sun" to "సూ", "Moon" to "చం", "Mercury" to "బు", "Venus" to "శు",
+        "Mars" to "కు", "Jupiter" to "గు", "Saturn" to "శ", "Uranus" to "యు",
+        "Neptune" to "నె", "Pluto" to "ప్లూ", "Ascendant" to "లగ్న"
+    )
+    private val bodyAbbrKn = mapOf(
+        "Sun" to "ಸೂ", "Moon" to "ಚಂ", "Mercury" to "ಬು", "Venus" to "ಶು",
+        "Mars" to "ಮಂ", "Jupiter" to "ಗು", "Saturn" to "ಶ", "Uranus" to "ಯು",
+        "Neptune" to "ನೆ", "Pluto" to "ಪ್ಲೂ", "Ascendant" to "ಲಗ್ನ"
+    )
+    private val bodyAbbrMl = mapOf(
+        "Sun" to "സൂ", "Moon" to "ച", "Mercury" to "ബു", "Venus" to "ശു",
+        "Mars" to "ചൊ", "Jupiter" to "വ്യാ", "Saturn" to "ശ", "Uranus" to "യു",
+        "Neptune" to "നെ", "Pluto" to "പ്ലൂ", "Ascendant" to "ലഗ്നം"
+    )
+    private val bodyAbbrMr = mapOf(
+        "Sun" to "सू", "Moon" to "चं", "Mercury" to "बु", "Venus" to "शु",
+        "Mars" to "मं", "Jupiter" to "गु", "Saturn" to "श", "Uranus" to "यु",
+        "Neptune" to "ने", "Pluto" to "प्लू", "Ascendant" to "लग्न"
+    )
 
     /** Compact label for a body (planet or "Ascendant"), used in the square chart. */
-    fun bodyAbbr(body: String, lang: Language): String = when (lang.content) {
-        ContentLang.EN -> bodyAbbrEn[body] ?: body
-        ContentLang.TA -> bodyAbbrTa[body] ?: body
-        ContentLang.ZH -> bodyAbbrZh[body] ?: body
+    fun bodyAbbr(body: String, lang: Language): String = when (lang) {
+        Language.TA -> bodyAbbrTa[body] ?: body
+        Language.ZH -> bodyAbbrZh[body] ?: body
+        Language.HI -> bodyAbbrHi[body] ?: body
+        Language.TE -> bodyAbbrTe[body] ?: body
+        Language.KN -> bodyAbbrKn[body] ?: body
+        Language.ML -> bodyAbbrMl[body] ?: body
+        Language.MR -> bodyAbbrMr[body] ?: body
+        else -> bodyAbbrEn[body] ?: body
     }
 
     // ----- Chart-style display names ----------------------------------------
 
     fun chartStyleName(style: ChartStyle, lang: Language): String = when (style) {
-        ChartStyle.WESTERN_WHEEL -> when (lang.content) {
-            ContentLang.EN -> "Western wheel"
-            ContentLang.TA -> "மேற்கத்திய சக்கரம்"
-            ContentLang.ZH -> "西方星盘"
+        ChartStyle.WESTERN_WHEEL -> when (lang) {
+            Language.TA -> "மேற்கத்திய சக்கரம்"
+            Language.ZH -> "西方星盘"
+            Language.HI -> "पश्चिमी चक्र"
+            Language.TE -> "పాశ్చాత్య చక్రం"
+            Language.KN -> "ಪಾಶ್ಚಾತ್ಯ ಚಕ್ರ"
+            Language.ML -> "പാശ്ചാത്യ ചക്രം"
+            Language.MR -> "पाश्चात्य चक्र"
+            else -> "Western wheel"
         }
-        ChartStyle.SOUTH_INDIAN -> when (lang.content) {
-            ContentLang.EN -> "South Indian (Tamil)"
-            ContentLang.TA -> "தென்னிந்தியம் (தமிழ்)"
-            ContentLang.ZH -> "南印度（泰米尔）"
+        ChartStyle.SOUTH_INDIAN -> when (lang) {
+            Language.TA -> "தென்னிந்தியம் (தமிழ்)"
+            Language.ZH -> "南印度（泰米尔）"
+            Language.HI -> "दक्षिण भारतीय (तमिल)"
+            Language.TE -> "దక్షిణ భారత (తమిళ)"
+            Language.KN -> "ದಕ್ಷಿಣ ಭಾರತೀಯ (ತಮಿಳು)"
+            Language.ML -> "ദക്ഷിണേന്ത്യൻ (തമിഴ്)"
+            Language.MR -> "दक्षिण भारतीय (तमिळ)"
+            else -> "South Indian (Tamil)"
         }
     }
 }
