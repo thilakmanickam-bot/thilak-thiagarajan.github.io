@@ -238,6 +238,10 @@ private fun themeLabel(theme: AppTheme, lang: Language): String = when (lang) {
     Language.TA -> theme.labelTa
     Language.ZH -> theme.labelZh
     Language.HI -> theme.labelHi
+    Language.TE -> theme.labelTe
+    Language.KN -> theme.labelKn
+    Language.ML -> theme.labelMl
+    Language.MR -> theme.labelMr
     else -> theme.labelEn
 }
 

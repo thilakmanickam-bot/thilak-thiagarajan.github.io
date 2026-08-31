@@ -44,6 +44,10 @@ data class PanchangamStrings(
             Language.TA -> TA
             Language.ZH -> ZH
             Language.HI -> HI
+            Language.TE -> TE
+            Language.KN -> KN
+            Language.ML -> ML
+            Language.MR -> MR
             else -> EN
         }
 
@@ -116,6 +120,150 @@ data class PanchangamStrings(
                 "ekadasi" to "एकादशी", "sashti" to "षष्ठी", "chaturthi" to "चतुर्थी",
                 "sankatahara" to "संकटहरा चतुर्थी", "pradosham" to "प्रदोष",
                 "sivarathiri" to "शिवरात्रि", "krithigai" to "कृत्तिका", "thiruvonam" to "तिरुवोणम"
+            )
+        )
+
+        private val TE = PanchangamStrings(
+            title = "పంచాంగం",
+            calendarTitle = "క్యాలెండర్",
+            calendarLabel = "క్యాలెండర్",
+            monthCalendar = "నెలవారీ క్యాలెండర్",
+            today = "నేడు",
+            location = "స్థలం",
+            sunrise = "సూర్యోదయం",
+            sunset = "సూర్యాస్తమయం",
+            auspicious = "శుభ సమయాలు",
+            inauspicious = "అశుభ సమయాలు",
+            abhijit = "అభిజిత్ ముహూర్తం",
+            brahmaMuhurta = "బ్రహ్మ ముహూర్తం",
+            rahu = "రాహు కాలం",
+            yamagandam = "యమగండం",
+            gulikai = "గుళికై",
+            tithi = "తిథి",
+            nakshatra = "నక్షత్రం",
+            yoga = "యోగం",
+            karana = "కరణం",
+            paksha = "పక్షం",
+            rasiPalan = "నేటి రాశిఫలం",
+            until = "వరకు",
+            then = "తరువాత",
+            nextDay = "(మరుసటి రోజు)",
+            noSunToday = "ఈ స్థలంలో నేడు సూర్యోదయం/సూర్యాస్తమయం లేదు.",
+            swipeHint = "నేటి పంచాంగం కోసం పైకి స్వైప్ చేయండి",
+            vrathaTitle = "వ్రతం & విశేష దినాలు",
+            vrathaNames = mapOf(
+                "amavasai" to "అమావాస్య", "pournami" to "పౌర్ణమి",
+                "ekadasi" to "ఏకాదశి", "sashti" to "షష్ఠి", "chaturthi" to "చతుర్థి",
+                "sankatahara" to "సంకటహర చతుర్థి", "pradosham" to "ప్రదోషం",
+                "sivarathiri" to "శివరాత్రి", "krithigai" to "కృత్తిక", "thiruvonam" to "తిరువోణం"
+            )
+        )
+
+        private val KN = PanchangamStrings(
+            title = "ಪಂಚಾಂಗ",
+            calendarTitle = "ಕ್ಯಾಲೆಂಡರ್",
+            calendarLabel = "ಕ್ಯಾಲೆಂಡರ್",
+            monthCalendar = "ಮಾಸಿಕ ಕ್ಯಾಲೆಂಡರ್",
+            today = "ಇಂದು",
+            location = "ಸ್ಥಳ",
+            sunrise = "ಸೂರ್ಯೋದಯ",
+            sunset = "ಸೂರ್ಯಾಸ್ತ",
+            auspicious = "ಶುಭ ಸಮಯಗಳು",
+            inauspicious = "ಅಶುಭ ಸಮಯಗಳು",
+            abhijit = "ಅಭಿಜಿತ್ ಮುಹೂರ್ತ",
+            brahmaMuhurta = "ಬ್ರಹ್ಮ ಮುಹೂರ್ತ",
+            rahu = "ರಾಹು ಕಾಲ",
+            yamagandam = "ಯಮಗಂಡ",
+            gulikai = "ಗುಳಿಕ",
+            tithi = "ತಿಥಿ",
+            nakshatra = "ನಕ್ಷತ್ರ",
+            yoga = "ಯೋಗ",
+            karana = "ಕರಣ",
+            paksha = "ಪಕ್ಷ",
+            rasiPalan = "ಇಂದಿನ ರಾಶಿಫಲ",
+            until = "ವರೆಗೆ",
+            then = "ನಂತರ",
+            nextDay = "(ಮರುದಿನ)",
+            noSunToday = "ಈ ಸ್ಥಳದಲ್ಲಿ ಇಂದು ಸೂರ್ಯೋದಯ/ಸೂರ್ಯಾಸ್ತ ಇಲ್ಲ.",
+            swipeHint = "ಇಂದಿನ ಪಂಚಾಂಗಕ್ಕಾಗಿ ಮೇಲಕ್ಕೆ ಸ್ವೈಪ್ ಮಾಡಿ",
+            vrathaTitle = "ವ್ರತ & ವಿಶೇಷ ದಿನಗಳು",
+            vrathaNames = mapOf(
+                "amavasai" to "ಅಮಾವಾಸ್ಯೆ", "pournami" to "ಪೂರ್ಣಿಮೆ",
+                "ekadasi" to "ಏಕಾದಶಿ", "sashti" to "ಷಷ್ಠಿ", "chaturthi" to "ಚತುರ್ಥಿ",
+                "sankatahara" to "ಸಂಕಷ್ಟಹರ ಚತುರ್ಥಿ", "pradosham" to "ಪ್ರದೋಷ",
+                "sivarathiri" to "ಶಿವರಾತ್ರಿ", "krithigai" to "ಕೃತ್ತಿಕಾ", "thiruvonam" to "ತಿರುವೋಣಂ"
+            )
+        )
+
+        private val ML = PanchangamStrings(
+            title = "പഞ്ചാംഗം",
+            calendarTitle = "കലണ്ടർ",
+            calendarLabel = "കലണ്ടർ",
+            monthCalendar = "മാസ കലണ്ടർ",
+            today = "ഇന്ന്",
+            location = "സ്ഥലം",
+            sunrise = "സൂര്യോദയം",
+            sunset = "സൂര്യാസ്തമയം",
+            auspicious = "ശുഭ സമയങ്ങൾ",
+            inauspicious = "അശുഭ സമയങ്ങൾ",
+            abhijit = "അഭിജിത് മുഹൂർത്തം",
+            brahmaMuhurta = "ബ്രഹ്മ മുഹൂർത്തം",
+            rahu = "രാഹു കാലം",
+            yamagandam = "യമഗണ്ഡം",
+            gulikai = "ഗുളികൻ",
+            tithi = "തിഥി",
+            nakshatra = "നക്ഷത്രം",
+            yoga = "യോഗം",
+            karana = "കരണം",
+            paksha = "പക്ഷം",
+            rasiPalan = "ഇന്നത്തെ രാശിഫലം",
+            until = "വരെ",
+            then = "പിന്നെ",
+            nextDay = "(പിറ്റേന്ന്)",
+            noSunToday = "ഈ സ്ഥലത്ത് ഇന്ന് സൂര്യോദയം/സൂര്യാസ്തമയം ഇല്ല.",
+            swipeHint = "ഇന്നത്തെ പഞ്ചാംഗത്തിന് മുകളിലേക്ക് സ്വൈപ്പ് ചെയ്യുക",
+            vrathaTitle = "വ്രതം & വിശേഷ ദിനങ്ങൾ",
+            vrathaNames = mapOf(
+                "amavasai" to "അമാവാസി", "pournami" to "പൗർണമി",
+                "ekadasi" to "ഏകാദശി", "sashti" to "ഷഷ്ഠി", "chaturthi" to "ചതുർത്ഥി",
+                "sankatahara" to "സങ്കടഹര ചതുർത്ഥി", "pradosham" to "പ്രദോഷം",
+                "sivarathiri" to "ശിവരാത്രി", "krithigai" to "കാർത്തിക", "thiruvonam" to "തിരുവോണം"
+            )
+        )
+
+        private val MR = PanchangamStrings(
+            title = "पंचांग",
+            calendarTitle = "दिनदर्शिका",
+            calendarLabel = "दिनदर्शिका",
+            monthCalendar = "मासिक दिनदर्शिका",
+            today = "आज",
+            location = "स्थान",
+            sunrise = "सूर्योदय",
+            sunset = "सूर्यास्त",
+            auspicious = "शुभ वेळा",
+            inauspicious = "अशुभ वेळा",
+            abhijit = "अभिजित मुहूर्त",
+            brahmaMuhurta = "ब्रह्म मुहूर्त",
+            rahu = "राहू काळ",
+            yamagandam = "यमगंड",
+            gulikai = "गुळिक काळ",
+            tithi = "तिथी",
+            nakshatra = "नक्षत्र",
+            yoga = "योग",
+            karana = "करण",
+            paksha = "पक्ष",
+            rasiPalan = "आजचे राशीफल",
+            until = "पर्यंत",
+            then = "नंतर",
+            nextDay = "(दुसऱ्या दिवशी)",
+            noSunToday = "या स्थानी आज सूर्योदय/सूर्यास्त नाही.",
+            swipeHint = "आजच्या पंचांगासाठी वर स्वाइप करा",
+            vrathaTitle = "व्रत आणि विशेष दिवस",
+            vrathaNames = mapOf(
+                "amavasai" to "अमावस्या", "pournami" to "पौर्णिमा",
+                "ekadasi" to "एकादशी", "sashti" to "षष्ठी", "chaturthi" to "चतुर्थी",
+                "sankatahara" to "संकष्टहर चतुर्थी", "pradosham" to "प्रदोष",
+                "sivarathiri" to "शिवरात्री", "krithigai" to "कृत्तिका", "thiruvonam" to "तिरुवोणम"
             )
         )
 
