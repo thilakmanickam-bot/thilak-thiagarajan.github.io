@@ -17,17 +17,26 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.astrochart.core.i18n.ContentLang
 import com.astrochart.core.i18n.Language
 import com.astrochart.core.i18n.Translations
 import com.astrochart.core.models.ChartStyle
+import com.astrochart.core.panchangam.PanchangamNames
+import com.astrochart.core.utils.ZodiacUtils
 import com.astrochart.data.LocationCatalog
 import com.astrochart.data.LocationOption
 import com.astrochart.ui.components.CelestialCard
@@ -36,7 +45,10 @@ import com.astrochart.ui.components.LabeledDropdown
 import com.astrochart.ui.i18n.LocalLanguage
 import com.astrochart.ui.i18n.LocalStrings
 import com.astrochart.ui.i18n.PanchangamStrings
+import com.astrochart.ui.i18n.PrimaryProfile
+import com.astrochart.ui.i18n.UiStrings
 import com.astrochart.ui.theme.AppTheme
+import com.astrochart.ui.theme.CardBorder
 import com.astrochart.ui.theme.GoldDeep
 import com.astrochart.ui.theme.TextMuted
 import com.astrochart.ui.theme.TextPrimary
@@ -56,6 +68,8 @@ fun SettingsScreen(
     onThemeChange: (AppTheme) -> Unit,
     currentLocation: LocationOption,
     onLocationChange: (LocationOption) -> Unit,
+    primary: PrimaryProfile?,
+    onPrimaryChange: (PrimaryProfile?) -> Unit,
     onNavigateToPremium: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -133,6 +147,18 @@ fun SettingsScreen(
 
         Spacer(Modifier.height(24.dp))
 
+        // Primary profile — seeds Rasi Palan and the daily notification.
+        EyebrowLabel(text = strings.settingsPrimary)
+        Spacer(Modifier.height(12.dp))
+        PrimaryProfileCard(
+            strings = strings,
+            lang = lang,
+            primary = primary,
+            onPrimaryChange = onPrimaryChange
+        )
+
+        Spacer(Modifier.height(24.dp))
+
         // Premium entry.
         EyebrowLabel(text = strings.settingsPremiumRow)
         Spacer(Modifier.height(12.dp))
@@ -152,10 +178,67 @@ fun SettingsScreen(
     }
 }
 
-private fun themeLabel(theme: AppTheme, lang: Language): String = when (lang) {
-    Language.EN -> theme.labelEn
-    Language.TA -> theme.labelTa
-    Language.ZH -> theme.labelZh
+@Composable
+private fun PrimaryProfileCard(
+    strings: UiStrings,
+    lang: Language,
+    primary: PrimaryProfile?,
+    onPrimaryChange: (PrimaryProfile?) -> Unit
+) {
+    val signs = ZodiacUtils.getAllSigns()
+    var name by remember(primary) { mutableStateOf(primary?.name ?: "") }
+    var rasi by remember(primary) { mutableStateOf(primary?.rasi) }
+    var nak by remember(primary) { mutableStateOf(primary?.nakshatra) }
+
+    LaunchedEffect(name, rasi, nak) {
+        val r = rasi
+        val n = nak
+        if (r != null && n != null) onPrimaryChange(PrimaryProfile(name.trim(), r, n))
+    }
+
+    CelestialCard {
+        Text(strings.settingsPrimary, style = MaterialTheme.typography.titleMedium, color = TextPrimary)
+        Text(strings.settingsPrimaryDesc, style = MaterialTheme.typography.bodySmall, color = TextMuted)
+        Spacer(Modifier.height(10.dp))
+        OutlinedTextField(
+            value = name,
+            onValueChange = { name = it },
+            label = { Text(strings.settingsPrimary) },
+            singleLine = true,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = GoldDeep,
+                unfocusedBorderColor = CardBorder,
+                focusedTextColor = TextPrimary,
+                unfocusedTextColor = TextPrimary,
+                cursorColor = GoldDeep
+            ),
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(Modifier.height(10.dp))
+        LabeledDropdown(
+            label = strings.settingsPrimaryRasi,
+            options = signs.indices.toList(),
+            selected = rasi,
+            optionLabel = { Translations.signName(signs[it], lang) },
+            onSelected = { rasi = it },
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(Modifier.height(10.dp))
+        LabeledDropdown(
+            label = strings.settingsPrimaryNak,
+            options = PanchangamNames.nakshatras.indices.toList(),
+            selected = nak,
+            optionLabel = { PanchangamNames.nakshatras[it].get(lang) },
+            onSelected = { nak = it },
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+}
+
+private fun themeLabel(theme: AppTheme, lang: Language): String = when (lang.content) {
+    ContentLang.EN -> theme.labelEn
+    ContentLang.TA -> theme.labelTa
+    ContentLang.ZH -> theme.labelZh
 }
 
 @Composable

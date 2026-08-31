@@ -7,6 +7,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -44,6 +46,7 @@ import androidx.navigation.compose.rememberNavController
 import com.google.android.gms.ads.MobileAds
 import com.astrochart.core.i18n.Language
 import com.astrochart.notify.NotificationScheduler
+import com.astrochart.update.InAppUpdate
 import com.astrochart.ui.components.AdBanner
 import com.astrochart.ui.components.CelestialBackground
 import com.astrochart.ui.i18n.ChartStyleStore
@@ -52,9 +55,10 @@ import com.astrochart.ui.i18n.LocalChartStyle
 import com.astrochart.ui.i18n.LocalLanguage
 import com.astrochart.ui.i18n.LocalStrings
 import com.astrochart.core.interpret.RasiPeriod
-import com.astrochart.ui.i18n.CompatibilityStrings
+import com.astrochart.ui.i18n.PoruthamStrings
 import com.astrochart.ui.i18n.PanchangamLocationStore
 import com.astrochart.ui.i18n.PanchangamStrings
+import com.astrochart.ui.i18n.PrimaryProfileStore
 import com.astrochart.ui.i18n.RasiStrings
 import com.astrochart.ui.i18n.UiStrings
 import com.astrochart.ui.screens.BirthInputScreen
@@ -63,6 +67,7 @@ import com.astrochart.ui.screens.ChartDetailScreen
 import com.astrochart.ui.screens.CompatibilityScreen
 import com.astrochart.ui.screens.ChatScreen
 import com.astrochart.ui.screens.HomeScreen
+import com.astrochart.ui.screens.LanguagePickerDialog
 import com.astrochart.ui.screens.NakshatraListScreen
 import com.astrochart.ui.screens.PanchangamScreen
 import com.astrochart.ui.screens.RasiHoroscopeScreen
@@ -85,6 +90,10 @@ import com.astrochart.ui.viewmodel.ChartViewModel
 import com.astrochart.ui.viewmodel.ChatViewModel
 
 class MainActivity : ComponentActivity() {
+
+    private var inAppUpdate: InAppUpdate? = null
+    private lateinit var updateLauncher: ActivityResultLauncher<IntentSenderRequest>
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         NotificationScheduler.ensureChannel(this)
@@ -92,6 +101,12 @@ class MainActivity : ComponentActivity() {
         if (Features.ADS_ENABLED) {
             // Safe to call repeatedly; no-ops without Play services present.
             runCatching { MobileAds.initialize(this) }
+        }
+        updateLauncher = registerForActivityResult(
+            ActivityResultContracts.StartIntentSenderForResult()
+        ) { /* user accepted/declined the Play update; nothing more to do here */ }
+        if (Features.IN_APP_UPDATE_ENABLED) {
+            inAppUpdate = InAppUpdate(this).also { it.checkForUpdate(updateLauncher) }
         }
         setContent {
             val context = LocalContext.current
@@ -111,6 +126,16 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        inAppUpdate?.onResume()
+    }
+
+    override fun onDestroy() {
+        inAppUpdate?.unregister()
+        super.onDestroy()
     }
 }
 
@@ -147,9 +172,11 @@ fun AppNavigation(
     var panchangamDate by remember { mutableStateOf(LocalDate.now()) }
     var panchangamMonth by remember { mutableStateOf(YearMonth.now()) }
     var panchangamLocation by remember { mutableStateOf(PanchangamLocationStore.load(context)) }
+    var primaryProfile by remember { mutableStateOf(PrimaryProfileStore.load(context)) }
+    var showLangPicker by remember { mutableStateOf(!LanguageStore.hasChosen(context)) }
     var rasiPeriod by remember { mutableStateOf(RasiPeriod.DAY) }
     var rasiInfoMode by remember { mutableStateOf(false) }
-    var rasiSign by remember { mutableStateOf(0) }
+    var rasiSign by remember { mutableStateOf(primaryProfile?.rasi ?: 0) }
     val strings = remember(language) { UiStrings.forLanguage(language) }
 
     val backStackEntry by navController.currentBackStackEntryAsState()
@@ -170,7 +197,7 @@ fun AppNavigation(
         "premium" -> strings.navPremiumTitle
         "panchangam" -> PanchangamStrings.forLanguage(language).title
         "calendar" -> PanchangamStrings.forLanguage(language).calendarTitle
-        "compatibility" -> CompatibilityStrings.forLanguage(language).title
+        "compatibility" -> PoruthamStrings.forLanguage(language).title
         "rasi_hub", "rasi_signs", "rasi_horoscope" -> RasiStrings.forLanguage(language).title
         "rasi_info" -> RasiStrings.forLanguage(language).aboutSigns
         "nakshatra_list" -> RasiStrings.forLanguage(language).aboutNakshatras
@@ -244,10 +271,7 @@ fun AppNavigation(
                     onNavigateToChat = { navController.navigate("chat") },
                     onNavigateToPremium = { navController.navigate("premium") },
                     onNavigateToPanchangam = { navController.navigate("panchangam") },
-                    onNavigateToCompatibility = {
-                        chartViewModel.clearCompatibility()
-                        navController.navigate("compatibility")
-                    },
+                    onNavigateToCompatibility = { navController.navigate("compatibility") },
                     onNavigateToRasi = { navController.navigate("rasi_hub") }
                 )
             }
@@ -272,13 +296,7 @@ fun AppNavigation(
             composable("nakshatra_list") { NakshatraListScreen() }
 
             composable("compatibility") {
-                val savedCharts by chartViewModel.savedCharts.collectAsState()
-                val compat by chartViewModel.compatibility.collectAsState()
-                CompatibilityScreen(
-                    charts = savedCharts,
-                    result = compat,
-                    onCompute = { a, b -> chartViewModel.computeCompatibility(a, b) }
-                )
+                CompatibilityScreen()
             }
 
             composable("settings") {
@@ -299,6 +317,14 @@ fun AppNavigation(
                     onLocationChange = {
                         panchangamLocation = it
                         PanchangamLocationStore.save(context, it.displayName)
+                    },
+                    primary = primaryProfile,
+                    onPrimaryChange = { profile ->
+                        primaryProfile = profile
+                        if (profile != null) {
+                            PrimaryProfileStore.save(context, profile)
+                            rasiSign = profile.rasi
+                        }
                     },
                     onNavigateToPremium = { navController.navigate("premium") }
                 )
@@ -383,6 +409,20 @@ fun AppNavigation(
                 }
             }
         }
+    }
+
+    if (showLangPicker) {
+        LanguagePickerDialog(
+            onSelect = {
+                language = it
+                LanguageStore.save(context, it)
+                showLangPicker = false
+            },
+            onSkip = {
+                LanguageStore.save(context, language)
+                showLangPicker = false
+            }
+        )
     }
     }
 }

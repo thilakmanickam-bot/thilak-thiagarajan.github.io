@@ -14,10 +14,15 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.astrochart.MainActivity
 import com.astrochart.R
+import com.astrochart.core.i18n.Translations
 import com.astrochart.core.interpret.DailyReading
+import com.astrochart.core.interpret.RasiPalanText
+import com.astrochart.core.interpret.RasiPeriod
+import com.astrochart.core.utils.ZodiacUtils
 import com.astrochart.data.db.AstroChartDatabase
 import com.astrochart.data.util.ChartJson
 import com.astrochart.ui.i18n.LanguageStore
+import com.astrochart.ui.i18n.PrimaryProfileStore
 import com.astrochart.ui.i18n.UiStrings
 import java.time.LocalDate
 
@@ -35,13 +40,26 @@ class DailyReadingWorker(appContext: Context, params: WorkerParameters) :
         val lang = LanguageStore.load(context)
         val strings = UiStrings.forLanguage(lang)
 
-        val sign = runCatching {
-            AstroChartDatabase.getInstance(context).savedChartDao().getLatestChart()
-                ?.chartJson?.let { ChartJson.fromJson(it) }
-                ?.planets?.firstOrNull { it.name == "Sun" }?.sign
-        }.getOrNull()
-
-        val data = DailyReading.build(LocalDate.now(), lang, sign)
+        // If the user has chosen a primary profile, the daily notification is
+        // that person's rasi-palan; otherwise fall back to the generic daily
+        // reading flavoured by the most recently saved chart's Sun sign.
+        val primary = PrimaryProfileStore.load(context)
+        val notifTitle: String
+        val notifText: String
+        if (primary != null) {
+            val rasiName = Translations.signName(ZodiacUtils.getAllSigns()[primary.rasi], lang)
+            notifTitle = primary.name.ifBlank { rasiName } + " · " + rasiName
+            notifText = RasiPalanText.horoscope(primary.rasi, RasiPeriod.DAY, LocalDate.now(), lang)
+                .firstOrNull() ?: DailyReading.build(LocalDate.now(), lang, null).summary
+        } else {
+            val sign = runCatching {
+                AstroChartDatabase.getInstance(context).savedChartDao().getLatestChart()
+                    ?.chartJson?.let { ChartJson.fromJson(it) }
+                    ?.planets?.firstOrNull { it.name == "Sun" }?.sign
+            }.getOrNull()
+            notifTitle = strings.notifTitle
+            notifText = DailyReading.build(LocalDate.now(), lang, sign).summary
+        }
 
         NotificationScheduler.ensureChannel(context)
 
@@ -63,9 +81,9 @@ class DailyReadingWorker(appContext: Context, params: WorkerParameters) :
 
         val notification = NotificationCompat.Builder(context, NotificationScheduler.CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle(strings.notifTitle)
-            .setContentText(data.summary)
-            .setStyle(NotificationCompat.BigTextStyle().bigText(data.summary))
+            .setContentTitle(notifTitle)
+            .setContentText(notifText)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(notifText))
             .setAutoCancel(true)
             .setContentIntent(pending)
             .setSilent(true)

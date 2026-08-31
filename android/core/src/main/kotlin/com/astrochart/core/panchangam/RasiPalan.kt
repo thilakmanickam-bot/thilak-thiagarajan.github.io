@@ -1,5 +1,6 @@
 package com.astrochart.core.panchangam
 
+import com.astrochart.core.i18n.ContentLang
 import com.astrochart.core.i18n.Language
 import kotlin.random.Random
 
@@ -32,10 +33,10 @@ object RasiPalan {
     fun word(epochDay: Long, signIndex: Int, lang: Language): String {
         val rnd = Random(epochDay * 31L + signIndex)
         val w = WORDS[rnd.nextInt(WORDS.size)]
-        return when (lang) {
-            Language.EN -> w.en
-            Language.TA -> w.ta
-            Language.ZH -> w.zh
+        return when (lang.content) {
+            ContentLang.EN -> w.en
+            ContentLang.TA -> w.ta
+            ContentLang.ZH -> w.zh
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.astrochart.ui.i18n
 
+import com.astrochart.core.i18n.ContentLang
 import com.astrochart.core.i18n.Language
 
 /**
@@ -40,10 +41,10 @@ data class PanchangamStrings(
     fun vratha(key: String): String = vrathaNames[key] ?: key
 
     companion object {
-        fun forLanguage(lang: Language): PanchangamStrings = when (lang) {
-            Language.EN -> EN
-            Language.TA -> TA
-            Language.ZH -> ZH
+        fun forLanguage(lang: Language): PanchangamStrings = when (lang.content) {
+            ContentLang.EN -> EN
+            ContentLang.TA -> TA
+            ContentLang.ZH -> ZH
         }
 
         private val EN = PanchangamStrings(

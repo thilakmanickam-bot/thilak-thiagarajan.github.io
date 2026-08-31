@@ -1,5 +1,6 @@
 package com.astrochart.ui.i18n
 
+import com.astrochart.core.i18n.ContentLang
 import com.astrochart.core.i18n.Language
 
 /** Localized labels for the Rasi Palan hub and its detail screens (EN / TA / ZH). */
@@ -24,10 +25,10 @@ data class RasiStrings(
     val nakshatraLord: String
 ) {
     companion object {
-        fun forLanguage(lang: Language): RasiStrings = when (lang) {
-            Language.EN -> EN
-            Language.TA -> TA
-            Language.ZH -> ZH
+        fun forLanguage(lang: Language): RasiStrings = when (lang.content) {
+            ContentLang.EN -> EN
+            ContentLang.TA -> TA
+            ContentLang.ZH -> ZH
         }
 
         private val EN = RasiStrings(

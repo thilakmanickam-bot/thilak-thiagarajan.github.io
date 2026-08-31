@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.background
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.draw.clip
+import com.astrochart.core.i18n.ContentLang
 import com.astrochart.core.i18n.Language
 import com.astrochart.core.i18n.Translations
 import com.astrochart.core.interpret.AgeUtil
@@ -388,11 +389,11 @@ private fun PlacementsTab(chart: NatalChart) {
 
 /** Localized body name: the two angles plus delegation to planet-name translation. */
 private fun bodyName(name: String, lang: Language): String = when (name) {
-    "Ascendant" -> when (lang) {
-        Language.EN -> "Ascendant"; Language.TA -> "லக்னம்"; Language.ZH -> "上升"
+    "Ascendant" -> when (lang.content) {
+        ContentLang.EN -> "Ascendant"; ContentLang.TA -> "லக்னம்"; ContentLang.ZH -> "上升"
     }
-    "Midheaven" -> when (lang) {
-        Language.EN -> "Midheaven"; Language.TA -> "மத்திம வானம்"; Language.ZH -> "天顶"
+    "Midheaven" -> when (lang.content) {
+        ContentLang.EN -> "Midheaven"; ContentLang.TA -> "மத்திம வானம்"; ContentLang.ZH -> "天顶"
     }
     else -> Translations.planetName(name, lang)
 }

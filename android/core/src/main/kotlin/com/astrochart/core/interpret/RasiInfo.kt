@@ -1,13 +1,14 @@
 package com.astrochart.core.interpret
 
+import com.astrochart.core.i18n.ContentLang
 import com.astrochart.core.i18n.Language
 
 /** A short localized triple (English / Tamil / Chinese). */
 data class L3(val en: String, val ta: String, val zh: String) {
-    fun get(lang: Language): String = when (lang) {
-        Language.EN -> en
-        Language.TA -> ta
-        Language.ZH -> zh
+    fun get(lang: Language): String = when (lang.content) {
+        ContentLang.EN -> en
+        ContentLang.TA -> ta
+        ContentLang.ZH -> zh
     }
 }
 

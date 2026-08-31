@@ -34,7 +34,7 @@ import com.astrochart.ui.components.EyebrowLabel
 import com.astrochart.ui.components.GoldButton
 import com.astrochart.ui.components.MoonPhaseRow
 import com.astrochart.ui.components.OutlineGoldButton
-import com.astrochart.ui.i18n.CompatibilityStrings
+import com.astrochart.ui.i18n.PoruthamStrings
 import com.astrochart.ui.i18n.LocalLanguage
 import com.astrochart.ui.i18n.LocalStrings
 import com.astrochart.ui.i18n.PanchangamStrings
@@ -132,7 +132,7 @@ fun HomeScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         OutlineGoldButton(
-            text = CompatibilityStrings.forLanguage(lang).entry,
+            text = PoruthamStrings.forLanguage(lang).entry,
             onClick = onNavigateToCompatibility,
             modifier = Modifier.fillMaxWidth()
         )

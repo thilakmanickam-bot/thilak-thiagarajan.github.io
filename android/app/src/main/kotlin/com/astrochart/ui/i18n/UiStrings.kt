@@ -1,6 +1,7 @@
 package com.astrochart.ui.i18n
 
 import androidx.compose.runtime.staticCompositionLocalOf
+import com.astrochart.core.i18n.ContentLang
 import com.astrochart.core.i18n.Language
 
 /**
@@ -120,6 +121,10 @@ data class UiStrings(
     val settingsThemeDesc: String,
     val settingsDefaults: String,
     val settingsCity: String,
+    val settingsPrimary: String,
+    val settingsPrimaryDesc: String,
+    val settingsPrimaryRasi: String,
+    val settingsPrimaryNak: String,
     // Premium (coming soon)
     val navPremiumTitle: String,
     val premiumEntry: String,
@@ -132,35 +137,35 @@ data class UiStrings(
     val premiumPerkChatDesc: String,
     val premiumNotifyNote: String
 ) {
-    fun ageValue(years: Int): String = when (lang) {
-        Language.EN -> "$years yrs"
-        Language.TA -> "$years வயது"
-        Language.ZH -> "${years}岁"
+    fun ageValue(years: Int): String = when (lang.content) {
+        ContentLang.EN -> "$years yrs"
+        ContentLang.TA -> "$years வயது"
+        ContentLang.ZH -> "${years}岁"
     }
 
-    fun houseLabel(house: Int): String = when (lang) {
-        Language.EN -> "House $house"
-        Language.TA -> "$house ஆம் வீடு"
-        Language.ZH -> "第${house}宫"
+    fun houseLabel(house: Int): String = when (lang.content) {
+        ContentLang.EN -> "House $house"
+        ContentLang.TA -> "$house ஆம் வீடு"
+        ContentLang.ZH -> "第${house}宫"
     }
 
-    fun bodyCount(count: Int): String = when (lang) {
-        Language.EN -> if (count == 1) "1 body" else "$count bodies"
-        Language.TA -> "$count கிரகம்"
-        Language.ZH -> "${count}颗"
+    fun bodyCount(count: Int): String = when (lang.content) {
+        ContentLang.EN -> if (count == 1) "1 body" else "$count bodies"
+        ContentLang.TA -> "$count கிரகம்"
+        ContentLang.ZH -> "${count}颗"
     }
 
-    fun deleteMessage(name: String): String = when (lang) {
-        Language.EN -> "\"$name\" will be permanently removed."
-        Language.TA -> "\"$name\" நிரந்தரமாக நீக்கப்படும்."
-        Language.ZH -> "将永久删除“$name”。"
+    fun deleteMessage(name: String): String = when (lang.content) {
+        ContentLang.EN -> "\"$name\" will be permanently removed."
+        ContentLang.TA -> "\"$name\" நிரந்தரமாக நீக்கப்படும்."
+        ContentLang.ZH -> "将永久删除“$name”。"
     }
 
     companion object {
-        fun forLanguage(lang: Language): UiStrings = when (lang) {
-            Language.EN -> EN
-            Language.TA -> TA
-            Language.ZH -> ZH
+        fun forLanguage(lang: Language): UiStrings = when (lang.content) {
+            ContentLang.EN -> EN
+            ContentLang.TA -> TA
+            ContentLang.ZH -> ZH
         }
 
         private val EN = UiStrings(
@@ -264,6 +269,10 @@ data class UiStrings(
             settingsThemeDesc = "Background mood",
             settingsDefaults = "Defaults",
             settingsCity = "Default city",
+            settingsPrimary = "Primary profile",
+            settingsPrimaryDesc = "Daily, weekly and monthly predictions and the daily notification are shown for this person.",
+            settingsPrimaryRasi = "Rasi",
+            settingsPrimaryNak = "Nakshatram",
             navPremiumTitle = "Premium",
             premiumEntry = "Go Premium",
             premiumComingSoon = "Coming soon",
@@ -377,6 +386,10 @@ data class UiStrings(
             settingsThemeDesc = "பின்னணி நிறம்",
             settingsDefaults = "இயல்பு அமைப்புகள்",
             settingsCity = "இயல்பு நகரம்",
+            settingsPrimary = "முதன்மை சுயவிவரம்",
+            settingsPrimaryDesc = "தினசரி, வாராந்திர, மாதாந்திர பலன்களும் தினசரி அறிவிப்பும் இந்த நபருக்காகக் காட்டப்படும்.",
+            settingsPrimaryRasi = "ராசி",
+            settingsPrimaryNak = "நட்சத்திரம்",
             navPremiumTitle = "பிரீமியம்",
             premiumEntry = "பிரீமியம் பெறு",
             premiumComingSoon = "விரைவில் வருகிறது",
@@ -490,6 +503,10 @@ data class UiStrings(
             settingsThemeDesc = "背景色调",
             settingsDefaults = "默认设置",
             settingsCity = "默认城市",
+            settingsPrimary = "主要档案",
+            settingsPrimaryDesc = "每日、每周与每月运势以及每日通知都将针对此人显示。",
+            settingsPrimaryRasi = "月亮星座",
+            settingsPrimaryNak = "出生星宿",
             navPremiumTitle = "高级版",
             premiumEntry = "升级高级版",
             premiumComingSoon = "敬请期待",

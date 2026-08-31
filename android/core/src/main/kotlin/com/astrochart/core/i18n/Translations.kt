@@ -29,11 +29,49 @@ object Translations {
         "Libra" to "天秤座", "Scorpio" to "天蝎座", "Sagittarius" to "射手座",
         "Capricorn" to "摩羯座", "Aquarius" to "水瓶座", "Pisces" to "双鱼座"
     )
+    // Rasi names are a small, well-established vocabulary, so they are provided
+    // in every language even where the rest of that language's pack still falls
+    // back to English.
+    private val signNameHi = mapOf(
+        "Aries" to "मेष", "Taurus" to "वृषभ", "Gemini" to "मिथुन",
+        "Cancer" to "कर्क", "Leo" to "सिंह", "Virgo" to "कन्या",
+        "Libra" to "तुला", "Scorpio" to "वृश्चिक", "Sagittarius" to "धनु",
+        "Capricorn" to "मकर", "Aquarius" to "कुम्भ", "Pisces" to "मीन"
+    )
+    private val signNameTe = mapOf(
+        "Aries" to "మేషం", "Taurus" to "వృషభం", "Gemini" to "మిథునం",
+        "Cancer" to "కర్కాటకం", "Leo" to "సింహం", "Virgo" to "కన్య",
+        "Libra" to "తుల", "Scorpio" to "వృశ్చికం", "Sagittarius" to "ధనుస్సు",
+        "Capricorn" to "మకరం", "Aquarius" to "కుంభం", "Pisces" to "మీనం"
+    )
+    private val signNameKn = mapOf(
+        "Aries" to "ಮೇಷ", "Taurus" to "ವೃಷಭ", "Gemini" to "ಮಿಥುನ",
+        "Cancer" to "ಕರ್ಕಾಟಕ", "Leo" to "ಸಿಂಹ", "Virgo" to "ಕನ್ಯಾ",
+        "Libra" to "ತುಲಾ", "Scorpio" to "ವೃಶ್ಚಿಕ", "Sagittarius" to "ಧನಸ್ಸು",
+        "Capricorn" to "ಮಕರ", "Aquarius" to "ಕುಂಭ", "Pisces" to "ಮೀನ"
+    )
+    private val signNameMl = mapOf(
+        "Aries" to "മേടം", "Taurus" to "ഇടവം", "Gemini" to "മിഥുനം",
+        "Cancer" to "കർക്കടകം", "Leo" to "ചിങ്ങം", "Virgo" to "കന്നി",
+        "Libra" to "തുലാം", "Scorpio" to "വൃശ്ചികം", "Sagittarius" to "ധനു",
+        "Capricorn" to "മകരം", "Aquarius" to "കുംഭം", "Pisces" to "മീനം"
+    )
+    private val signNameMr = mapOf(
+        "Aries" to "मेष", "Taurus" to "वृषभ", "Gemini" to "मिथुन",
+        "Cancer" to "कर्क", "Leo" to "सिंह", "Virgo" to "कन्या",
+        "Libra" to "तूळ", "Scorpio" to "वृश्चिक", "Sagittarius" to "धनू",
+        "Capricorn" to "मकर", "Aquarius" to "कुंभ", "Pisces" to "मीन"
+    )
 
     fun signName(sign: String, lang: Language): String = when (lang) {
         Language.EN -> sign
         Language.TA -> signNameTa[sign] ?: sign
         Language.ZH -> signNameZh[sign] ?: sign
+        Language.HI -> signNameHi[sign] ?: sign
+        Language.TE -> signNameTe[sign] ?: sign
+        Language.KN -> signNameKn[sign] ?: sign
+        Language.ML -> signNameMl[sign] ?: sign
+        Language.MR -> signNameMr[sign] ?: sign
     }
 
     // ----- Sign keyword phrases ---------------------------------------------
@@ -67,10 +105,10 @@ object Translations {
         "Pisces" to "富想象力、有同情心、爱幻想"
     )
 
-    fun signKeywords(sign: String, lang: Language): String = when (lang) {
-        Language.EN -> SignInfo.of(sign).keywords
-        Language.TA -> signKeywordsTa[sign] ?: SignInfo.of(sign).keywords
-        Language.ZH -> signKeywordsZh[sign] ?: SignInfo.of(sign).keywords
+    fun signKeywords(sign: String, lang: Language): String = when (lang.content) {
+        ContentLang.EN -> SignInfo.of(sign).keywords
+        ContentLang.TA -> signKeywordsTa[sign] ?: SignInfo.of(sign).keywords
+        ContentLang.ZH -> signKeywordsZh[sign] ?: SignInfo.of(sign).keywords
     }
 
     // ----- Elements & modalities --------------------------------------------
@@ -80,16 +118,16 @@ object Translations {
     private val modalityTa = mapOf("Cardinal" to "சரம்", "Fixed" to "ஸ்திரம்", "Mutable" to "உபயம்")
     private val modalityZh = mapOf("Cardinal" to "基本", "Fixed" to "固定", "Mutable" to "变动")
 
-    fun element(e: String, lang: Language): String = when (lang) {
-        Language.EN -> e
-        Language.TA -> elementTa[e] ?: e
-        Language.ZH -> elementZh[e] ?: e
+    fun element(e: String, lang: Language): String = when (lang.content) {
+        ContentLang.EN -> e
+        ContentLang.TA -> elementTa[e] ?: e
+        ContentLang.ZH -> elementZh[e] ?: e
     }
 
-    fun modality(m: String, lang: Language): String = when (lang) {
-        Language.EN -> m
-        Language.TA -> modalityTa[m] ?: m
-        Language.ZH -> modalityZh[m] ?: m
+    fun modality(m: String, lang: Language): String = when (lang.content) {
+        ContentLang.EN -> m
+        ContentLang.TA -> modalityTa[m] ?: m
+        ContentLang.ZH -> modalityZh[m] ?: m
     }
 
     // ----- Planet names & roles ---------------------------------------------
@@ -129,16 +167,16 @@ object Translations {
         "Pluto" to "力量与蜕变的能力"
     )
 
-    fun planetName(p: String, lang: Language): String = when (lang) {
-        Language.EN -> p
-        Language.TA -> planetNameTa[p] ?: p
-        Language.ZH -> planetNameZh[p] ?: p
+    fun planetName(p: String, lang: Language): String = when (lang.content) {
+        ContentLang.EN -> p
+        ContentLang.TA -> planetNameTa[p] ?: p
+        ContentLang.ZH -> planetNameZh[p] ?: p
     }
 
-    fun planetRole(p: String, lang: Language): String = when (lang) {
-        Language.EN -> PlanetInfo.of(p)?.role ?: "energy"
-        Language.TA -> planetRoleTa[p] ?: (PlanetInfo.of(p)?.role ?: "")
-        Language.ZH -> planetRoleZh[p] ?: (PlanetInfo.of(p)?.role ?: "")
+    fun planetRole(p: String, lang: Language): String = when (lang.content) {
+        ContentLang.EN -> PlanetInfo.of(p)?.role ?: "energy"
+        ContentLang.TA -> planetRoleTa[p] ?: (PlanetInfo.of(p)?.role ?: "")
+        ContentLang.ZH -> planetRoleZh[p] ?: (PlanetInfo.of(p)?.role ?: "")
     }
 
     // ----- House areas -------------------------------------------------------
@@ -172,10 +210,10 @@ object Translations {
         12 to "内在世界、休息与潜意识"
     )
 
-    fun houseArea(house: Int, lang: Language): String = when (lang) {
-        Language.EN -> HouseInfo.of(house)
-        Language.TA -> houseAreaTa[house] ?: HouseInfo.of(house)
-        Language.ZH -> houseAreaZh[house] ?: HouseInfo.of(house)
+    fun houseArea(house: Int, lang: Language): String = when (lang.content) {
+        ContentLang.EN -> HouseInfo.of(house)
+        ContentLang.TA -> houseAreaTa[house] ?: HouseInfo.of(house)
+        ContentLang.ZH -> houseAreaZh[house] ?: HouseInfo.of(house)
     }
 
     // ----- Aspect type names -------------------------------------------------
@@ -189,10 +227,10 @@ object Translations {
         "Trine" to "三分相", "Opposition" to "对分相"
     )
 
-    fun aspectType(type: String, lang: Language): String = when (lang) {
-        Language.EN -> type
-        Language.TA -> aspectTypeTa[type] ?: type
-        Language.ZH -> aspectTypeZh[type] ?: type
+    fun aspectType(type: String, lang: Language): String = when (lang.content) {
+        ContentLang.EN -> type
+        ContentLang.TA -> aspectTypeTa[type] ?: type
+        ContentLang.ZH -> aspectTypeZh[type] ?: type
     }
 
     // ----- Compact body abbreviations (for the South-Indian grid) ------------
@@ -218,24 +256,24 @@ object Translations {
     )
 
     /** Compact label for a body (planet or "Ascendant"), used in the square chart. */
-    fun bodyAbbr(body: String, lang: Language): String = when (lang) {
-        Language.EN -> bodyAbbrEn[body] ?: body
-        Language.TA -> bodyAbbrTa[body] ?: body
-        Language.ZH -> bodyAbbrZh[body] ?: body
+    fun bodyAbbr(body: String, lang: Language): String = when (lang.content) {
+        ContentLang.EN -> bodyAbbrEn[body] ?: body
+        ContentLang.TA -> bodyAbbrTa[body] ?: body
+        ContentLang.ZH -> bodyAbbrZh[body] ?: body
     }
 
     // ----- Chart-style display names ----------------------------------------
 
     fun chartStyleName(style: ChartStyle, lang: Language): String = when (style) {
-        ChartStyle.WESTERN_WHEEL -> when (lang) {
-            Language.EN -> "Western wheel"
-            Language.TA -> "மேற்கத்திய சக்கரம்"
-            Language.ZH -> "西方星盘"
+        ChartStyle.WESTERN_WHEEL -> when (lang.content) {
+            ContentLang.EN -> "Western wheel"
+            ContentLang.TA -> "மேற்கத்திய சக்கரம்"
+            ContentLang.ZH -> "西方星盘"
         }
-        ChartStyle.SOUTH_INDIAN -> when (lang) {
-            Language.EN -> "South Indian (Tamil)"
-            Language.TA -> "தென்னிந்தியம் (தமிழ்)"
-            Language.ZH -> "南印度（泰米尔）"
+        ChartStyle.SOUTH_INDIAN -> when (lang.content) {
+            ContentLang.EN -> "South Indian (Tamil)"
+            ContentLang.TA -> "தென்னிந்தியம் (தமிழ்)"
+            ContentLang.ZH -> "南印度（泰米尔）"
         }
     }
 }

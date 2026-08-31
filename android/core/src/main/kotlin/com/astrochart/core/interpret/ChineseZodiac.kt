@@ -1,5 +1,6 @@
 package com.astrochart.core.interpret
 
+import com.astrochart.core.i18n.ContentLang
 import com.astrochart.core.i18n.Language
 
 /**
@@ -35,10 +36,10 @@ object ChineseZodiac {
     /** Localized animal name for the given birth year. */
     fun name(year: Int, lang: Language): String {
         val i = index(year)
-        return when (lang) {
-            Language.EN -> animalsEn[i]
-            Language.TA -> animalsTa[i]
-            Language.ZH -> animalsZh[i]
+        return when (lang.content) {
+            ContentLang.EN -> animalsEn[i]
+            ContentLang.TA -> animalsTa[i]
+            ContentLang.ZH -> animalsZh[i]
         }
     }
 

@@ -3,8 +3,6 @@ package com.astrochart.ui.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.astrochart.core.interpret.Compatibility
-import com.astrochart.core.interpret.CompatibilityResult
 import com.astrochart.core.models.NatalChart
 import com.astrochart.data.SampleData
 import com.astrochart.data.db.entities.SavedChartEntity
@@ -32,29 +30,6 @@ class ChartViewModel(application: Application) : AndroidViewModel(application) {
     val savedCharts: StateFlow<List<SavedChartEntity>> =
         repository.getSavedCharts()
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
-
-    private val _compatibility = MutableStateFlow<CompatibilityResult?>(null)
-    val compatibility: StateFlow<CompatibilityResult?> = _compatibility
-
-    /** Loads two saved charts and computes their compatibility. */
-    fun computeCompatibility(idA: Long, idB: Long) {
-        viewModelScope.launch {
-            val entityA = repository.getChartById(idA)
-            val entityB = repository.getChartById(idB)
-            val chartA = repository.getNatalChartById(idA)
-            val chartB = repository.getNatalChartById(idB)
-            _compatibility.value = if (chartA != null && chartB != null) {
-                Compatibility.compute(
-                    entityA?.name ?: "", chartA,
-                    entityB?.name ?: "", chartB
-                )
-            } else null
-        }
-    }
-
-    fun clearCompatibility() {
-        _compatibility.value = null
-    }
 
     fun setChart(chart: NatalChart, name: String) {
         _currentChart.value = chart
