@@ -67,6 +67,7 @@ import com.astrochart.ui.screens.ChartDetailScreen
 import com.astrochart.ui.screens.CompatibilityScreen
 import com.astrochart.ui.screens.ChatScreen
 import com.astrochart.ui.screens.HomeScreen
+import com.astrochart.ui.screens.LanguagePickerDialog
 import com.astrochart.ui.screens.NakshatraListScreen
 import com.astrochart.ui.screens.PanchangamScreen
 import com.astrochart.ui.screens.RasiHoroscopeScreen
@@ -172,6 +173,7 @@ fun AppNavigation(
     var panchangamMonth by remember { mutableStateOf(YearMonth.now()) }
     var panchangamLocation by remember { mutableStateOf(PanchangamLocationStore.load(context)) }
     var primaryProfile by remember { mutableStateOf(PrimaryProfileStore.load(context)) }
+    var showLangPicker by remember { mutableStateOf(!LanguageStore.hasChosen(context)) }
     var rasiPeriod by remember { mutableStateOf(RasiPeriod.DAY) }
     var rasiInfoMode by remember { mutableStateOf(false) }
     var rasiSign by remember { mutableStateOf(primaryProfile?.rasi ?: 0) }
@@ -407,6 +409,20 @@ fun AppNavigation(
                 }
             }
         }
+    }
+
+    if (showLangPicker) {
+        LanguagePickerDialog(
+            onSelect = {
+                language = it
+                LanguageStore.save(context, it)
+                showLangPicker = false
+            },
+            onSkip = {
+                LanguageStore.save(context, language)
+                showLangPicker = false
+            }
+        )
     }
     }
 }

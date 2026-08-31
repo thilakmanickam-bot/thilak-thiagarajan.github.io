@@ -1,5 +1,6 @@
 package com.astrochart.core.interpret
 
+import com.astrochart.core.i18n.ContentLang
 import com.astrochart.core.i18n.Language
 import com.astrochart.core.models.NatalChart
 
@@ -114,34 +115,34 @@ object ChatPrompt {
     }
 
     /** Localized opening message shown when a chart is selected. */
-    fun greeting(lang: Language, name: String): String = when (lang) {
-        Language.EN -> "Peace be with you. I’ve taken a gentle look at ${name}’s chart. " +
+    fun greeting(lang: Language, name: String): String = when (lang.content) {
+        ContentLang.EN -> "Peace be with you. I’ve taken a gentle look at ${name}’s chart. " +
             "Ask me anything on your mind, and we’ll reflect on it together — softly, and without fear."
-        Language.TA -> "அமைதி உண்டாகட்டும். " +
+        ContentLang.TA -> "அமைதி உண்டாகட்டும். " +
             "${name}-இன் ஜாதகத்தை மெதுவாகப் " +
             "பார்த்தேன். உங்கள் மனதில் " +
             "உள்ளதைக் கேளுங்கள், அச்சமின்றி " +
             "அமைதியாக சிந்திப்போம்."
-        Language.ZH -> "愿你安宁。我已经轻轻地看过 ${name} " +
+        ContentLang.ZH -> "愿你安宁。我已经轻轻地看过 ${name} " +
             "的星盘。把心中所想告诉我，我们一起" +
             "宁静地、不带恐惧地去思考。"
     }
 
     /** A few gentle starter questions, shown as tap-to-send chips. */
-    fun suggestedQuestions(lang: Language): List<String> = when (lang) {
-        Language.EN -> listOf(
+    fun suggestedQuestions(lang: Language): List<String> = when (lang.content) {
+        ContentLang.EN -> listOf(
             "What strengths does my chart gently point to?",
             "How can I care for myself better right now?",
             "What could this be a good time to reflect on?",
             "What small step could support my growth this week?"
         )
-        Language.TA -> listOf(
+        ContentLang.TA -> listOf(
             "என் ஜாதகம் காட்டும் பலங்கள் என்ன?",
             "இப்போது நான் என்னை நன்றாக கவனித்துக்கொள்வது எப்படி?",
             "எதைப் பற்றி சிந்திக்க இது நல்ல நேரம்?",
             "இந்த வாரம் என் வளர்ச்சிக்கு நான் எடுக்கக்கூடிய சிறிய படி என்ன?"
         )
-        Language.ZH -> listOf(
+        ContentLang.ZH -> listOf(
             "我的星盘轻轻指向哪些优势？",
             "此刻我可以如何更好地照顾自己？",
             "现在适合思考什么？",
@@ -151,26 +152,26 @@ object ChatPrompt {
 
     // ----- Localized directives ----------------------------------------------
 
-    private fun replyDirective(lang: Language): String = when (lang) {
-        Language.EN -> "Always reply in English. Keep every reply short, warm, and crisply clear " +
+    private fun replyDirective(lang: Language): String = when (lang.content) {
+        ContentLang.EN -> "Always reply in English. Keep every reply short, warm, and crisply clear " +
             "(a few sentences). Ground your reflections in the chart below and in what the user " +
             "shares; never invent facts about their life."
-        Language.TA -> "எப்போதும் தமிழில் பதிலளிக்கவும். " +
+        ContentLang.TA -> "எப்போதும் தமிழில் பதிலளிக்கவும். " +
             "ஒவ்வொரு பதிலையும் சுருக்கமாக, அன்பாக, " +
             "தெளிவாக வையுங்கள். கீழே உள்ள ஜாதகத்தையும் " +
             "பயனர் பகிர்வதையும் அடிப்படையாகக் " +
             "கொள்ளுங்கள்; பயனரின் வாழ்க்கை பற்றி " +
             "எதையும் புனைய வேண்டாம்."
-        Language.ZH -> "始终用中文回复。每次回复都" +
+        ContentLang.ZH -> "始终用中文回复。每次回复都" +
             "要简短、温暖、清晰（几句话）。" +
             "你的反思要立足于下方的星盘以及" +
             "用户所分享的内容；切勿虚构他们" +
             "生活的事实。"
     }
 
-    private fun contextHeader(lang: Language): String = when (lang) {
-        Language.EN -> "The selected birth chart (for reflection only):"
-        Language.TA -> "தேர்ந்தெடுக்கப்பட்ட ஜாதகம் (சிந்திக்க மட்டும்):"
-        Language.ZH -> "所选的出生星盘（仅供反思）："
+    private fun contextHeader(lang: Language): String = when (lang.content) {
+        ContentLang.EN -> "The selected birth chart (for reflection only):"
+        ContentLang.TA -> "தேர்ந்தெடுக்கப்பட்ட ஜாதகம் (சிந்திக்க மட்டும்):"
+        ContentLang.ZH -> "所选的出生星盘（仅供反思）："
     }
 }

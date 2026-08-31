@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.astrochart.core.i18n.ContentLang
 import com.astrochart.core.i18n.Language
 import com.astrochart.core.i18n.Translations
 import com.astrochart.core.interpret.RasiInfo
@@ -255,8 +256,8 @@ private val VIMSHOTTARI_LORDS = listOf(
 private fun nakLord(index: Int, lang: Language): String {
     val key = VIMSHOTTARI_LORDS[index % 9]
     return when (key) {
-        "Rahu" -> when (lang) { Language.EN -> "Rahu"; Language.TA -> "ராகு"; Language.ZH -> "罗睺" }
-        "Ketu" -> when (lang) { Language.EN -> "Ketu"; Language.TA -> "கேது"; Language.ZH -> "计都" }
+        "Rahu" -> when (lang.content) { ContentLang.EN -> "Rahu"; ContentLang.TA -> "ராகு"; ContentLang.ZH -> "罗睺" }
+        "Ketu" -> when (lang.content) { ContentLang.EN -> "Ketu"; ContentLang.TA -> "கேது"; ContentLang.ZH -> "计都" }
         else -> Translations.planetName(key, lang)
     }
 }

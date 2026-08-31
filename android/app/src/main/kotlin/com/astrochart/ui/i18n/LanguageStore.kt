@@ -13,6 +13,10 @@ object LanguageStore {
         return Language.fromCode(prefs.getString(KEY_LANG, Language.EN.code))
     }
 
+    /** True once the user has explicitly chosen a language (drives the first-launch picker). */
+    fun hasChosen(context: Context): Boolean =
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).contains(KEY_LANG)
+
     fun save(context: Context, language: Language) {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             .edit()

@@ -1,6 +1,7 @@
 package com.astrochart.ui.i18n
 
 import androidx.compose.runtime.staticCompositionLocalOf
+import com.astrochart.core.i18n.ContentLang
 import com.astrochart.core.i18n.Language
 
 /**
@@ -136,35 +137,35 @@ data class UiStrings(
     val premiumPerkChatDesc: String,
     val premiumNotifyNote: String
 ) {
-    fun ageValue(years: Int): String = when (lang) {
-        Language.EN -> "$years yrs"
-        Language.TA -> "$years வயது"
-        Language.ZH -> "${years}岁"
+    fun ageValue(years: Int): String = when (lang.content) {
+        ContentLang.EN -> "$years yrs"
+        ContentLang.TA -> "$years வயது"
+        ContentLang.ZH -> "${years}岁"
     }
 
-    fun houseLabel(house: Int): String = when (lang) {
-        Language.EN -> "House $house"
-        Language.TA -> "$house ஆம் வீடு"
-        Language.ZH -> "第${house}宫"
+    fun houseLabel(house: Int): String = when (lang.content) {
+        ContentLang.EN -> "House $house"
+        ContentLang.TA -> "$house ஆம் வீடு"
+        ContentLang.ZH -> "第${house}宫"
     }
 
-    fun bodyCount(count: Int): String = when (lang) {
-        Language.EN -> if (count == 1) "1 body" else "$count bodies"
-        Language.TA -> "$count கிரகம்"
-        Language.ZH -> "${count}颗"
+    fun bodyCount(count: Int): String = when (lang.content) {
+        ContentLang.EN -> if (count == 1) "1 body" else "$count bodies"
+        ContentLang.TA -> "$count கிரகம்"
+        ContentLang.ZH -> "${count}颗"
     }
 
-    fun deleteMessage(name: String): String = when (lang) {
-        Language.EN -> "\"$name\" will be permanently removed."
-        Language.TA -> "\"$name\" நிரந்தரமாக நீக்கப்படும்."
-        Language.ZH -> "将永久删除“$name”。"
+    fun deleteMessage(name: String): String = when (lang.content) {
+        ContentLang.EN -> "\"$name\" will be permanently removed."
+        ContentLang.TA -> "\"$name\" நிரந்தரமாக நீக்கப்படும்."
+        ContentLang.ZH -> "将永久删除“$name”。"
     }
 
     companion object {
-        fun forLanguage(lang: Language): UiStrings = when (lang) {
-            Language.EN -> EN
-            Language.TA -> TA
-            Language.ZH -> ZH
+        fun forLanguage(lang: Language): UiStrings = when (lang.content) {
+            ContentLang.EN -> EN
+            ContentLang.TA -> TA
+            ContentLang.ZH -> ZH
         }
 
         private val EN = UiStrings(

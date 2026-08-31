@@ -1,5 +1,6 @@
 package com.astrochart.ui.i18n
 
+import com.astrochart.core.i18n.ContentLang
 import com.astrochart.core.i18n.Language
 import com.astrochart.core.interpret.Koota
 
@@ -52,9 +53,9 @@ data class PoruthamStrings(
     }
 
     companion object {
-        fun forLanguage(lang: Language): PoruthamStrings = when (lang) {
-            Language.TA -> TA
-            Language.ZH -> ZH
+        fun forLanguage(lang: Language): PoruthamStrings = when (lang.content) {
+            ContentLang.TA -> TA
+            ContentLang.ZH -> ZH
             else -> EN
         }
 

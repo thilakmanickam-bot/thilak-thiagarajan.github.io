@@ -1,5 +1,6 @@
 package com.astrochart.core.utils
 
+import com.astrochart.core.i18n.ContentLang
 import com.astrochart.core.i18n.Language
 import com.astrochart.core.i18n.Translations
 import com.astrochart.core.models.AspectInterpretation
@@ -27,8 +28,8 @@ object AspectInterpretationProvider {
             "Trine", "Sextile" -> 1 // harmonious
             else -> 2            // challenging
         }
-        return when (lang) {
-            Language.TA -> when (nature) {
+        return when (lang.content) {
+            ContentLang.TA -> when (nature) {
                 0 -> "$a – $b: இந்த இணைப்பு அவற்றின் ஆற்றல்களை ஒன்றிணைக்கிறது."
                 1 -> "$a – $b: இவை இணக்கமாகப் பாய்கின்றன, இயல்பான திறமையையும் எளிமையையும் தருகின்றன."
                 else -> "$a – $b: இவற்றுக்கிடையே பதற்றம் உள்ளது, வளர்ச்சிக்கான உந்துதலைத் தருகிறது."
