@@ -2,6 +2,7 @@ plugins {
     id "com.android.application"
     id "org.jetbrains.kotlin.android"
     id "kotlin-kapt"
+    id "com.google.gms.google-services"
 }
 
 android {
@@ -134,6 +135,18 @@ dependencies {
     // Google Play in-app updates — prompt installed users to update
     implementation "com.google.android.play:app-update:2.1.0"
     implementation "com.google.android.play:app-update-ktx:2.1.0"
+
+    // Account login + cloud sync (Firebase Auth + Firestore) and the modern
+    // Credential Manager "Sign in with Google" flow. All usage is gated behind
+    // Features.AUTH_ENABLED; a placeholder google-services.json keeps builds green.
+    implementation platform("com.google.firebase:firebase-bom:${rootProject.ext.firebaseBomVersion}")
+    implementation "com.google.firebase:firebase-auth-ktx"
+    implementation "com.google.firebase:firebase-firestore-ktx"
+    implementation "androidx.credentials:credentials:${rootProject.ext.credentialsVersion}"
+    implementation "androidx.credentials:credentials-play-services-auth:${rootProject.ext.credentialsVersion}"
+    implementation "com.google.android.libraries.identity.googleid:googleid:${rootProject.ext.googleIdVersion}"
+    // .await() for Firebase Task<T> in coroutines.
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-play-services:${rootProject.ext.coroutinesPlayServicesVersion}"
 
     // Core module
     implementation project(":core")

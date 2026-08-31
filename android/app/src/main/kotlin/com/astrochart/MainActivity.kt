@@ -76,6 +76,7 @@ import com.astrochart.ui.screens.RasiInfoScreen
 import com.astrochart.ui.screens.RasiSignsScreen
 import com.astrochart.ui.screens.SavedChartsScreen
 import com.astrochart.ui.screens.SettingsScreen
+import com.astrochart.ui.screens.AccountScreen
 import com.astrochart.ui.screens.SubscriptionScreen
 import java.time.LocalDate
 import java.time.YearMonth
@@ -196,6 +197,7 @@ fun AppNavigation(
         "chat" -> strings.navChatTitle
         "settings" -> strings.navSettingsTitle
         "premium" -> strings.navPremiumTitle
+        "account" -> strings.navAccountTitle
         "panchangam" -> PanchangamStrings.forLanguage(language).title
         "calendar" -> PanchangamStrings.forLanguage(language).calendarTitle
         "compatibility" -> PoruthamStrings.forLanguage(language).title
@@ -329,12 +331,17 @@ fun AppNavigation(
                             rasiSign = profile.rasi
                         }
                     },
-                    onNavigateToPremium = { navController.navigate("premium") }
+                    onNavigateToPremium = { navController.navigate("premium") },
+                    onNavigateToAccount = { navController.navigate("account") }
                 )
             }
 
             composable("premium") {
                 SubscriptionScreen()
+            }
+
+            composable("account") {
+                AccountScreen()
             }
 
             composable("panchangam") {

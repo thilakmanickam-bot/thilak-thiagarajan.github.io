@@ -89,6 +89,24 @@ class ChartRepository(private val context: Context) {
         return chartDao.searchCharts(query)
     }
 
+    // ----- Cloud-sync helpers (local DB only; the Firestore side lives in
+    // com.astrochart.auth.ProfileSync so this repository stays Firebase-free) -----
+
+    /** All saved charts as a one-shot list, for reconciling against the cloud. */
+    suspend fun allChartsOnce(): List<SavedChartEntity> =
+        withContext(Dispatchers.IO) { chartDao.getAllChartsList() }
+
+    suspend fun chartByRemoteId(remoteId: String): SavedChartEntity? =
+        withContext(Dispatchers.IO) { chartDao.getChartByRemoteId(remoteId) }
+
+    /** Insert or replace a chart row (used when pulling cloud charts down). */
+    suspend fun upsertLocal(entity: SavedChartEntity): Long =
+        withContext(Dispatchers.IO) { chartDao.insertChart(entity) }
+
+    /** Record the Firestore id a local chart was pushed to. */
+    suspend fun stampRemoteId(id: Long, remoteId: String) =
+        withContext(Dispatchers.IO) { chartDao.setRemoteId(id, remoteId) }
+
     private fun serializeChart(chart: NatalChart): String {
         return ChartJson.toJson(chart)
     }

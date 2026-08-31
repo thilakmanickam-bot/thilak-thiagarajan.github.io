@@ -3,6 +3,10 @@ plugins {
     id "com.android.library" version "8.2.0" apply false
     id "org.jetbrains.kotlin.android" version "1.9.22" apply false
     id "org.jetbrains.kotlin.jvm" version "1.9.22" apply false
+    // Firebase config plugin — processes app/google-services.json into resources.
+    // Applied only in :app. A placeholder google-services.json keeps builds green
+    // until a real Firebase project is configured (account login ships disabled).
+    id "com.google.gms.google-services" version "4.4.2" apply false
 }
 
 ext {
@@ -19,4 +23,11 @@ ext {
     roomVersion = "2.6.1"
     retrofitVersion = "2.11.0"
     okhttpVersion = "4.12.0"
+
+    // Account login / cloud sync (Firebase Auth + Firestore, Credential Manager
+    // "Sign in with Google"). Used only in :app, gated behind Features.AUTH_ENABLED.
+    firebaseBomVersion = "33.5.1"
+    credentialsVersion = "1.3.0"
+    googleIdVersion = "1.1.1"
+    coroutinesPlayServicesVersion = "1.8.0"
 }
