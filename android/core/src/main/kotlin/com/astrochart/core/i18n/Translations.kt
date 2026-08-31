@@ -475,7 +475,7 @@ object Translations {
     private val bodyAbbrMl = mapOf(
         "Sun" to "സൂ", "Moon" to "ച", "Mercury" to "ബു", "Venus" to "ശു",
         "Mars" to "ചൊ", "Jupiter" to "വ്യാ", "Saturn" to "ശ", "Uranus" to "യു",
-        "Neptune" to "നെ", "Pluto" to "പ്ലൂ", "Ascendant" to "ലഗ്നം"
+        "Neptune" to "നെ", "Pluto" to "പ്ലൂ", "Ascendant" to "ലഗ്ന"
     )
     private val bodyAbbrMr = mapOf(
         "Sun" to "सू", "Moon" to "चं", "Mercury" to "बु", "Venus" to "शु",
