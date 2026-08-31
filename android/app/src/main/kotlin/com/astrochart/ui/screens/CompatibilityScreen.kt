@@ -29,9 +29,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import android.app.Activity
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
@@ -73,6 +75,7 @@ private val SIGN_ORDER = listOf(
 fun CompatibilityScreen(modifier: Modifier = Modifier) {
     val lang = LocalLanguage.current
     val ps = remember(lang) { PoruthamStrings.forLanguage(lang) }
+    val activity = LocalContext.current as? Activity
 
     var boyName by remember { mutableStateOf("") }
     var boyRasi by remember { mutableStateOf<Int?>(null) }
@@ -131,6 +134,7 @@ fun CompatibilityScreen(modifier: Modifier = Modifier) {
                     shownGirl = girlName.ifBlank { ps.girlName }
                     shownBoyRasi = boyRasi!!; shownGirlRasi = girlRasi!!
                     shownBoyNak = boyNak!!; shownGirlNak = girlNak!!
+                    activity?.let { com.astrochart.ads.InterstitialAds.maybeShow(it) }
                 }
             },
             enabled = ready,

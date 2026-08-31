@@ -15,11 +15,11 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AstroChart">
 
-        <!-- AdMob application ID (Google's test ID; replace with your real one
-             before serving live ads). -->
+        <!-- AdMob application ID, injected from the ADMOB_APP_ID gradle property
+             (see gradle.properties). Defaults to Google's test app ID. -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-3940256099942544~3347511713" />
+            android:value="${admobAppId}" />
 
         <activity
             android:name=".MainActivity"
