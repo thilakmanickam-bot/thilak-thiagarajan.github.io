@@ -1,6 +1,5 @@
 package com.astrochart.core.interpret
 
-import com.astrochart.core.i18n.ContentLang
 import com.astrochart.core.i18n.Language
 import com.astrochart.core.utils.ZodiacUtils
 import java.time.LocalDate
@@ -11,12 +10,22 @@ data class DailyColor(
     val nameEn: String,
     val nameTa: String,
     val nameZh: String,
+    val nameHi: String,
+    val nameTe: String,
+    val nameKn: String,
+    val nameMl: String,
+    val nameMr: String,
     val hex: Long
 ) {
-    fun name(lang: Language): String = when (lang.content) {
-        ContentLang.EN -> nameEn
-        ContentLang.TA -> nameTa
-        ContentLang.ZH -> nameZh
+    fun name(lang: Language): String = when (lang) {
+        Language.TA -> nameTa
+        Language.ZH -> nameZh
+        Language.HI -> nameHi
+        Language.TE -> nameTe
+        Language.KN -> nameKn
+        Language.ML -> nameMl
+        Language.MR -> nameMr
+        else -> nameEn
     }
 }
 
@@ -38,22 +47,22 @@ data class DailyReadingData(
  * (and lightly varied by the chart's Sun sign): the same date + language + sign
  * always yields the same reading, so it is stable across refreshes and can be
  * regenerated for a notification. Pure logic — unit-testable off-device. All text
- * is stored as plain literals (no string interpolation), so the CJK/Tamil
+ * is stored as plain literals (no string interpolation), so the CJK/Indic
  * identifier hazard that affects [ChartReading] cannot occur here.
  */
 object DailyReading {
 
     private val COLORS = listOf(
-        DailyColor("Gold", "தங்கம்", "金色", 0xFFD9A94E),
-        DailyColor("Blue", "நீலம்", "蓝色", 0xFF4C7BD9),
-        DailyColor("Green", "பச்சை", "绿色", 0xFF4CAF7B),
-        DailyColor("Red", "சிவப்பு", "红色", 0xFFE05555),
-        DailyColor("White", "வெள்ளை", "白色", 0xFFF5F3EE),
-        DailyColor("Purple", "ஊதா", "紫色", 0xFF8A6FD1),
-        DailyColor("Orange", "ஆரஞ்சு", "橙色", 0xFFE8934E),
-        DailyColor("Silver", "வெள்ளி", "银色", 0xFFC0C4CC),
-        DailyColor("Teal", "நீலப்பச்சை", "青色", 0xFF3FB6A8),
-        DailyColor("Pink", "இளஞ்சிவப்பு", "粉色", 0xFFE58FB0)
+        DailyColor("Gold", "தங்கம்", "金色", "सुनहरा", "బంగారు", "ಚಿನ್ನದ", "സ്വർണം", "सोनेरी", 0xFFD9A94E),
+        DailyColor("Blue", "நீலம்", "蓝色", "नीला", "నీలం", "ನೀಲಿ", "നീല", "निळा", 0xFF4C7BD9),
+        DailyColor("Green", "பச்சை", "绿色", "हरा", "ఆకుపచ్చ", "ಹಸಿರು", "പച്ച", "हिरवा", 0xFF4CAF7B),
+        DailyColor("Red", "சிவப்பு", "红色", "लाल", "ఎరుపు", "ಕೆಂಪು", "ചുവപ്പ്", "लाल", 0xFFE05555),
+        DailyColor("White", "வெள்ளை", "白色", "सफ़ेद", "తెలుపు", "ಬಿಳಿ", "വെള്ള", "पांढरा", 0xFFF5F3EE),
+        DailyColor("Purple", "ஊதா", "紫色", "बैंगनी", "ఊదా", "ನೇರಳೆ", "വയലറ്റ്", "जांभळा", 0xFF8A6FD1),
+        DailyColor("Orange", "ஆரஞ்சு", "橙色", "नारंगी", "నారింజ", "ಕಿತ್ತಳೆ", "ഓറഞ്ച്", "नारिंगी", 0xFFE8934E),
+        DailyColor("Silver", "வெள்ளி", "银色", "चाँदी", "వెండి", "ಬೆಳ್ಳಿ", "വെള്ളി", "चंदेरी", 0xFFC0C4CC),
+        DailyColor("Teal", "நீலப்பச்சை", "青色", "फ़िरोज़ी", "నీలిపచ్చ", "ನೀಲಿಹಸಿರು", "ടീൽ", "नीलहरित", 0xFF3FB6A8),
+        DailyColor("Pink", "இளஞ்சிவப்பு", "粉色", "गुलाबी", "గులాబీ", "ಗುಲಾಬಿ", "പിങ്ക്", "गुलाबी", 0xFFE58FB0)
     )
 
     fun build(date: LocalDate, lang: Language, sign: String? = null): DailyReadingData {
@@ -83,18 +92,8 @@ object DailyReading {
         )
     }
 
-    private fun summaries(lang: Language): List<String> = when (lang.content) {
-        ContentLang.EN -> listOf(
-            "A bright, open day — your energy flows easily and small efforts bring rewarding results. Stay warm and say yes to good opportunities.",
-            "Momentum is on your side today. Trust your instincts, lead with kindness, and let your natural confidence shine.",
-            "A gentle, lucky current runs through the day. Connections feel warm and your ideas land well — lean into optimism.",
-            "Today rewards courage and clarity. Take the first step you have been putting off; the path opens as you move.",
-            "Calm and creativity meet today. You will find graceful solutions and a little joy in the ordinary moments.",
-            "A day for fresh starts. Your focus is sharp and your heart is light — plant a seed you will be glad you did.",
-            "Good fortune favours your generosity today. Share warmth freely and watch it return to you multiplied.",
-            "Steady progress and pleasant surprises await. Keep an open mind and let the day's easy rhythm carry you."
-        )
-        ContentLang.TA -> listOf(
+    private fun summaries(lang: Language): List<String> = when (lang) {
+        Language.TA -> listOf(
             "பிரகாசமான, திறந்த நாள் — உங்கள் ஆற்றல் எளிதாகப் பாய்கிறது, சிறு முயற்சிகள் நல்ல பலனைத் தரும். அன்பாக இருங்கள், நல்ல வாய்ப்புகளுக்கு ஆம் சொல்லுங்கள்.",
             "இன்று வேகம் உங்கள் பக்கம் உள்ளது. உங்கள் உள்ளுணர்வை நம்புங்கள், கருணையுடன் வழிநடத்துங்கள், உங்கள் தன்னம்பிக்கை ஒளிரட்டும்.",
             "நாள் முழுவதும் மென்மையான அதிர்ஷ்ட ஓட்டம். உறவுகள் அன்பாக இருக்கும், உங்கள் கருத்துகள் நன்கு பதியும் — நம்பிக்கையுடன் இருங்கள்.",
@@ -104,7 +103,7 @@ object DailyReading {
             "இன்று உங்கள் தாராள மனது அதிர்ஷ்டத்தைத் தரும். அன்பைப் பகிருங்கள், அது பன்மடங்காகத் திரும்பும்.",
             "நிலையான முன்னேற்றமும் இனிய ஆச்சரியங்களும் காத்திருக்கின்றன. திறந்த மனதுடன் நாளின் இலகுவான தாளத்தை அனுபவியுங்கள்."
         )
-        ContentLang.ZH -> listOf(
+        Language.ZH -> listOf(
             "明亮而开阔的一天——你的能量顺畅流动，小小的努力也能带来回报。保持温暖，对好机会说好。",
             "今天势头在你这边。相信直觉，以善意引领，让你天生的自信闪耀。",
             "整天都有一股温柔的幸运暖流。人际温暖，想法也能被认可——尽管乐观。",
@@ -114,59 +113,194 @@ object DailyReading {
             "今天你的慷慨会带来好运。慷慨地分享温暖，它会加倍回到你身边。",
             "稳步的进展与愉快的惊喜在等你。保持开放，随着这一天轻松的节奏前行。"
         )
+        Language.HI -> listOf(
+            "उज्ज्वल, खुला दिन — आपकी ऊर्जा सहज बहती है और छोटे प्रयास अच्छे परिणाम देते हैं। गर्मजोश रहें और अच्छे अवसरों को हाँ कहें।",
+            "आज गति आपके साथ है। अपने अंतर्ज्ञान पर भरोसा करें, करुणा से नेतृत्व करें और अपने सहज आत्मविश्वास को चमकने दें।",
+            "पूरे दिन एक कोमल, शुभ धारा बहती है। रिश्ते गर्म लगते हैं और आपके विचार सराहे जाते हैं — आशावादी रहें।",
+            "आज साहस और स्पष्टता का फल है। जिस पहले कदम को टाल रहे थे उसे उठाएँ; चलते ही राह खुलती है।",
+            "आज शांति और रचनात्मकता मिलती हैं। आपको सुंदर समाधान और साधारण पलों में थोड़ी खुशी मिलेगी।",
+            "नई शुरुआत का दिन। आपका ध्यान तीव्र और मन हल्का है — एक बीज बोएँ जिस पर आपको गर्व होगा।",
+            "आज आपकी उदारता सौभाग्य लाती है। खुलकर गर्मजोशी बाँटें और देखें वह कई गुना लौटती है।",
+            "स्थिर प्रगति और सुखद आश्चर्य प्रतीक्षा में हैं। मन खुला रखें और दिन की सहज लय के साथ बहें।"
+        )
+        Language.TE -> listOf(
+            "ప్రకాశవంతమైన, తెరిచిన రోజు — మీ శక్తి సులభంగా ప్రవహిస్తుంది, చిన్న ప్రయత్నాలు మంచి ఫలితాలు తెస్తాయి. ఆప్యాయంగా ఉండండి, మంచి అవకాశాలకు అవును అనండి.",
+            "ఈరోజు వేగం మీ వైపు ఉంది. మీ అంతరాత్మను నమ్మండి, దయతో నడిపించండి, మీ సహజ ఆత్మవిశ్వాసం ప్రకాశించనివ్వండి.",
+            "రోజంతా ఒక సున్నితమైన, అదృష్ట ప్రవాహం సాగుతుంది. బంధాలు ఆప్యాయంగా ఉంటాయి, మీ ఆలోచనలు మెచ్చుకోబడతాయి — ఆశావాదంతో ఉండండి.",
+            "ఈరోజు ధైర్యానికి, స్పష్టతకు ఫలితం ఇస్తుంది. వాయిదా వేసిన మొదటి అడుగు వేయండి; కదిలితే దారి తెరుచుకుంటుంది.",
+            "ఈరోజు ప్రశాంతత, సృజనాత్మకత కలుస్తాయి. అందమైన పరిష్కారాలు, సాధారణ క్షణాల్లో చిన్న ఆనందం లభిస్తాయి.",
+            "కొత్త ఆరంభాలకు రోజు. మీ ఏకాగ్రత పదునుగా, మనసు తేలికగా ఉంది — గర్వపడే ఒక విత్తనం నాటండి.",
+            "ఈరోజు మీ ఔదార్యం అదృష్టాన్ని తెస్తుంది. ఆప్యాయతను ఉదారంగా పంచండి, అది రెట్టింపై తిరిగి వస్తుంది.",
+            "స్థిరమైన పురోగతి, ఆహ్లాదకర ఆశ్చర్యాలు ఎదురుచూస్తున్నాయి. మనసు తెరిచి రోజు సాఫీ లయతో సాగండి."
+        )
+        Language.KN -> listOf(
+            "ಪ್ರಕಾಶಮಾನ, ಮುಕ್ತ ದಿನ — ನಿಮ್ಮ ಶಕ್ತಿ ಸಲೀಸಾಗಿ ಹರಿಯುತ್ತದೆ, ಸಣ್ಣ ಪ್ರಯತ್ನಗಳು ಒಳ್ಳೆಯ ಫಲ ನೀಡುತ್ತವೆ. ಪ್ರೀತಿಯಿಂದಿರಿ, ಒಳ್ಳೆಯ ಅವಕಾಶಗಳಿಗೆ ಹೌದು ಎನ್ನಿ.",
+            "ಇಂದು ವೇಗ ನಿಮ್ಮ ಪರವಾಗಿದೆ. ನಿಮ್ಮ ಅಂತರಂಗವನ್ನು ನಂಬಿ, ಕರುಣೆಯಿಂದ ಮುನ್ನಡೆಸಿ, ನಿಮ್ಮ ಸಹಜ ಆತ್ಮವಿಶ್ವಾಸ ಹೊಳೆಯಲಿ.",
+            "ದಿನವಿಡೀ ಒಂದು ಮೃದು, ಅದೃಷ್ಟದ ಪ್ರವಾಹ ಹರಿಯುತ್ತದೆ. ಸಂಬಂಧಗಳು ಆತ್ಮೀಯವಾಗಿರುತ್ತವೆ, ನಿಮ್ಮ ಆಲೋಚನೆಗಳು ಮೆಚ್ಚುಗೆ ಪಡೆಯುತ್ತವೆ — ಆಶಾವಾದಿಯಾಗಿರಿ.",
+            "ಇಂದು ಧೈರ್ಯ ಮತ್ತು ಸ್ಪಷ್ಟತೆಗೆ ಫಲ. ಮುಂದೂಡುತ್ತಿದ್ದ ಮೊದಲ ಹೆಜ್ಜೆ ಇಡಿ; ಚಲಿಸಿದಂತೆ ದಾರಿ ತೆರೆಯುತ್ತದೆ.",
+            "ಇಂದು ಶಾಂತಿ ಮತ್ತು ಸೃಜನಶೀಲತೆ ಸಂಧಿಸುತ್ತವೆ. ಸೊಗಸಾದ ಪರಿಹಾರಗಳು ಮತ್ತು ಸಾಮಾನ್ಯ ಕ್ಷಣಗಳಲ್ಲಿ ಸಣ್ಣ ಸಂತಸ ಸಿಗುತ್ತದೆ.",
+            "ಹೊಸ ಆರಂಭಗಳ ದಿನ. ನಿಮ್ಮ ಗಮನ ಚುರುಕಾಗಿ, ಮನಸ್ಸು ಹಗುರವಾಗಿದೆ — ಹೆಮ್ಮೆಪಡುವ ಒಂದು ಬೀಜ ಬಿತ್ತಿ.",
+            "ಇಂದು ನಿಮ್ಮ ಔದಾರ್ಯ ಅದೃಷ್ಟ ತರುತ್ತದೆ. ಪ್ರೀತಿಯನ್ನು ಉದಾರವಾಗಿ ಹಂಚಿ, ಅದು ಹಲವು ಪಟ್ಟು ಮರಳುತ್ತದೆ.",
+            "ಸ್ಥಿರ ಪ್ರಗತಿ ಮತ್ತು ಹಿತಕರ ಆಶ್ಚರ್ಯಗಳು ಕಾಯುತ್ತಿವೆ. ಮನಸ್ಸು ತೆರೆದಿಟ್ಟು ದಿನದ ಸರಾಗ ಲಯದೊಂದಿಗೆ ಸಾಗಿ."
+        )
+        Language.ML -> listOf(
+            "തിളക്കമുള്ള, തുറന്ന ദിവസം — നിങ്ങളുടെ ഊർജം സുഗമമായി ഒഴുകുന്നു, ചെറിയ ശ്രമങ്ങൾ നല്ല ഫലം നൽകും. സ്നേഹത്തോടെയിരിക്കൂ, നല്ല അവസരങ്ങൾക്ക് അതെ പറയൂ.",
+            "ഇന്ന് വേഗം നിങ്ങളുടെ ഭാഗത്താണ്. നിങ്ങളുടെ ഉൾക്കാഴ്ചയെ വിശ്വസിക്കൂ, കരുണയോടെ നയിക്കൂ, നിങ്ങളുടെ സ്വാഭാവിക ആത്മവിശ്വാസം തിളങ്ങട്ടെ.",
+            "ദിവസം മുഴുവൻ ഒരു മൃദുവായ, ഭാഗ്യ പ്രവാഹം ഒഴുകുന്നു. ബന്ധങ്ങൾ ഊഷ്മളമായി തോന്നും, നിങ്ങളുടെ ആശയങ്ങൾ അംഗീകരിക്കപ്പെടും — ശുഭാപ്തിവിശ്വാസത്തോടെയിരിക്കൂ.",
+            "ഇന്ന് ധൈര്യത്തിനും വ്യക്തതയ്ക്കും ഫലം. മാറ്റിവെച്ച ആദ്യ ചുവട് വെക്കൂ; നീങ്ങുമ്പോൾ വഴി തുറക്കും.",
+            "ഇന്ന് ശാന്തിയും സർഗാത്മകതയും കൂടിച്ചേരുന്നു. മനോഹരമായ പരിഹാരങ്ങളും സാധാരണ നിമിഷങ്ങളിൽ ചെറിയ സന്തോഷവും ലഭിക്കും.",
+            "പുതിയ തുടക്കങ്ങളുടെ ദിവസം. നിങ്ങളുടെ ശ്രദ്ധ മൂർച്ചയുള്ളതും മനസ്സ് ലഘുവുമാണ് — അഭിമാനിക്കാവുന്ന ഒരു വിത്ത് പാകൂ.",
+            "ഇന്ന് നിങ്ങളുടെ ഔദാര്യം ഭാഗ്യം കൊണ്ടുവരും. സ്നേഹം ഉദാരമായി പങ്കിടൂ, അത് പലമടങ്ങായി തിരികെ വരും.",
+            "സ്ഥിരമായ പുരോഗതിയും സുഖകരമായ അത്ഭുതങ്ങളും കാത്തിരിക്കുന്നു. മനസ്സ് തുറന്ന് ദിവസത്തിന്റെ സൗമ്യ താളത്തിനൊപ്പം നീങ്ങൂ."
+        )
+        Language.MR -> listOf(
+            "उज्ज्वल, मोकळा दिवस — तुमची ऊर्जा सहज वाहते आणि लहान प्रयत्न चांगले परिणाम देतात. उबदार राहा आणि चांगल्या संधींना होय म्हणा.",
+            "आज गती तुमच्या बाजूने आहे. आपल्या अंतर्मनावर विश्वास ठेवा, दयेने नेतृत्व करा आणि तुमचा नैसर्गिक आत्मविश्वास झळकू द्या.",
+            "दिवसभर एक सौम्य, शुभ प्रवाह वाहतो. नाती उबदार वाटतात आणि तुमच्या कल्पनांचे कौतुक होते — आशावादी राहा.",
+            "आज धैर्य आणि स्पष्टतेला फळ मिळते. टाळत असलेले पहिले पाऊल उचला; हालचाल केल्यावर वाट उघडते.",
+            "आज शांतता आणि सर्जनशीलता भेटतात. सुंदर उपाय आणि सामान्य क्षणांत थोडा आनंद मिळेल.",
+            "नव्या सुरुवातीचा दिवस. तुमचे लक्ष तीक्ष्ण आणि मन हलके आहे — अभिमान वाटेल असे बीज पेरा.",
+            "आज तुमचे औदार्य भाग्य आणते. मुक्तपणे उब वाटा आणि ती अनेकपट परत येताना पाहा.",
+            "स्थिर प्रगती आणि सुखद आश्चर्ये वाट पाहत आहेत. मन मोकळे ठेवा आणि दिवसाच्या सहज लयीत वाहा."
+        )
+        else -> listOf(
+            "A bright, open day — your energy flows easily and small efforts bring rewarding results. Stay warm and say yes to good opportunities.",
+            "Momentum is on your side today. Trust your instincts, lead with kindness, and let your natural confidence shine.",
+            "A gentle, lucky current runs through the day. Connections feel warm and your ideas land well — lean into optimism.",
+            "Today rewards courage and clarity. Take the first step you have been putting off; the path opens as you move.",
+            "Calm and creativity meet today. You will find graceful solutions and a little joy in the ordinary moments.",
+            "A day for fresh starts. Your focus is sharp and your heart is light — plant a seed you will be glad you did.",
+            "Good fortune favours your generosity today. Share warmth freely and watch it return to you multiplied.",
+            "Steady progress and pleasant surprises await. Keep an open mind and let the day's easy rhythm carry you."
+        )
     }
 
-    private fun goodToDo(lang: Language): List<String> = when (lang.content) {
-        ContentLang.EN -> listOf(
-            "Start something new", "Reach out to a friend", "Tidy your space",
-            "Speak your ideas aloud", "Take a mindful walk", "Finish a lingering task",
-            "Offer help freely", "Plan your week ahead"
-        )
-        ContentLang.TA -> listOf(
+    private fun goodToDo(lang: Language): List<String> = when (lang) {
+        Language.TA -> listOf(
             "புதியதைத் தொடங்குங்கள்", "நண்பரைத் தொடர்பு கொள்ளுங்கள்", "இடத்தை ஒழுங்குபடுத்துங்கள்",
             "உங்கள் கருத்துகளைப் பகிருங்கள்", "அமைதியாக நடந்து வாருங்கள்", "நிலுவையிலுள்ள வேலையை முடியுங்கள்",
             "மனமுவந்து உதவுங்கள்", "வாரத்தைத் திட்டமிடுங்கள்"
         )
-        ContentLang.ZH -> listOf(
+        Language.ZH -> listOf(
             "开始新事物", "联系一位朋友", "整理你的空间",
             "说出你的想法", "正念散步", "完成拖延的任务",
             "主动帮助他人", "规划你的一周"
         )
+        Language.HI -> listOf(
+            "कुछ नया शुरू करें", "किसी मित्र से बात करें", "अपनी जगह व्यवस्थित करें",
+            "अपने विचार खुलकर कहें", "सचेत टहलें", "रुका हुआ काम पूरा करें",
+            "उदारता से मदद करें", "अपने सप्ताह की योजना बनाएँ"
+        )
+        Language.TE -> listOf(
+            "కొత్తది మొదలుపెట్టండి", "మిత్రుడిని పలకరించండి", "మీ స్థలాన్ని సర్దండి",
+            "మీ ఆలోచనలు గట్టిగా చెప్పండి", "ప్రశాంతంగా నడవండి", "ఆగిన పనిని పూర్తి చేయండి",
+            "ఉదారంగా సాయం చేయండి", "మీ వారాన్ని ప్లాన్ చేయండి"
+        )
+        Language.KN -> listOf(
+            "ಹೊಸದನ್ನು ಆರಂಭಿಸಿ", "ಸ್ನೇಹಿತರನ್ನು ಸಂಪರ್ಕಿಸಿ", "ನಿಮ್ಮ ಜಾಗ ಅಚ್ಚುಕಟ್ಟಾಗಿಸಿ",
+            "ನಿಮ್ಮ ಆಲೋಚನೆಗಳನ್ನು ಹೇಳಿ", "ಗಮನದಿಂದ ನಡೆಯಿರಿ", "ನಿಂತ ಕೆಲಸ ಮುಗಿಸಿ",
+            "ಉದಾರವಾಗಿ ಸಹಾಯ ಮಾಡಿ", "ನಿಮ್ಮ ವಾರವನ್ನು ಯೋಜಿಸಿ"
+        )
+        Language.ML -> listOf(
+            "പുതിയത് തുടങ്ങൂ", "ഒരു സുഹൃത്തിനെ ബന്ധപ്പെടൂ", "നിങ്ങളുടെ ഇടം ചിട്ടപ്പെടുത്തൂ",
+            "നിങ്ങളുടെ ആശയങ്ങൾ പറയൂ", "ശ്രദ്ധയോടെ നടക്കൂ", "മുടങ്ങിയ ജോലി പൂർത്തിയാക്കൂ",
+            "ഉദാരമായി സഹായിക്കൂ", "നിങ്ങളുടെ ആഴ്ച ആസൂത്രണം ചെയ്യൂ"
+        )
+        Language.MR -> listOf(
+            "काहीतरी नवीन सुरू करा", "एखाद्या मित्राशी संपर्क करा", "आपली जागा नीटनेटकी करा",
+            "आपले विचार मोकळेपणाने सांगा", "सजगपणे फेरफटका मारा", "रखडलेले काम पूर्ण करा",
+            "उदारपणे मदत करा", "आपल्या आठवड्याचे नियोजन करा"
+        )
+        else -> listOf(
+            "Start something new", "Reach out to a friend", "Tidy your space",
+            "Speak your ideas aloud", "Take a mindful walk", "Finish a lingering task",
+            "Offer help freely", "Plan your week ahead"
+        )
     }
 
-    private fun avoidList(lang: Language): List<String> = when (lang.content) {
-        ContentLang.EN -> listOf(
-            "Rushing decisions", "Overthinking small things", "Skipping rest",
-            "Harsh self-criticism", "Endless scrolling", "Saying yes when you mean no",
-            "Ignoring your body's signals", "Comparing yourself to others"
-        )
-        ContentLang.TA -> listOf(
+    private fun avoidList(lang: Language): List<String> = when (lang) {
+        Language.TA -> listOf(
             "அவசர முடிவுகள்", "சிறிய விஷயங்களில் அதிகம் யோசிப்பது", "ஓய்வைத் தவிர்ப்பது",
             "கடுமையான சுயவிமர்சனம்", "முடிவற்ற திரை உலா", "மனதில் இல்லாமல் ஆம் சொல்வது",
             "உடலின் அறிகுறிகளைப் புறக்கணிப்பது", "பிறருடன் ஒப்பிடுவது"
         )
-        ContentLang.ZH -> listOf(
+        Language.ZH -> listOf(
             "仓促做决定", "为小事过度思虑", "忽略休息",
             "严苛的自我批评", "无休止刷手机", "口是心非地答应",
             "忽视身体的信号", "与他人比较"
         )
+        Language.HI -> listOf(
+            "जल्दबाज़ी में निर्णय", "छोटी बातों पर अधिक सोचना", "आराम छोड़ना",
+            "कठोर आत्म-आलोचना", "अंतहीन स्क्रॉलिंग", "मन न होते हुए हाँ कहना",
+            "शरीर के संकेत अनदेखा करना", "दूसरों से तुलना"
+        )
+        Language.TE -> listOf(
+            "తొందరపాటు నిర్ణయాలు", "చిన్న విషయాలపై అతిగా ఆలోచించడం", "విశ్రాంతిని వదిలేయడం",
+            "కఠినమైన స్వీయ విమర్శ", "అంతులేని స్క్రోలింగ్", "మనసులో లేకున్నా అవును అనడం",
+            "శరీర సంకేతాలను విస్మరించడం", "ఇతరులతో పోల్చుకోవడం"
+        )
+        Language.KN -> listOf(
+            "ಆತುರದ ನಿರ್ಧಾರಗಳು", "ಸಣ್ಣ ವಿಷಯಗಳ ಬಗ್ಗೆ ಅತಿಯಾಗಿ ಯೋಚಿಸುವುದು", "ವಿಶ್ರಾಂತಿ ಬಿಡುವುದು",
+            "ಕಠಿಣ ಸ್ವಯಂ ಟೀಕೆ", "ಕೊನೆಯಿಲ್ಲದ ಸ್ಕ್ರೋಲಿಂಗ್", "ಮನಸ್ಸಿಲ್ಲದೆ ಹೌದು ಎನ್ನುವುದು",
+            "ದೇಹದ ಸೂಚನೆ ನಿರ್ಲಕ್ಷಿಸುವುದು", "ಇತರರೊಂದಿಗೆ ಹೋಲಿಸಿಕೊಳ್ಳುವುದು"
+        )
+        Language.ML -> listOf(
+            "തിടുക്കത്തിലുള്ള തീരുമാനങ്ങൾ", "ചെറിയ കാര്യങ്ങളിൽ അമിതമായി ചിന്തിക്കൽ", "വിശ്രമം ഒഴിവാക്കൽ",
+            "കഠിന സ്വയം വിമർശനം", "അവസാനമില്ലാത്ത സ്ക്രോളിംഗ്", "മനസ്സില്ലാതെ അതെ പറയൽ",
+            "ശരീരത്തിന്റെ സൂചനകൾ അവഗണിക്കൽ", "മറ്റുള്ളവരുമായി താരതമ്യം"
+        )
+        Language.MR -> listOf(
+            "घाईचे निर्णय", "छोट्या गोष्टींचा अतिविचार", "विश्रांती टाळणे",
+            "कठोर स्वतःवर टीका", "अखंड स्क्रोलिंग", "मन नसताना होय म्हणणे",
+            "शरीराच्या संकेतांकडे दुर्लक्ष", "इतरांशी तुलना"
+        )
+        else -> listOf(
+            "Rushing decisions", "Overthinking small things", "Skipping rest",
+            "Harsh self-criticism", "Endless scrolling", "Saying yes when you mean no",
+            "Ignoring your body's signals", "Comparing yourself to others"
+        )
     }
 
-    private fun focusList(lang: Language): List<String> = when (lang.content) {
-        ContentLang.EN -> listOf(
-            "Connection & communication", "Creativity & self-expression", "Grounding & steady progress",
-            "Courage & fresh starts", "Rest & inner balance", "Generosity & warmth",
-            "Clarity & focus", "Joy & play"
-        )
-        ContentLang.TA -> listOf(
+    private fun focusList(lang: Language): List<String> = when (lang) {
+        Language.TA -> listOf(
             "தொடர்பும் உரையாடலும்", "படைப்பாற்றலும் சுய வெளிப்பாடும்", "நிலைத்த முன்னேற்றம்",
             "தைரியமும் புதிய தொடக்கமும்", "ஓய்வும் உள் சமநிலையும்", "தாராளமும் அன்பும்",
             "தெளிவும் கவனமும்", "மகிழ்ச்சியும் விளையாட்டும்"
         )
-        ContentLang.ZH -> listOf(
+        Language.ZH -> listOf(
             "联结与沟通", "创造与自我表达", "踏实与稳步前进",
             "勇气与新的开始", "休息与内在平衡", "慷慨与温暖",
             "清晰与专注", "欢乐与玩耍"
+        )
+        Language.HI -> listOf(
+            "जुड़ाव और संवाद", "रचनात्मकता और आत्म-अभिव्यक्ति", "स्थिरता और निरंतर प्रगति",
+            "साहस और नई शुरुआत", "विश्राम और आंतरिक संतुलन", "उदारता और गर्मजोशी",
+            "स्पष्टता और एकाग्रता", "आनंद और खेल"
+        )
+        Language.TE -> listOf(
+            "అనుబంధం & సంభాషణ", "సృజనాత్మకత & ఆత్మ వ్యక్తీకరణ", "స్థిరత్వం & నిరంతర పురోగతి",
+            "ధైర్యం & కొత్త ఆరంభాలు", "విశ్రాంతి & అంతర్గత సమతుల్యత", "ఔదార్యం & ఆప్యాయత",
+            "స్పష్టత & ఏకాగ్రత", "ఆనందం & ఆట"
+        )
+        Language.KN -> listOf(
+            "ಸಂಬಂಧ & ಸಂವಹನ", "ಸೃಜನಶೀಲತೆ & ಆತ್ಮ ಅಭಿವ್ಯಕ್ತಿ", "ಸ್ಥಿರತೆ & ನಿರಂತರ ಪ್ರಗತಿ",
+            "ಧೈರ್ಯ & ಹೊಸ ಆರಂಭ", "ವಿಶ್ರಾಂತಿ & ಆಂತರಿಕ ಸಮತೋಲನ", "ಔದಾರ್ಯ & ಪ್ರೀತಿ",
+            "ಸ್ಪಷ್ಟತೆ & ಏಕಾಗ್ರತೆ", "ಸಂತೋಷ & ಆಟ"
+        )
+        Language.ML -> listOf(
+            "ബന്ധം & ആശയവിനിമയം", "സർഗാത്മകത & സ്വയം പ്രകാശനം", "സ്ഥിരത & തുടർച്ചയായ പുരോഗതി",
+            "ധൈര്യം & പുതിയ തുടക്കങ്ങൾ", "വിശ്രമം & ആന്തരിക സന്തുലനം", "ഔദാര്യം & ഊഷ്മളത",
+            "വ്യക്തത & ഏകാഗ്രത", "സന്തോഷം & കളി"
+        )
+        Language.MR -> listOf(
+            "जोडणी & संवाद", "सर्जनशीलता & आत्म-अभिव्यक्ती", "स्थिरता & सातत्यपूर्ण प्रगती",
+            "धैर्य & नवी सुरुवात", "विश्रांती & आंतरिक संतुलन", "औदार्य & उब",
+            "स्पष्टता & एकाग्रता", "आनंद & खेळ"
+        )
+        else -> listOf(
+            "Connection & communication", "Creativity & self-expression", "Grounding & steady progress",
+            "Courage & fresh starts", "Rest & inner balance", "Generosity & warmth",
+            "Clarity & focus", "Joy & play"
         )
     }
 }
