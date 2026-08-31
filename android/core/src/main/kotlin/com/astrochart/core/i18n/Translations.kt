@@ -115,19 +115,39 @@ object Translations {
 
     private val elementTa = mapOf("Fire" to "நெருப்பு", "Earth" to "மண்", "Air" to "காற்று", "Water" to "நீர்")
     private val elementZh = mapOf("Fire" to "火", "Earth" to "土", "Air" to "风", "Water" to "水")
+    private val elementHi = mapOf("Fire" to "अग्नि", "Earth" to "पृथ्वी", "Air" to "वायु", "Water" to "जल")
+    private val elementTe = mapOf("Fire" to "అగ్ని", "Earth" to "పృథ్వి", "Air" to "వాయువు", "Water" to "జలం")
+    private val elementKn = mapOf("Fire" to "ಅಗ್ನಿ", "Earth" to "ಪೃಥ್ವಿ", "Air" to "ವಾಯು", "Water" to "ಜಲ")
+    private val elementMl = mapOf("Fire" to "അഗ്നി", "Earth" to "ഭൂമി", "Air" to "വായു", "Water" to "ജലം")
+    private val elementMr = mapOf("Fire" to "अग्नी", "Earth" to "पृथ्वी", "Air" to "वायू", "Water" to "जल")
     private val modalityTa = mapOf("Cardinal" to "சரம்", "Fixed" to "ஸ்திரம்", "Mutable" to "உபயம்")
     private val modalityZh = mapOf("Cardinal" to "基本", "Fixed" to "固定", "Mutable" to "变动")
+    private val modalityHi = mapOf("Cardinal" to "चर", "Fixed" to "स्थिर", "Mutable" to "द्विस्वभाव")
+    private val modalityTe = mapOf("Cardinal" to "చర", "Fixed" to "స్థిర", "Mutable" to "ద్విస్వభావ")
+    private val modalityKn = mapOf("Cardinal" to "ಚರ", "Fixed" to "ಸ್ಥಿರ", "Mutable" to "ದ್ವಿಸ್ವಭಾವ")
+    private val modalityMl = mapOf("Cardinal" to "ചരം", "Fixed" to "സ്ഥിരം", "Mutable" to "ഇരുസ്വഭാവം")
+    private val modalityMr = mapOf("Cardinal" to "चर", "Fixed" to "स्थिर", "Mutable" to "द्विस्वभाव")
 
-    fun element(e: String, lang: Language): String = when (lang.content) {
-        ContentLang.EN -> e
-        ContentLang.TA -> elementTa[e] ?: e
-        ContentLang.ZH -> elementZh[e] ?: e
+    fun element(e: String, lang: Language): String = when (lang) {
+        Language.TA -> elementTa[e] ?: e
+        Language.ZH -> elementZh[e] ?: e
+        Language.HI -> elementHi[e] ?: e
+        Language.TE -> elementTe[e] ?: e
+        Language.KN -> elementKn[e] ?: e
+        Language.ML -> elementMl[e] ?: e
+        Language.MR -> elementMr[e] ?: e
+        else -> e
     }
 
-    fun modality(m: String, lang: Language): String = when (lang.content) {
-        ContentLang.EN -> m
-        ContentLang.TA -> modalityTa[m] ?: m
-        ContentLang.ZH -> modalityZh[m] ?: m
+    fun modality(m: String, lang: Language): String = when (lang) {
+        Language.TA -> modalityTa[m] ?: m
+        Language.ZH -> modalityZh[m] ?: m
+        Language.HI -> modalityHi[m] ?: m
+        Language.TE -> modalityTe[m] ?: m
+        Language.KN -> modalityKn[m] ?: m
+        Language.ML -> modalityMl[m] ?: m
+        Language.MR -> modalityMr[m] ?: m
+        else -> m
     }
 
     // ----- Planet names & roles ---------------------------------------------
@@ -141,6 +161,31 @@ object Translations {
         "Sun" to "太阳", "Moon" to "月亮", "Mercury" to "水星", "Venus" to "金星",
         "Mars" to "火星", "Jupiter" to "木星", "Saturn" to "土星", "Uranus" to "天王星",
         "Neptune" to "海王星", "Pluto" to "冥王星"
+    )
+    private val planetNameHi = mapOf(
+        "Sun" to "सूर्य", "Moon" to "चंद्र", "Mercury" to "बुध", "Venus" to "शुक्र",
+        "Mars" to "मंगल", "Jupiter" to "बृहस्पति", "Saturn" to "शनि", "Uranus" to "यूरेनस",
+        "Neptune" to "नेप्च्यून", "Pluto" to "प्लूटो"
+    )
+    private val planetNameTe = mapOf(
+        "Sun" to "సూర్యుడు", "Moon" to "చంద్రుడు", "Mercury" to "బుధుడు", "Venus" to "శుక్రుడు",
+        "Mars" to "కుజుడు", "Jupiter" to "గురుడు", "Saturn" to "శని", "Uranus" to "యురేనస్",
+        "Neptune" to "నెప్ట్యూన్", "Pluto" to "ప్లూటో"
+    )
+    private val planetNameKn = mapOf(
+        "Sun" to "ಸೂರ್ಯ", "Moon" to "ಚಂದ್ರ", "Mercury" to "ಬುಧ", "Venus" to "ಶುಕ್ರ",
+        "Mars" to "ಮಂಗಳ", "Jupiter" to "ಗುರು", "Saturn" to "ಶನಿ", "Uranus" to "ಯುರೇನಸ್",
+        "Neptune" to "ನೆಪ್ಚೂನ್", "Pluto" to "ಪ್ಲೂಟೊ"
+    )
+    private val planetNameMl = mapOf(
+        "Sun" to "സൂര്യൻ", "Moon" to "ചന്ദ്രൻ", "Mercury" to "ബുധൻ", "Venus" to "ശുക്രൻ",
+        "Mars" to "ചൊവ്വ", "Jupiter" to "വ്യാഴം", "Saturn" to "ശനി", "Uranus" to "യുറാനസ്",
+        "Neptune" to "നെപ്റ്റ്യൂൺ", "Pluto" to "പ്ലൂട്ടോ"
+    )
+    private val planetNameMr = mapOf(
+        "Sun" to "सूर्य", "Moon" to "चंद्र", "Mercury" to "बुध", "Venus" to "शुक्र",
+        "Mars" to "मंगळ", "Jupiter" to "गुरू", "Saturn" to "शनी", "Uranus" to "युरेनस",
+        "Neptune" to "नेपच्यून", "Pluto" to "प्लुटो"
     )
     private val planetRoleTa = mapOf(
         "Sun" to "மைய அடையாளமும் உயிர்ச்சக்தியும்",
@@ -167,10 +212,15 @@ object Translations {
         "Pluto" to "力量与蜕变的能力"
     )
 
-    fun planetName(p: String, lang: Language): String = when (lang.content) {
-        ContentLang.EN -> p
-        ContentLang.TA -> planetNameTa[p] ?: p
-        ContentLang.ZH -> planetNameZh[p] ?: p
+    fun planetName(p: String, lang: Language): String = when (lang) {
+        Language.TA -> planetNameTa[p] ?: p
+        Language.ZH -> planetNameZh[p] ?: p
+        Language.HI -> planetNameHi[p] ?: p
+        Language.TE -> planetNameTe[p] ?: p
+        Language.KN -> planetNameKn[p] ?: p
+        Language.ML -> planetNameMl[p] ?: p
+        Language.MR -> planetNameMr[p] ?: p
+        else -> p
     }
 
     fun planetRole(p: String, lang: Language): String = when (lang.content) {
@@ -226,11 +276,36 @@ object Translations {
         "Conjunction" to "合相", "Sextile" to "六分相", "Square" to "刑相",
         "Trine" to "三分相", "Opposition" to "对分相"
     )
+    private val aspectTypeHi = mapOf(
+        "Conjunction" to "युति", "Sextile" to "षष्ठक", "Square" to "चतुष्क",
+        "Trine" to "त्रिकोण", "Opposition" to "विरोध"
+    )
+    private val aspectTypeTe = mapOf(
+        "Conjunction" to "సంయుక్తం", "Sextile" to "షష్ఠకం", "Square" to "చతురస్రం",
+        "Trine" to "త్రికోణం", "Opposition" to "విరుద్ధం"
+    )
+    private val aspectTypeKn = mapOf(
+        "Conjunction" to "ಸಂಯುಕ್ತ", "Sextile" to "ಷಷ್ಠಕ", "Square" to "ಚತುರಸ್ರ",
+        "Trine" to "ತ್ರಿಕೋಣ", "Opposition" to "ವಿರುದ್ಧ"
+    )
+    private val aspectTypeMl = mapOf(
+        "Conjunction" to "സംയോഗം", "Sextile" to "ഷഷ്ഠകം", "Square" to "ചതുരം",
+        "Trine" to "ത്രികോണം", "Opposition" to "വിരുദ്ധം"
+    )
+    private val aspectTypeMr = mapOf(
+        "Conjunction" to "युती", "Sextile" to "षष्ठक", "Square" to "चौकोन",
+        "Trine" to "त्रिकोण", "Opposition" to "विरोध"
+    )
 
-    fun aspectType(type: String, lang: Language): String = when (lang.content) {
-        ContentLang.EN -> type
-        ContentLang.TA -> aspectTypeTa[type] ?: type
-        ContentLang.ZH -> aspectTypeZh[type] ?: type
+    fun aspectType(type: String, lang: Language): String = when (lang) {
+        Language.TA -> aspectTypeTa[type] ?: type
+        Language.ZH -> aspectTypeZh[type] ?: type
+        Language.HI -> aspectTypeHi[type] ?: type
+        Language.TE -> aspectTypeTe[type] ?: type
+        Language.KN -> aspectTypeKn[type] ?: type
+        Language.ML -> aspectTypeMl[type] ?: type
+        Language.MR -> aspectTypeMr[type] ?: type
+        else -> type
     }
 
     // ----- Compact body abbreviations (for the South-Indian grid) ------------
