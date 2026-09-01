@@ -49,6 +49,7 @@ import com.astrochart.notify.NotificationScheduler
 import com.astrochart.update.InAppUpdate
 import com.astrochart.ui.components.AdBanner
 import com.astrochart.ui.components.CelestialBackground
+import com.astrochart.ui.components.ResponsiveContainer
 import com.astrochart.ui.i18n.ChartStyleStore
 import com.astrochart.ui.i18n.LanguageStore
 import com.astrochart.ui.i18n.LocalChartStyle
@@ -260,12 +261,15 @@ fun AppNavigation(
         },
         bottomBar = { AdBanner() }
     ) { innerPadding ->
-        NavHost(
-            navController = navController,
-            startDestination = "home",
+        ResponsiveContainer(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+        ) {
+        NavHost(
+            navController = navController,
+            startDestination = "home",
+            modifier = Modifier.fillMaxSize()
         ) {
             composable("home") {
                 HomeScreen(
@@ -418,6 +422,7 @@ fun AppNavigation(
                     )
                 }
             }
+        }
         }
     }
 

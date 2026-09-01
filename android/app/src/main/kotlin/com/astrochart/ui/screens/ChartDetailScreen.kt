@@ -145,7 +145,12 @@ private fun WheelTab(chart: NatalChart, chartName: String) {
             .verticalScroll(rememberScrollState())
             .padding(16.dp)
     ) {
-        CelestialCard(contentPadding = 16) {
+        CelestialCard(
+            modifier = Modifier
+                .align(Alignment.CenterHorizontally)
+                .widthIn(max = 460.dp),
+            contentPadding = 16
+        ) {
             when (style) {
                 ChartStyle.WESTERN_WHEEL -> {
                     NatalWheel(chart = chart, modifier = Modifier.fillMaxWidth())
