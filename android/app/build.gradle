@@ -85,6 +85,12 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+
+    androidResources {
+        // Ship the bundled worldwide-city dataset as-is (it's already gzipped);
+        // re-compressing it in the APK wastes build time for no size benefit.
+        noCompress "gz"
+    }
 }
 
 dependencies {

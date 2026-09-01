@@ -195,6 +195,12 @@ fun SettingsScreen(
         }
 
         Spacer(Modifier.height(20.dp))
+        Text(
+            text = "Worldwide location search data © GeoNames.org, CC BY 4.0",
+            style = MaterialTheme.typography.bodySmall,
+            color = TextMuted
+        )
+        Spacer(Modifier.height(20.dp))
     }
 }
 

@@ -20,12 +20,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.astrochart.core.models.NatalChart
-import com.astrochart.data.LocationCatalog
 import com.astrochart.data.LocationOption
 import com.astrochart.data.TimeZoneCatalog
 import com.astrochart.ui.components.EyebrowLabel
 import com.astrochart.ui.components.GoldButton
 import com.astrochart.ui.components.LabeledDropdown
+import com.astrochart.ui.components.SearchableLocationField
 import com.astrochart.ui.i18n.LocalLanguage
 import com.astrochart.ui.i18n.LocalStrings
 import com.astrochart.ui.theme.AstroError
@@ -184,16 +184,15 @@ fun BirthInputScreen(
         }
 
         SectionLabel(strings.pob)
-        LabeledDropdown(
+        SearchableLocationField(
             label = strings.location,
-            options = LocationCatalog.locations,
+            placeholder = strings.searchCityHint,
             selected = location,
-            optionLabel = { it.displayName },
             onSelected = {
                 location = it
                 timeZone = it.zoneId
             },
-            placeholder = strings.selectCity,
+            noResultsText = strings.noLocationResults,
             modifier = Modifier.fillMaxWidth()
         )
 
