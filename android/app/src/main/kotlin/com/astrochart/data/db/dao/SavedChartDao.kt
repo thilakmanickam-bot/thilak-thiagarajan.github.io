@@ -24,6 +24,17 @@ interface SavedChartDao {
     @Query("SELECT * FROM saved_charts ORDER BY createdAt DESC")
     fun getAllCharts(): Flow<List<SavedChartEntity>>
 
+    /** One-shot list (not a Flow) — used by the account sync to reconcile with the cloud. */
+    @Query("SELECT * FROM saved_charts ORDER BY createdAt DESC")
+    suspend fun getAllChartsList(): List<SavedChartEntity>
+
+    @Query("SELECT * FROM saved_charts WHERE remoteId = :remoteId LIMIT 1")
+    suspend fun getChartByRemoteId(remoteId: String): SavedChartEntity?
+
+    /** Stamp a local chart with the Firestore id it was pushed to. */
+    @Query("UPDATE saved_charts SET remoteId = :remoteId WHERE id = :chartId")
+    suspend fun setRemoteId(chartId: Long, remoteId: String)
+
     @Query("SELECT * FROM saved_charts WHERE name LIKE '%' || :query || '%' ORDER BY createdAt DESC")
     fun searchCharts(query: String): Flow<List<SavedChartEntity>>
 

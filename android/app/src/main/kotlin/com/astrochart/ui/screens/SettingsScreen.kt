@@ -14,6 +14,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -31,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.astrochart.Features
 import com.astrochart.core.i18n.Language
 import com.astrochart.core.i18n.Translations
 import com.astrochart.core.models.ChartStyle
@@ -70,6 +72,7 @@ fun SettingsScreen(
     primary: PrimaryProfile?,
     onPrimaryChange: (PrimaryProfile?) -> Unit,
     onNavigateToPremium: () -> Unit,
+    onNavigateToAccount: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val strings = LocalStrings.current
@@ -158,6 +161,24 @@ fun SettingsScreen(
 
         Spacer(Modifier.height(24.dp))
 
+        // Account (login / cloud sync) — shown only when the feature is enabled.
+        if (Features.AUTH_ENABLED) {
+            EyebrowLabel(text = strings.settingsAccountRow)
+            Spacer(Modifier.height(12.dp))
+            CelestialCard(modifier = Modifier.clickable(onClick = onNavigateToAccount)) {
+                Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Filled.AccountCircle, contentDescription = null, tint = GoldDeep)
+                    Spacer(Modifier.width(12.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(strings.settingsAccountRow, style = MaterialTheme.typography.titleMedium, color = TextPrimary)
+                        Text(strings.settingsAccountDesc, style = MaterialTheme.typography.bodySmall, color = TextMuted)
+                    }
+                    Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = TextMuted)
+                }
+            }
+            Spacer(Modifier.height(24.dp))
+        }
+
         // Premium entry.
         EyebrowLabel(text = strings.settingsPremiumRow)
         Spacer(Modifier.height(12.dp))
@@ -173,6 +194,12 @@ fun SettingsScreen(
             }
         }
 
+        Spacer(Modifier.height(20.dp))
+        Text(
+            text = "Worldwide location search data © GeoNames.org, CC BY 4.0",
+            style = MaterialTheme.typography.bodySmall,
+            color = TextMuted
+        )
         Spacer(Modifier.height(20.dp))
     }
 }

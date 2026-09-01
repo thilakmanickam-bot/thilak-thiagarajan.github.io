@@ -15,5 +15,12 @@ data class SavedChartEntity(
     val timeZone: String,
     val locationName: String,
     val createdAt: LocalDateTime,
-    val chartJson: String
+    val chartJson: String,
+    /**
+     * Firestore document id once this chart has been synced to a signed-in
+     * account; null until it has been pushed. Used as the stable cross-device key.
+     */
+    val remoteId: String? = null,
+    /** Last local modification time; drives last-write-wins cloud sync. */
+    val updatedAt: LocalDateTime = createdAt
 )

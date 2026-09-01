@@ -27,4 +27,22 @@ object Features {
      * features. Requires no backend and is a no-op for non-Play installs.
      */
     const val IN_APP_UPDATE_ENABLED = true
+
+    /**
+     * Account login (Google / Facebook) with cloud profile + saved-chart sync via
+     * Firebase Auth + Firestore. Ships **disabled**: the Settings "Account" entry
+     * and all Firebase calls are gated on this flag, so the placeholder
+     * `google-services.json` is inert until a real Firebase project is configured.
+     * Flip to `true` once the real `google-services.json` and console setup
+     * (Google provider, Firestore rules, SHA-1 fingerprints) are in place.
+     */
+    const val AUTH_ENABLED = true
+
+    /**
+     * Facebook login inside the Account screen. Kept off until the Facebook
+     * Developer app, the Firebase Facebook provider, the Facebook SDK + manifest
+     * entries, and Facebook's app review are all completed. While false, the
+     * Facebook button renders disabled with a "coming soon" hint.
+     */
+    const val FACEBOOK_LOGIN_ENABLED = false
 }

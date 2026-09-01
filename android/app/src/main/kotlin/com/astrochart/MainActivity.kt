@@ -49,6 +49,7 @@ import com.astrochart.notify.NotificationScheduler
 import com.astrochart.update.InAppUpdate
 import com.astrochart.ui.components.AdBanner
 import com.astrochart.ui.components.CelestialBackground
+import com.astrochart.ui.components.ResponsiveContainer
 import com.astrochart.ui.i18n.ChartStyleStore
 import com.astrochart.ui.i18n.LanguageStore
 import com.astrochart.ui.i18n.LocalChartStyle
@@ -76,6 +77,7 @@ import com.astrochart.ui.screens.RasiInfoScreen
 import com.astrochart.ui.screens.RasiSignsScreen
 import com.astrochart.ui.screens.SavedChartsScreen
 import com.astrochart.ui.screens.SettingsScreen
+import com.astrochart.ui.screens.AccountScreen
 import com.astrochart.ui.screens.SubscriptionScreen
 import java.time.LocalDate
 import java.time.YearMonth
@@ -196,6 +198,7 @@ fun AppNavigation(
         "chat" -> strings.navChatTitle
         "settings" -> strings.navSettingsTitle
         "premium" -> strings.navPremiumTitle
+        "account" -> strings.navAccountTitle
         "panchangam" -> PanchangamStrings.forLanguage(language).title
         "calendar" -> PanchangamStrings.forLanguage(language).calendarTitle
         "compatibility" -> PoruthamStrings.forLanguage(language).title
@@ -258,12 +261,15 @@ fun AppNavigation(
         },
         bottomBar = { AdBanner() }
     ) { innerPadding ->
-        NavHost(
-            navController = navController,
-            startDestination = "home",
+        ResponsiveContainer(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+        ) {
+        NavHost(
+            navController = navController,
+            startDestination = "home",
+            modifier = Modifier.fillMaxSize()
         ) {
             composable("home") {
                 HomeScreen(
@@ -329,12 +335,17 @@ fun AppNavigation(
                             rasiSign = profile.rasi
                         }
                     },
-                    onNavigateToPremium = { navController.navigate("premium") }
+                    onNavigateToPremium = { navController.navigate("premium") },
+                    onNavigateToAccount = { navController.navigate("account") }
                 )
             }
 
             composable("premium") {
                 SubscriptionScreen()
+            }
+
+            composable("account") {
+                AccountScreen()
             }
 
             composable("panchangam") {
@@ -411,6 +422,7 @@ fun AppNavigation(
                     )
                 }
             }
+        }
         }
     }
 

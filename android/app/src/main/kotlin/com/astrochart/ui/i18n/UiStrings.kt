@@ -44,6 +44,8 @@ data class UiStrings(
     val minute: String,
     val location: String,
     val selectCity: String,
+    val searchCityHint: String,
+    val noLocationResults: String,
     val timeZone: String,
     val dropdownDefault: String,
     // Chart detail
@@ -134,7 +136,19 @@ data class UiStrings(
     val premiumPerkAdFreeDesc: String,
     val premiumPerkChat: String,
     val premiumPerkChatDesc: String,
-    val premiumNotifyNote: String
+    val premiumNotifyNote: String,
+    // Account (login / cloud sync)
+    val navAccountTitle: String,
+    val settingsAccountRow: String,
+    val settingsAccountDesc: String,
+    val accountSignInBlurb: String,
+    val accountContinueGoogle: String,
+    val accountContinueFacebook: String,
+    val accountComingSoon: String,
+    val accountSignedInAs: String,
+    val accountSyncNote: String,
+    val accountSignOut: String,
+    val accountSignInError: String
 ) {
     fun ageValue(years: Int): String = when (lang) {
         Language.TA -> "$years வயது"
@@ -224,6 +238,8 @@ data class UiStrings(
             minute = "Minute",
             location = "Location",
             selectCity = "Select a city",
+            searchCityHint = "Search city, town or village",
+            noLocationResults = "No matching place — pick the nearest town, or set the time zone below",
             timeZone = "Time zone",
             dropdownDefault = "Select…",
             tabWheel = "Wheel",
@@ -306,7 +322,18 @@ data class UiStrings(
             premiumPerkAdFreeDesc = "Enjoy every reading without a single advertisement.",
             premiumPerkChat = "Ask the Universe",
             premiumPerkChatDesc = "Unlock the AI astrologer to reflect on your chart in conversation.",
-            premiumNotifyNote = "Premium isn't available yet — we'll let you know the moment it's ready."
+            premiumNotifyNote = "Premium isn't available yet — we'll let you know the moment it's ready.",
+            navAccountTitle = "Account",
+            settingsAccountRow = "Account",
+            settingsAccountDesc = "Sign in to save your profile",
+            accountSignInBlurb = "Sign in to back up your primary profile and saved charts — and restore them on any device.",
+            accountContinueGoogle = "Continue with Google",
+            accountContinueFacebook = "Continue with Facebook",
+            accountComingSoon = "Coming soon",
+            accountSignedInAs = "Signed in",
+            accountSyncNote = "Your profile and saved charts are backed up to your account.",
+            accountSignOut = "Sign out",
+            accountSignInError = "Sign-in failed. Please try again."
         )
 
         private val HI = UiStrings(
@@ -341,6 +368,8 @@ data class UiStrings(
             minute = "मिनट",
             location = "स्थान",
             selectCity = "शहर चुनें",
+            searchCityHint = "शहर, कस्बा या गांव खोजें",
+            noLocationResults = "कोई मिलान स्थान नहीं मिला — निकटतम शहर चुनें, या नीचे समय क्षेत्र सेट करें",
             timeZone = "समय क्षेत्र",
             dropdownDefault = "चुनें…",
             tabWheel = "चक्र",
@@ -423,7 +452,18 @@ data class UiStrings(
             premiumPerkAdFreeDesc = "हर फल का आनंद लें, बिना किसी विज्ञापन के।",
             premiumPerkChat = "ब्रह्मांड से पूछें",
             premiumPerkChatDesc = "अपनी कुंडली पर संवाद के लिए AI ज्योतिषी को अनलॉक करें।",
-            premiumNotifyNote = "प्रीमियम अभी उपलब्ध नहीं है — तैयार होते ही हम आपको बता देंगे।"
+            premiumNotifyNote = "प्रीमियम अभी उपलब्ध नहीं है — तैयार होते ही हम आपको बता देंगे।",
+            navAccountTitle = "खाता",
+            settingsAccountRow = "खाता",
+            settingsAccountDesc = "अपनी प्रोफ़ाइल सहेजने के लिए साइन इन करें",
+            accountSignInBlurb = "अपनी मुख्य प्रोफ़ाइल और सहेजे गए चार्ट का बैकअप लेने और किसी भी डिवाइस पर पुनर्स्थापित करने के लिए साइन इन करें।",
+            accountContinueGoogle = "Google से जारी रखें",
+            accountContinueFacebook = "Facebook से जारी रखें",
+            accountComingSoon = "जल्द आ रहा है",
+            accountSignedInAs = "साइन इन किया गया",
+            accountSyncNote = "आपकी प्रोफ़ाइल और सहेजे गए चार्ट आपके खाते में बैकअप हैं।",
+            accountSignOut = "साइन आउट",
+            accountSignInError = "साइन इन विफल। कृपया पुनः प्रयास करें।"
         )
 
         private val TE = UiStrings(
@@ -458,6 +498,8 @@ data class UiStrings(
             minute = "నిమిషం",
             location = "స్థలం",
             selectCity = "నగరాన్ని ఎంచుకోండి",
+            searchCityHint = "నగరం, పట్టణం లేదా గ్రామం వెతకండి",
+            noLocationResults = "సరిపోలే స్థలం కనబడలేదు — సమీప పట్టణాన్ని ఎంచుకోండి, లేదా దిగువ సమయ మండలాన్ని సెట్ చేయండి",
             timeZone = "కాల మండలం",
             dropdownDefault = "ఎంచుకోండి…",
             tabWheel = "చక్రం",
@@ -540,7 +582,18 @@ data class UiStrings(
             premiumPerkAdFreeDesc = "ప్రతి ఫలితాన్ని ఒక్క ప్రకటన లేకుండా ఆస్వాదించండి.",
             premiumPerkChat = "విశ్వాన్ని అడగండి",
             premiumPerkChatDesc = "మీ జాతకంపై సంభాషణ కోసం AI జ్యోతిష్కుడిని అన్‌లాక్ చేయండి.",
-            premiumNotifyNote = "ప్రీమియం ఇంకా అందుబాటులో లేదు — సిద్ధమైన వెంటనే మేము మీకు తెలియజేస్తాం."
+            premiumNotifyNote = "ప్రీమియం ఇంకా అందుబాటులో లేదు — సిద్ధమైన వెంటనే మేము మీకు తెలియజేస్తాం.",
+            navAccountTitle = "ఖాతా",
+            settingsAccountRow = "ఖాతా",
+            settingsAccountDesc = "మీ ప్రొఫైల్ సేవ్ చేయడానికి సైన్ ఇన్ చేయండి",
+            accountSignInBlurb = "మీ ప్రధాన ప్రొఫైల్, సేవ్ చేసిన చార్ట్‌లను బ్యాకప్ చేసి ఏ పరికరంలోనైనా పునరుద్ధరించడానికి సైన్ ఇన్ చేయండి.",
+            accountContinueGoogle = "Googleతో కొనసాగించండి",
+            accountContinueFacebook = "Facebookతో కొనసాగించండి",
+            accountComingSoon = "త్వరలో వస్తుంది",
+            accountSignedInAs = "సైన్ ఇన్ అయ్యారు",
+            accountSyncNote = "మీ ప్రొఫైల్, సేవ్ చేసిన చార్ట్‌లు మీ ఖాతాలో బ్యాకప్ చేయబడ్డాయి.",
+            accountSignOut = "సైన్ అవుట్",
+            accountSignInError = "సైన్ ఇన్ విఫలమైంది. దయచేసి మళ్లీ ప్రయత్నించండి."
         )
 
         private val KN = UiStrings(
@@ -575,6 +628,8 @@ data class UiStrings(
             minute = "ನಿಮಿಷ",
             location = "ಸ್ಥಳ",
             selectCity = "ನಗರವನ್ನು ಆಯ್ಕೆಮಾಡಿ",
+            searchCityHint = "ನಗರ, ಪಟ್ಟಣ ಅಥವಾ ಹಳ್ಳಿಯನ್ನು ಹುಡುಕಿ",
+            noLocationResults = "ಹೊಂದಾಣಿಕೆಯ ಸ್ಥಳ ಸಿಗಲಿಲ್ಲ — ಹತ್ತಿರದ ಪಟ್ಟಣವನ್ನು ಆಯ್ಕೆಮಾಡಿ, ಅಥವಾ ಕೆಳಗಿನ ಸಮಯ ವಲಯವನ್ನು ಹೊಂದಿಸಿ",
             timeZone = "ಕಾಲ ವಲಯ",
             dropdownDefault = "ಆಯ್ಕೆಮಾಡಿ…",
             tabWheel = "ಚಕ್ರ",
@@ -657,7 +712,18 @@ data class UiStrings(
             premiumPerkAdFreeDesc = "ಪ್ರತಿ ಫಲವನ್ನೂ ಒಂದೇ ಒಂದು ಜಾಹೀರಾತಿಲ್ಲದೆ ಆನಂದಿಸಿ.",
             premiumPerkChat = "ವಿಶ್ವವನ್ನು ಕೇಳಿ",
             premiumPerkChatDesc = "ನಿಮ್ಮ ಜಾತಕದ ಬಗ್ಗೆ ಸಂಭಾಷಣೆಗಾಗಿ AI ಜ್ಯೋತಿಷಿಯನ್ನು ಅನ್‌ಲಾಕ್ ಮಾಡಿ.",
-            premiumNotifyNote = "ಪ್ರೀಮಿಯಂ ಇನ್ನೂ ಲಭ್ಯವಿಲ್ಲ — ಸಿದ್ಧವಾದ ತಕ್ಷಣ ನಾವು ನಿಮಗೆ ತಿಳಿಸುತ್ತೇವೆ."
+            premiumNotifyNote = "ಪ್ರೀಮಿಯಂ ಇನ್ನೂ ಲಭ್ಯವಿಲ್ಲ — ಸಿದ್ಧವಾದ ತಕ್ಷಣ ನಾವು ನಿಮಗೆ ತಿಳಿಸುತ್ತೇವೆ.",
+            navAccountTitle = "ಖಾತೆ",
+            settingsAccountRow = "ಖಾತೆ",
+            settingsAccountDesc = "ನಿಮ್ಮ ಪ್ರೊಫೈಲ್ ಉಳಿಸಲು ಸೈನ್ ಇನ್ ಮಾಡಿ",
+            accountSignInBlurb = "ನಿಮ್ಮ ಮುಖ್ಯ ಪ್ರೊಫೈಲ್ ಮತ್ತು ಉಳಿಸಿದ ಚಾರ್ಟ್‌ಗಳನ್ನು ಬ್ಯಾಕಪ್ ಮಾಡಿ ಯಾವುದೇ ಸಾಧನದಲ್ಲಿ ಮರುಸ್ಥಾಪಿಸಲು ಸೈನ್ ಇನ್ ಮಾಡಿ.",
+            accountContinueGoogle = "Google ಮೂಲಕ ಮುಂದುವರಿಸಿ",
+            accountContinueFacebook = "Facebook ಮೂಲಕ ಮುಂದುವರಿಸಿ",
+            accountComingSoon = "ಶೀಘ್ರದಲ್ಲೇ ಬರಲಿದೆ",
+            accountSignedInAs = "ಸೈನ್ ಇನ್ ಆಗಿದೆ",
+            accountSyncNote = "ನಿಮ್ಮ ಪ್ರೊಫೈಲ್ ಮತ್ತು ಉಳಿಸಿದ ಚಾರ್ಟ್‌ಗಳು ನಿಮ್ಮ ಖಾತೆಯಲ್ಲಿ ಬ್ಯಾಕಪ್ ಆಗಿವೆ.",
+            accountSignOut = "ಸೈನ್ ಔಟ್",
+            accountSignInError = "ಸೈನ್ ಇನ್ ವಿಫಲವಾಗಿದೆ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ."
         )
 
         private val ML = UiStrings(
@@ -692,6 +758,8 @@ data class UiStrings(
             minute = "മിനിറ്റ്",
             location = "സ്ഥലം",
             selectCity = "നഗരം തിരഞ്ഞെടുക്കുക",
+            searchCityHint = "നഗരം, പട്ടണം അല്ലെങ്കിൽ ഗ്രാമം തിരയുക",
+            noLocationResults = "പൊരുത്തപ്പെടുന്ന സ്ഥലം കണ്ടെത്തിയില്ല — അടുത്തുള്ള പട്ടണം തിരഞ്ഞെടുക്കുക, അല്ലെങ്കിൽ താഴെയുള്ള സമയമേഖല സജ്ജമാക്കുക",
             timeZone = "സമയ മേഖല",
             dropdownDefault = "തിരഞ്ഞെടുക്കുക…",
             tabWheel = "ചക്രം",
@@ -774,7 +842,18 @@ data class UiStrings(
             premiumPerkAdFreeDesc = "ഓരോ ഫലവും ഒരൊറ്റ പരസ്യമില്ലാതെ ആസ്വദിക്കൂ.",
             premiumPerkChat = "പ്രപഞ്ചത്തോട് ചോദിക്കുക",
             premiumPerkChatDesc = "നിങ്ങളുടെ ജാതകത്തെക്കുറിച്ച് സംഭാഷണത്തിനായി AI ജ്യോതിഷിയെ അൺലോക്ക് ചെയ്യുക.",
-            premiumNotifyNote = "പ്രീമിയം ഇതുവരെ ലഭ്യമല്ല — തയ്യാറാകുന്ന ഉടൻ ഞങ്ങൾ അറിയിക്കും."
+            premiumNotifyNote = "പ്രീമിയം ഇതുവരെ ലഭ്യമല്ല — തയ്യാറാകുന്ന ഉടൻ ഞങ്ങൾ അറിയിക്കും.",
+            navAccountTitle = "അക്കൗണ്ട്",
+            settingsAccountRow = "അക്കൗണ്ട്",
+            settingsAccountDesc = "നിങ്ങളുടെ പ്രൊഫൈൽ സംരക്ഷിക്കാൻ സൈൻ ഇൻ ചെയ്യുക",
+            accountSignInBlurb = "നിങ്ങളുടെ പ്രധാന പ്രൊഫൈലും സംരക്ഷിച്ച ചാർട്ടുകളും ബാക്കപ്പ് ചെയ്ത് ഏത് ഉപകരണത്തിലും പുനഃസ്ഥാപിക്കാൻ സൈൻ ഇൻ ചെയ്യുക.",
+            accountContinueGoogle = "Google ഉപയോഗിച്ച് തുടരുക",
+            accountContinueFacebook = "Facebook ഉപയോഗിച്ച് തുടരുക",
+            accountComingSoon = "ഉടൻ വരുന്നു",
+            accountSignedInAs = "സൈൻ ഇൻ ചെയ്തു",
+            accountSyncNote = "നിങ്ങളുടെ പ്രൊഫൈലും സംരക്ഷിച്ച ചാർട്ടുകളും അക്കൗണ്ടിൽ ബാക്കപ്പ് ചെയ്തിരിക്കുന്നു.",
+            accountSignOut = "സൈൻ ഔട്ട്",
+            accountSignInError = "സൈൻ ഇൻ പരാജയപ്പെട്ടു. വീണ്ടും ശ്രമിക്കുക."
         )
 
         private val MR = UiStrings(
@@ -809,6 +888,8 @@ data class UiStrings(
             minute = "मिनिट",
             location = "स्थान",
             selectCity = "शहर निवडा",
+            searchCityHint = "शहर, गाव किंवा वस्ती शोधा",
+            noLocationResults = "जुळणारे ठिकाण सापडले नाही — जवळचे शहर निवडा, किंवा खालील टाइम झोन सेट करा",
             timeZone = "कालक्षेत्र",
             dropdownDefault = "निवडा…",
             tabWheel = "चक्र",
@@ -891,7 +972,18 @@ data class UiStrings(
             premiumPerkAdFreeDesc = "प्रत्येक फल एकाही जाहिरातीशिवाय अनुभवा.",
             premiumPerkChat = "विश्वाला विचारा",
             premiumPerkChatDesc = "तुमच्या कुंडलीवर संवादासाठी AI ज्योतिषी अनलॉक करा.",
-            premiumNotifyNote = "प्रीमियम अजून उपलब्ध नाही — तयार होताच आम्ही तुम्हाला कळवू."
+            premiumNotifyNote = "प्रीमियम अजून उपलब्ध नाही — तयार होताच आम्ही तुम्हाला कळवू.",
+            navAccountTitle = "खाते",
+            settingsAccountRow = "खाते",
+            settingsAccountDesc = "तुमची प्रोफाइल जतन करण्यासाठी साइन इन करा",
+            accountSignInBlurb = "तुमची मुख्य प्रोफाइल व जतन केलेले चार्ट बॅकअप करून कोणत्याही डिव्हाइसवर पुनर्संचयित करण्यासाठी साइन इन करा.",
+            accountContinueGoogle = "Google ने सुरू ठेवा",
+            accountContinueFacebook = "Facebook ने सुरू ठेवा",
+            accountComingSoon = "लवकरच येत आहे",
+            accountSignedInAs = "साइन इन केले",
+            accountSyncNote = "तुमची प्रोफाइल व जतन केलेले चार्ट तुमच्या खात्यात बॅकअप आहेत.",
+            accountSignOut = "साइन आउट",
+            accountSignInError = "साइन इन अयशस्वी. कृपया पुन्हा प्रयत्न करा."
         )
 
         private val TA = UiStrings(
@@ -926,6 +1018,8 @@ data class UiStrings(
             minute = "நிமிடம்",
             location = "இடம்",
             selectCity = "ஒரு நகரத்தைத் தேர்ந்தெடு",
+            searchCityHint = "நகரம், சிற்றூர் அல்லது கிராமத்தைத் தேடுங்கள்",
+            noLocationResults = "பொருந்தும் இடம் கிடைக்கவில்லை — அருகிலுள்ள நகரத்தைத் தேர்ந்தெடுக்கவும், அல்லது கீழே நேர மண்டலத்தை அமைக்கவும்",
             timeZone = "நேர மண்டலம்",
             dropdownDefault = "தேர்ந்தெடு…",
             tabWheel = "சக்கரம்",
@@ -1008,7 +1102,18 @@ data class UiStrings(
             premiumPerkAdFreeDesc = "ஒரு விளம்பரம் கூட இல்லாமல் ஒவ்வொரு பலனையும் அனுபவியுங்கள்.",
             premiumPerkChat = "பிரபஞ்சத்திடம் கேளுங்கள்",
             premiumPerkChatDesc = "உங்கள் ஜாதகத்தைப் பற்றி உரையாடி சிந்திக்க AI ஜோதிடரைத் திறக்கவும்.",
-            premiumNotifyNote = "பிரீமியம் இன்னும் கிடைக்கவில்லை — தயாரானதும் உங்களுக்குத் தெரிவிப்போம்."
+            premiumNotifyNote = "பிரீமியம் இன்னும் கிடைக்கவில்லை — தயாரானதும் உங்களுக்குத் தெரிவிப்போம்.",
+            navAccountTitle = "கணக்கு",
+            settingsAccountRow = "கணக்கு",
+            settingsAccountDesc = "உங்கள் சுயவிவரத்தைச் சேமிக்க உள்நுழையவும்",
+            accountSignInBlurb = "உங்கள் முதன்மை சுயவிவரத்தையும் சேமித்த ஜாதகங்களையும் காப்புப் பிரதி எடுத்து எந்த சாதனத்திலும் மீட்டமைக்க உள்நுழையவும்.",
+            accountContinueGoogle = "Google உடன் தொடரவும்",
+            accountContinueFacebook = "Facebook உடன் தொடரவும்",
+            accountComingSoon = "விரைவில் வருகிறது",
+            accountSignedInAs = "உள்நுழைந்துள்ளீர்கள்",
+            accountSyncNote = "உங்கள் சுயவிவரமும் சேமித்த ஜாதகங்களும் உங்கள் கணக்கில் காப்புப் பிரதி எடுக்கப்பட்டுள்ளன.",
+            accountSignOut = "வெளியேறு",
+            accountSignInError = "உள்நுழைவு தோல்வி. மீண்டும் முயலவும்."
         )
 
         private val ZH = UiStrings(
@@ -1043,6 +1148,8 @@ data class UiStrings(
             minute = "分",
             location = "地点",
             selectCity = "选择城市",
+            searchCityHint = "搜索城市、城镇或村庄",
+            noLocationResults = "未找到匹配地点 — 请选择最近的城镇，或在下方设置时区",
             timeZone = "时区",
             dropdownDefault = "选择…",
             tabWheel = "星盘图",
@@ -1125,7 +1232,18 @@ data class UiStrings(
             premiumPerkAdFreeDesc = "尽享每一次解读，没有任何广告。",
             premiumPerkChat = "向宇宙提问",
             premiumPerkChatDesc = "解锁 AI 星象向导，透过对话反思你的星盘。",
-            premiumNotifyNote = "高级版尚未推出——上线时我们会第一时间通知你。"
+            premiumNotifyNote = "高级版尚未推出——上线时我们会第一时间通知你。",
+            navAccountTitle = "账户",
+            settingsAccountRow = "账户",
+            settingsAccountDesc = "登录以保存您的资料",
+            accountSignInBlurb = "登录即可备份您的主要资料和已保存的星盘，并在任何设备上恢复。",
+            accountContinueGoogle = "使用 Google 继续",
+            accountContinueFacebook = "使用 Facebook 继续",
+            accountComingSoon = "即将推出",
+            accountSignedInAs = "已登录",
+            accountSyncNote = "您的资料和已保存的星盘已备份到您的账户。",
+            accountSignOut = "退出登录",
+            accountSignInError = "登录失败，请重试。"
         )
     }
 }

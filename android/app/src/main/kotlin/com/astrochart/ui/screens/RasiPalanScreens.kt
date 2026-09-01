@@ -2,6 +2,7 @@ package com.astrochart.ui.screens
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -16,12 +18,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -35,6 +39,7 @@ import com.astrochart.core.utils.ZodiacUtils
 import com.astrochart.ui.components.CelestialCard
 import com.astrochart.ui.components.EyebrowLabel
 import com.astrochart.ui.components.SectionDivider
+import com.astrochart.ui.components.zodiacIconRes
 import com.astrochart.ui.i18n.LocalLanguage
 import com.astrochart.ui.i18n.RasiStrings
 import com.astrochart.ui.theme.GoldDeep
@@ -111,24 +116,46 @@ fun RasiSignsScreen(onPick: (Int) -> Unit, modifier: Modifier = Modifier) {
     ) {
         EyebrowLabel(text = rs.chooseSign)
         Spacer(Modifier.height(12.dp))
-        signs.chunked(3).forEachIndexed { rowIdx, triple ->
-            Row(modifier = Modifier.fillMaxWidth()) {
-                triple.forEachIndexed { colIdx, sign ->
-                    val i = rowIdx * 3 + colIdx
-                    CelestialCard(
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(4.dp)
-                            .clickable { onPick(i) },
-                        contentPadding = 14
-                    ) {
-                        Text(
-                            text = Translations.signName(sign, lang),
-                            style = MaterialTheme.typography.titleSmall,
-                            color = TextPrimary,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth()
-                        )
+        BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+            // 3 columns on phones, more as the available width grows (tablets/laptops).
+            val columns = when {
+                maxWidth < 400.dp -> 3
+                maxWidth < 520.dp -> 4
+                else -> 5
+            }
+            Column {
+                signs.chunked(columns).forEachIndexed { rowIdx, rowSigns ->
+                    Row(modifier = Modifier.fillMaxWidth()) {
+                        rowSigns.forEachIndexed { colIdx, sign ->
+                            val i = rowIdx * columns + colIdx
+                            CelestialCard(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(4.dp)
+                                    .clickable { onPick(i) },
+                                contentPadding = 14
+                            ) {
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Icon(
+                                        painter = painterResource(zodiacIconRes(i)),
+                                        contentDescription = null,
+                                        tint = GoldDeep,
+                                        modifier = Modifier.size(28.dp)
+                                    )
+                                    Spacer(Modifier.height(4.dp))
+                                    Text(
+                                        text = Translations.signName(sign, lang),
+                                        style = MaterialTheme.typography.titleSmall,
+                                        color = TextPrimary,
+                                        textAlign = TextAlign.Center,
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -159,6 +186,13 @@ fun RasiHoroscopeScreen(signIndex: Int, period: RasiPeriod, modifier: Modifier =
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 16.dp, vertical = 16.dp)
     ) {
+        Icon(
+            painter = painterResource(zodiacIconRes(signIndex)),
+            contentDescription = null,
+            tint = GoldLight,
+            modifier = Modifier.size(40.dp)
+        )
+        Spacer(Modifier.height(4.dp))
         Text(
             text = Translations.signName(sign, lang),
             style = MaterialTheme.typography.headlineSmall,
@@ -195,6 +229,13 @@ fun RasiInfoScreen(signIndex: Int, modifier: Modifier = Modifier) {
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 16.dp, vertical = 16.dp)
     ) {
+        Icon(
+            painter = painterResource(zodiacIconRes(signIndex)),
+            contentDescription = null,
+            tint = GoldLight,
+            modifier = Modifier.size(40.dp)
+        )
+        Spacer(Modifier.height(4.dp))
         Text(
             text = Translations.signName(signs[signIndex.coerceIn(0, 11)], lang),
             style = MaterialTheme.typography.headlineSmall,
