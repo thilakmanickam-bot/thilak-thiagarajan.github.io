@@ -1,10 +1,10 @@
 package com.astrochart.data
 
 /**
- * A worldwide place parsed from the bundled `assets/cities500.tsv.gz`
- * dataset (GeoNames "cities500" — every city/town/village with population
- * >= 500, CC-BY 4.0, via the geonamescache project). Powers birthplace
- * search in [LocationSearch] so users can find places outside the curated
+ * A worldwide place parsed from the bundled `assets/cities500.dat` dataset
+ * (GeoNames "cities500" — every city/town/village with population >= 500,
+ * CC-BY 4.0, via the geonamescache project). Powers birthplace search in
+ * [LocationSearch] so users can find places outside the curated
  * [LocationCatalog].
  */
 data class GeoPlace(
