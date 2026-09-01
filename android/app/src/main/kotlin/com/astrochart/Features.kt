@@ -36,7 +36,7 @@ object Features {
      * Flip to `true` once the real `google-services.json` and console setup
      * (Google provider, Firestore rules, SHA-1 fingerprints) are in place.
      */
-    const val AUTH_ENABLED = false
+    const val AUTH_ENABLED = true
 
     /**
      * Facebook login inside the Account screen. Kept off until the Facebook

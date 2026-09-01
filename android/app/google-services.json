@@ -1,31 +1,44 @@
 {
   "project_info": {
-    "project_number": "000000000000",
-    "project_id": "halo-placeholder",
-    "storage_bucket": "halo-placeholder.appspot.com"
+    "project_number": "38379713195",
+    "project_id": "halo-2b942",
+    "storage_bucket": "halo-2b942.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:000000000000:android:0000000000000000000000",
+        "mobilesdk_app_id": "1:38379713195:android:41a82654c39a8640577dee",
         "android_client_info": {
           "package_name": "com.techbyt.halo"
         }
       },
       "oauth_client": [
         {
-          "client_id": "000000000000-placeholderplaceholderplaceholder.apps.googleusercontent.com",
+          "client_id": "38379713195-goj8sv42fo7p77l3ofe81at5596iv1pd.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.techbyt.halo",
+            "certificate_hash": "ebcbc9ef852520a79322703e53ae54d75412931c"
+          }
+        },
+        {
+          "client_id": "38379713195-if50j3e967m6rc7trnr0lrmf10jb01mr.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyPLACEHOLDER_PLACEHOLDER_PLACEHOLDER_0000"
+          "current_key": "AIzaSyAbejUphuvIVxlDZargS8oCHJSrJjHrubQ"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "38379713195-if50j3e967m6rc7trnr0lrmf10jb01mr.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
