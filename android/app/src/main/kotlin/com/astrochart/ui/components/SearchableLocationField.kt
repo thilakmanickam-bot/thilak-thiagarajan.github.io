@@ -30,7 +30,7 @@ private const val DEBOUNCE_MS = 250L
 
 /**
  * Editable, debounced typeahead over the worldwide [LocationSearch] dataset
- * (~69k cities/towns/villages, offline). Unlike the read-only
+ * (~235k cities/towns/villages, offline). Unlike the read-only
  * [LabeledDropdown], the anchor field is a normal text field: a place not
  * found in the dataset can still be typed freely, and the caller
  * (`BirthInputScreen`) keeps its time-zone override field as the fallback

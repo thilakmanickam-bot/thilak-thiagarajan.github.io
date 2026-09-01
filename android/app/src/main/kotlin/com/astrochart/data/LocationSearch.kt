@@ -13,15 +13,21 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
 /**
- * Offline, worldwide birthplace search over the bundled `cities5000.tsv.gz`
+ * Offline, worldwide birthplace search over the bundled `cities500.tsv.gz`
  * asset (see [GeoPlace]) — lets users type any city/town/village rather than
  * being limited to the curated [LocationCatalog]. No network, no API key.
+ *
+ * Uses GeoNames' "cities500" dataset (every place with population >= 500,
+ * ~235k entries) rather than the smaller "cities5000" cut (population
+ * >= 5000, ~69k entries): the whole point of this feature is finding small
+ * towns and villages, which are almost always under 5000 people, so the
+ * larger cut is the one that actually fixes "I can't find my birthplace."
  *
  * The dataset is parsed once, lazily, off the main thread, and cached in
  * memory for the process lifetime.
  */
 object LocationSearch {
-    private const val ASSET_NAME = "cities5000.tsv.gz"
+    private const val ASSET_NAME = "cities500.tsv.gz"
     private const val MIN_QUERY_LENGTH = 2
     private const val TAG = "LocationSearch"
 
