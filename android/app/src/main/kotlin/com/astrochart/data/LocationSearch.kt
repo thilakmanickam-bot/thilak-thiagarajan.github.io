@@ -13,7 +13,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
 /**
- * Offline, worldwide birthplace search over the bundled `cities500.tsv.gz`
+ * Offline, worldwide birthplace search over the bundled `cities500.dat`
  * asset (see [GeoPlace]) — lets users type any city/town/village rather than
  * being limited to the curated [LocationCatalog]. No network, no API key.
  *
@@ -23,11 +23,21 @@ import kotlinx.coroutines.withContext
  * towns and villages, which are almost always under 5000 people, so the
  * larger cut is the one that actually fixes "I can't find my birthplace."
  *
+ * The asset is named `.dat`, not `.gz`: Android's AAPT build tool detects a
+ * `.gz` suffix on a bundled asset and transparently decompresses it while
+ * packaging, storing the result under the base filename with `.gz` stripped
+ * — so a real `cities500.tsv.gz` asset silently turned into `cities500.tsv`
+ * inside the built APK, and `context.assets.open("cities500.tsv.gz")` threw
+ * `FileNotFoundException` on every call (caught by [search]'s safety net,
+ * which is exactly why every query silently found nothing, even guaranteed
+ * entries like Singapore). `.dat` is inert to AAPT, so the gzip bytes make
+ * it into the APK untouched.
+ *
  * The dataset is parsed once, lazily, off the main thread, and cached in
  * memory for the process lifetime.
  */
 object LocationSearch {
-    private const val ASSET_NAME = "cities500.tsv.gz"
+    private const val ASSET_NAME = "cities500.dat"
     private const val MIN_QUERY_LENGTH = 2
     private const val TAG = "LocationSearch"
 

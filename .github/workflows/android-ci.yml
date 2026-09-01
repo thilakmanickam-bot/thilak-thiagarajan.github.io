@@ -43,6 +43,21 @@ jobs:
       - name: Build Debug APK
         run: gradle -p android app:assembleDebug --stacktrace
 
+      - name: Verify bundled worldwide-location dataset
+        run: |
+          APK=$(find android/app/build/outputs/apk/debug -name '*.apk' | head -1)
+          echo "APK: $APK"
+          echo "--- assets/ entries in APK ---"
+          unzip -l "$APK" | grep 'assets/' || true
+          unzip -p "$APK" assets/cities500.dat > /tmp/cities500.dat
+          echo "extracted size: $(wc -c < /tmp/cities500.dat) bytes"
+          gunzip -t /tmp/cities500.dat && echo "gunzip integrity: OK"
+          LINES=$(zcat /tmp/cities500.dat | wc -l)
+          echo "line count: $LINES"
+          echo "--- Singapore row ---"
+          zcat /tmp/cities500.dat | grep -P '^Singapore\t'
+          test "$LINES" -gt 200000
+
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
