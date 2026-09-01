@@ -1,9 +1,11 @@
 package com.astrochart.data
 
 import android.content.Context
+import android.util.Log
 import java.text.Normalizer
 import java.util.Locale
 import java.util.zip.GZIPInputStream
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
@@ -21,11 +23,19 @@ import kotlinx.coroutines.withContext
 object LocationSearch {
     private const val ASSET_NAME = "cities5000.tsv.gz"
     private const val MIN_QUERY_LENGTH = 2
+    private const val TAG = "LocationSearch"
 
     @Volatile
     private var cache: List<GeoPlace>? = null
     private val loadLock = Mutex()
 
+    /**
+     * Never throws: any failure reading/parsing the bundled dataset (or
+     * during ranking) is logged and treated as "no results" rather than
+     * crashing the caller — this runs off a debounced LaunchedEffect while
+     * the user is still typing, so an uncaught exception here would take
+     * down the whole app.
+     */
     suspend fun search(
         context: Context,
         query: String,
@@ -34,8 +44,15 @@ object LocationSearch {
         cpuDispatcher: CoroutineDispatcher = Dispatchers.Default
     ): List<GeoPlace> {
         if (query.trim().length < MIN_QUERY_LENGTH) return emptyList()
-        val places = places(context, ioDispatcher)
-        return withContext(cpuDispatcher) { rankMatches(places, query, limit) }
+        return try {
+            val places = places(context, ioDispatcher)
+            withContext(cpuDispatcher) { rankMatches(places, query, limit) }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.e(TAG, "Location search failed for query length ${query.length}", e)
+            emptyList()
+        }
     }
 
     private suspend fun places(context: Context, ioDispatcher: CoroutineDispatcher): List<GeoPlace> {
