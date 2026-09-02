@@ -213,8 +213,14 @@ private fun OnboardingSignInStep(onNext: () -> Unit) {
     }
 }
 
+/**
+ * `internal` rather than private so the UI tests can drive it directly: the
+ * wizard opens on the sign-in step, which needs Firebase, so the only way to
+ * cover the steps that *write the user's settings* is to compose them alone.
+ * State is fully hoisted, so this is exactly how the wizard uses it.
+ */
 @Composable
-private fun OnboardingLanguageStep(
+internal fun OnboardingLanguageStep(
     selected: Language,
     onSelect: (Language) -> Unit,
     onNext: () -> Unit
@@ -312,8 +318,9 @@ internal fun OnboardingProfileStep(onSaved: () -> Unit, onSkip: () -> Unit) {
     }
 }
 
+/** `internal` for the same reason as [OnboardingLanguageStep]. */
 @Composable
-private fun OnboardingChartStyleStep(
+internal fun OnboardingChartStyleStep(
     selected: ChartStyle,
     onSelect: (ChartStyle) -> Unit,
     onNext: () -> Unit
