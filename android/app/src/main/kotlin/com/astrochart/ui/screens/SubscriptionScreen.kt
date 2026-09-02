@@ -99,8 +99,9 @@ fun SubscriptionScreen(modifier: Modifier = Modifier) {
     }
 }
 
+/** Small gold pill, reused by the onboarding wizard's tier step. */
 @Composable
-private fun ComingSoonBadge(text: String) {
+internal fun ComingSoonBadge(text: String) {
     Text(
         text = text.uppercase(),
         style = MaterialTheme.typography.labelMedium,

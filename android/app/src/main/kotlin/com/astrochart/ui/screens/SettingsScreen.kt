@@ -18,19 +18,14 @@ import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
 import com.astrochart.Features
 import com.astrochart.core.i18n.Language
@@ -49,7 +44,6 @@ import com.astrochart.ui.i18n.PanchangamStrings
 import com.astrochart.ui.i18n.PrimaryProfile
 import com.astrochart.ui.i18n.UiStrings
 import com.astrochart.ui.theme.AppTheme
-import com.astrochart.ui.theme.CardBorder
 import com.astrochart.ui.theme.GoldDeep
 import com.astrochart.ui.theme.TextMuted
 import com.astrochart.ui.theme.TextPrimary
@@ -70,7 +64,7 @@ fun SettingsScreen(
     currentLocation: LocationOption,
     onLocationChange: (LocationOption) -> Unit,
     primary: PrimaryProfile?,
-    onPrimaryChange: (PrimaryProfile?) -> Unit,
+    onNavigateToEditProfile: () -> Unit,
     onNavigateToPremium: () -> Unit,
     onNavigateToAccount: () -> Unit = {},
     modifier: Modifier = Modifier
@@ -117,6 +111,19 @@ fun SettingsScreen(
                     onSelect = { onStyleChange(style) }
                 )
             }
+            // North Indian isn't implemented yet (no ChartStyle value to select) —
+            // shown disabled here so it reads as "coming soon," not missing.
+            Row(
+                modifier = Modifier.fillMaxWidth().alpha(0.45f).padding(vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = strings.settingsChartTypeNorthIndianSoon,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = TextMuted,
+                    modifier = Modifier.padding(start = 40.dp)
+                )
+            }
         }
 
         Spacer(Modifier.height(24.dp))
@@ -156,7 +163,7 @@ fun SettingsScreen(
             strings = strings,
             lang = lang,
             primary = primary,
-            onPrimaryChange = onPrimaryChange
+            onNavigateToEditProfile = onNavigateToEditProfile
         )
 
         Spacer(Modifier.height(24.dp))
@@ -204,60 +211,42 @@ fun SettingsScreen(
     }
 }
 
+/**
+ * Read-only summary of the primary profile: rasi/nakshatra are derived from
+ * real birth data (see [com.astrochart.ui.screens.OnboardingProfileStep]), so
+ * editing them by hand here would let the two drift out of sync — tapping
+ * this card instead reopens the same full birth-detail step the onboarding
+ * wizard uses, prefilled with what's already saved.
+ */
 @Composable
 private fun PrimaryProfileCard(
     strings: UiStrings,
     lang: Language,
     primary: PrimaryProfile?,
-    onPrimaryChange: (PrimaryProfile?) -> Unit
+    onNavigateToEditProfile: () -> Unit
 ) {
     val signs = ZodiacUtils.getAllSigns()
-    var name by remember(primary) { mutableStateOf(primary?.name ?: "") }
-    var rasi by remember(primary) { mutableStateOf(primary?.rasi) }
-    var nak by remember(primary) { mutableStateOf(primary?.nakshatra) }
-
-    LaunchedEffect(name, rasi, nak) {
-        val r = rasi
-        val n = nak
-        if (r != null && n != null) onPrimaryChange(PrimaryProfile(name.trim(), r, n))
-    }
-
-    CelestialCard {
+    CelestialCard(modifier = Modifier.clickable(onClick = onNavigateToEditProfile)) {
         Text(strings.settingsPrimary, style = MaterialTheme.typography.titleMedium, color = TextPrimary)
         Text(strings.settingsPrimaryDesc, style = MaterialTheme.typography.bodySmall, color = TextMuted)
         Spacer(Modifier.height(10.dp))
-        OutlinedTextField(
-            value = name,
-            onValueChange = { name = it },
-            label = { Text(strings.settingsPrimary) },
-            singleLine = true,
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = GoldDeep,
-                unfocusedBorderColor = CardBorder,
-                focusedTextColor = TextPrimary,
-                unfocusedTextColor = TextPrimary,
-                cursorColor = GoldDeep
-            ),
-            modifier = Modifier.fillMaxWidth()
-        )
+        if (primary != null) {
+            Text(primary.name, style = MaterialTheme.typography.bodyLarge, color = TextPrimary)
+            Text(
+                text = "${strings.settingsPrimaryRasi}: ${Translations.signName(signs[primary.rasi], lang)}" +
+                    "  ·  ${strings.settingsPrimaryNak}: ${PanchangamNames.nakshatras[primary.nakshatra].get(lang)}",
+                style = MaterialTheme.typography.bodyMedium,
+                color = GoldDeep
+            )
+        } else {
+            Text(strings.settingsPrimaryEmpty, style = MaterialTheme.typography.bodyMedium, color = TextMuted)
+        }
         Spacer(Modifier.height(10.dp))
-        LabeledDropdown(
-            label = strings.settingsPrimaryRasi,
-            options = signs.indices.toList(),
-            selected = rasi,
-            optionLabel = { Translations.signName(signs[it], lang) },
-            onSelected = { rasi = it },
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(Modifier.height(10.dp))
-        LabeledDropdown(
-            label = strings.settingsPrimaryNak,
-            options = PanchangamNames.nakshatras.indices.toList(),
-            selected = nak,
-            optionLabel = { PanchangamNames.nakshatras[it].get(lang) },
-            onSelected = { nak = it },
-            modifier = Modifier.fillMaxWidth()
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(strings.settingsPrimaryEdit, style = MaterialTheme.typography.labelLarge, color = GoldDeep)
+            Spacer(Modifier.width(6.dp))
+            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = GoldDeep)
+        }
     }
 }
 
@@ -272,8 +261,9 @@ private fun themeLabel(theme: AppTheme, lang: Language): String = when (lang) {
     else -> theme.labelEn
 }
 
+/** Radio-button list row, reused by the onboarding wizard's own choice steps. */
 @Composable
-private fun ChoiceRow(label: String, selected: Boolean, onSelect: () -> Unit) {
+internal fun ChoiceRow(label: String, selected: Boolean, onSelect: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()

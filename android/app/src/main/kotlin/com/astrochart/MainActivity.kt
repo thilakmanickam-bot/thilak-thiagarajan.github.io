@@ -59,6 +59,7 @@ import com.astrochart.ui.i18n.LocalChartStyle
 import com.astrochart.ui.i18n.LocalLanguage
 import com.astrochart.ui.i18n.LocalStrings
 import com.astrochart.core.interpret.RasiPeriod
+import com.astrochart.ui.i18n.OnboardingStore
 import com.astrochart.ui.i18n.PoruthamStrings
 import com.astrochart.ui.i18n.PanchangamLocationStore
 import com.astrochart.ui.i18n.PanchangamStrings
@@ -73,6 +74,8 @@ import com.astrochart.ui.screens.ChatScreen
 import com.astrochart.ui.screens.HomeScreen
 import com.astrochart.ui.screens.LanguagePickerDialog
 import com.astrochart.ui.screens.NakshatraListScreen
+import com.astrochart.ui.screens.OnboardingProfileStep
+import com.astrochart.ui.screens.OnboardingWizard
 import com.astrochart.ui.screens.PanchangamScreen
 import com.astrochart.ui.screens.RasiHoroscopeScreen
 import com.astrochart.ui.screens.RasiHubScreen
@@ -121,20 +124,25 @@ class MainActivity : ComponentActivity() {
             val context = LocalContext.current
             var appTheme by remember { mutableStateOf(ThemeStore.load(context)) }
             val windowSizeClass = calculateWindowSizeClass(this@MainActivity)
+            var showOnboarding by remember { mutableStateOf(OnboardingStore.shouldShow(context)) }
             AstroChartTheme {
                 CompositionLocalProvider(
                     LocalAppTheme provides appTheme,
                     LocalWindowSizeClass provides windowSizeClass
                 ) {
                     CelestialBackground {
-                        RequestNotificationPermission()
-                        AppNavigation(
-                            appTheme = appTheme,
-                            onThemeChange = {
-                                appTheme = it
-                                ThemeStore.save(context, it)
-                            }
-                        )
+                        if (showOnboarding) {
+                            OnboardingWizard(onFinished = { showOnboarding = false })
+                        } else {
+                            RequestNotificationPermission()
+                            AppNavigation(
+                                appTheme = appTheme,
+                                onThemeChange = {
+                                    appTheme = it
+                                    ThemeStore.save(context, it)
+                                }
+                            )
+                        }
                     }
                 }
             }
@@ -243,6 +251,7 @@ fun AppNavigation(
         "chart_detail" -> strings.chartTitle
         "chat" -> strings.navChatTitle
         "settings" -> strings.navSettingsTitle
+        "edit_profile" -> strings.settingsPrimary
         "premium" -> strings.navPremiumTitle
         "account" -> strings.navAccountTitle
         "panchangam" -> PanchangamStrings.forLanguage(language).title
@@ -398,15 +407,20 @@ fun AppNavigation(
                         PanchangamLocationStore.save(context, it.displayName)
                     },
                     primary = primaryProfile,
-                    onPrimaryChange = { profile ->
-                        primaryProfile = profile
-                        if (profile != null) {
-                            PrimaryProfileStore.save(context, profile)
-                            rasiSign = profile.rasi
-                        }
-                    },
+                    onNavigateToEditProfile = { navController.navigate("edit_profile") },
                     onNavigateToPremium = { navController.navigate("premium") },
                     onNavigateToAccount = { navController.navigate("account") }
+                )
+            }
+
+            composable("edit_profile") {
+                OnboardingProfileStep(
+                    onSaved = {
+                        primaryProfile = PrimaryProfileStore.load(context)
+                        primaryProfile?.let { rasiSign = it.rasi }
+                        navController.popBackStack()
+                    },
+                    onSkip = { navController.popBackStack() }
                 )
             }
 
@@ -451,7 +465,7 @@ fun AppNavigation(
             composable("birth_input") {
                 BirthInputScreen(
                     viewModel = birthInputViewModel,
-                    onChartCalculated = { chart, name ->
+                    onChartCalculated = { chart, name, _ ->
                         chartViewModel.setChart(chart, name)
                         navController.navigate("chart_detail") {
                             popUpTo("home")

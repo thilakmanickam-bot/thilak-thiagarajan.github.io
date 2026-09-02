@@ -106,6 +106,21 @@ class PanchangamTest {
         assertTrue(julyDay.tamilDay in 1..32)
     }
 
+    // --- Sidereal Moon rasi/nakshatra (for PrimaryProfile derivation) ------
+
+    @Test
+    fun moonRasiAndNakshatraAtJd_matchesAlmanacNakshatra_forChennai_2026_08_26() {
+        // Cross-checked against the almanac-verified compute() nakshatra above
+        // (elementIndices_matchAlmanac_forChennai_2026_08_26): both read the
+        // same sidereal Moon longitude at the same instant.
+        val date = LocalDate.of(2026, 8, 26)
+        val sun = SunTimes.compute(date, chennai.first, chennai.second, chennai.third)
+        val jdUt = sun.sunriseJdUt ?: sun.solarNoonJdUt
+        val (rasi, nak) = Panchangam.moonRasiAndNakshatraAtJd(jdUt, date.year)
+        assertEquals(21, nak, "Shravana")
+        assertEquals(9, rasi, "Capricorn — nakshatra 21 falls within sidereal 270-300°")
+    }
+
     @Test
     fun names_localizeToTamil() {
         val p = chennaiPanchangam(LocalDate.of(2026, 8, 26))

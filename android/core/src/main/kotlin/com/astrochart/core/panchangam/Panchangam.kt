@@ -217,6 +217,21 @@ object Panchangam {
     }
 
     /**
+     * The (rasi index 0–11, nakshatra index 0–26) of the sidereal Moon at a UT
+     * Julian Day — used to derive a birth chart's Vedic Moon sign/nakshatra
+     * (e.g. for [com.astrochart.core.models.NatalChart.birthData]), since
+     * [NatalChart]'s own tropical planet positions aren't sidereal-corrected.
+     */
+    fun moonRasiAndNakshatraAtJd(jdUt: Double, year: Int): Pair<Int, Int> {
+        val jde = SolarLunar.toJde(jdUt, year)
+        val moonL = SolarLunar.moonLongitude(jde)
+        val sidMoon = Ayanamsa.toSidereal(moonL, jde)
+        val rasi0 = floor(sidMoon / 30.0).toInt().coerceIn(0, 11)
+        val nak0 = floor(sidMoon / NAK_SIZE).toInt().coerceIn(0, 26)
+        return rasi0 to nak0
+    }
+
+    /**
      * (tithi, nakshatra) prevailing at sunrise — a lightweight read used to scan
      * a month for vratham days, without the heavier work of [compute].
      */
