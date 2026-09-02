@@ -26,6 +26,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -74,6 +77,7 @@ import com.astrochart.ui.screens.PanchangamScreen
 import com.astrochart.ui.screens.RasiHoroscopeScreen
 import com.astrochart.ui.screens.RasiHubScreen
 import com.astrochart.ui.screens.RasiInfoScreen
+import com.astrochart.ui.screens.RasiPalanTwoPane
 import com.astrochart.ui.screens.RasiSignsScreen
 import com.astrochart.ui.screens.SavedChartsScreen
 import com.astrochart.ui.screens.SettingsScreen
@@ -85,6 +89,7 @@ import com.astrochart.ui.theme.AppTheme
 import com.astrochart.ui.theme.AstroChartTheme
 import com.astrochart.ui.theme.GoldDeep
 import com.astrochart.ui.theme.LocalAppTheme
+import com.astrochart.ui.theme.LocalWindowSizeClass
 import com.astrochart.ui.theme.TextPrimary
 import com.astrochart.ui.theme.ThemeStore
 import com.astrochart.ui.viewmodel.BirthInputViewModel
@@ -96,6 +101,7 @@ class MainActivity : ComponentActivity() {
     private var inAppUpdate: InAppUpdate? = null
     private lateinit var updateLauncher: ActivityResultLauncher<IntentSenderRequest>
 
+    @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         NotificationScheduler.ensureChannel(this)
@@ -114,8 +120,12 @@ class MainActivity : ComponentActivity() {
         setContent {
             val context = LocalContext.current
             var appTheme by remember { mutableStateOf(ThemeStore.load(context)) }
+            val windowSizeClass = calculateWindowSizeClass(this@MainActivity)
             AstroChartTheme {
-                CompositionLocalProvider(LocalAppTheme provides appTheme) {
+                CompositionLocalProvider(
+                    LocalAppTheme provides appTheme,
+                    LocalWindowSizeClass provides windowSizeClass
+                ) {
                     CelestialBackground {
                         RequestNotificationPermission()
                         AppNavigation(
@@ -155,6 +165,42 @@ private fun RequestNotificationPermission() {
         ) {
             launcher.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
+    }
+}
+
+/**
+ * On an Expanded window, renders the persistent Rasi Palan two-pane layout
+ * instead of [singlePane] — so all four Rasi routes ("rasi_hub"/"rasi_signs"/
+ * "rasi_horoscope"/"rasi_info") share the same split view on tablets and the
+ * `navController.navigate(...)` calls inside [singlePane] are simply never
+ * reached there, keeping the app on one backstack entry while browsing Rasi
+ * Palan. On Compact/Medium, renders [singlePane] unchanged (today's phone
+ * behavior, byte-for-byte).
+ */
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
+@Composable
+private fun RasiSignsOrTwoPane(
+    rasiSign: Int,
+    onRasiSignChange: (Int) -> Unit,
+    rasiInfoMode: Boolean,
+    onInfoModeChange: (Boolean) -> Unit,
+    rasiPeriod: RasiPeriod,
+    onPeriodChange: (RasiPeriod) -> Unit,
+    onAboutNakshatras: () -> Unit,
+    singlePane: @Composable () -> Unit
+) {
+    if (LocalWindowSizeClass.current.widthSizeClass == WindowWidthSizeClass.Expanded) {
+        RasiPalanTwoPane(
+            rasiSign = rasiSign,
+            onRasiSignChange = onRasiSignChange,
+            rasiInfoMode = rasiInfoMode,
+            onInfoModeChange = onInfoModeChange,
+            rasiPeriod = rasiPeriod,
+            onPeriodChange = onPeriodChange,
+            onAboutNakshatras = onAboutNakshatras
+        )
+    } else {
+        singlePane()
     }
 }
 
@@ -284,22 +330,46 @@ fun AppNavigation(
             }
 
             composable("rasi_hub") {
-                RasiHubScreen(
-                    onPeriod = { rasiPeriod = it; rasiInfoMode = false; navController.navigate("rasi_signs") },
-                    onAboutSigns = { rasiInfoMode = true; navController.navigate("rasi_signs") },
-                    onAboutNakshatras = { navController.navigate("nakshatra_list") }
-                )
+                RasiSignsOrTwoPane(
+                    rasiSign, { rasiSign = it }, rasiInfoMode, { rasiInfoMode = it },
+                    rasiPeriod, { rasiPeriod = it }, { navController.navigate("nakshatra_list") }
+                ) {
+                    RasiHubScreen(
+                        onPeriod = { rasiPeriod = it; rasiInfoMode = false; navController.navigate("rasi_signs") },
+                        onAboutSigns = { rasiInfoMode = true; navController.navigate("rasi_signs") },
+                        onAboutNakshatras = { navController.navigate("nakshatra_list") }
+                    )
+                }
             }
 
             composable("rasi_signs") {
-                RasiSignsScreen(onPick = { i ->
-                    rasiSign = i
-                    navController.navigate(if (rasiInfoMode) "rasi_info" else "rasi_horoscope")
-                })
+                RasiSignsOrTwoPane(
+                    rasiSign, { rasiSign = it }, rasiInfoMode, { rasiInfoMode = it },
+                    rasiPeriod, { rasiPeriod = it }, { navController.navigate("nakshatra_list") }
+                ) {
+                    RasiSignsScreen(onPick = { i ->
+                        rasiSign = i
+                        navController.navigate(if (rasiInfoMode) "rasi_info" else "rasi_horoscope")
+                    })
+                }
             }
 
-            composable("rasi_horoscope") { RasiHoroscopeScreen(rasiSign, rasiPeriod) }
-            composable("rasi_info") { RasiInfoScreen(rasiSign) }
+            composable("rasi_horoscope") {
+                RasiSignsOrTwoPane(
+                    rasiSign, { rasiSign = it }, rasiInfoMode, { rasiInfoMode = it },
+                    rasiPeriod, { rasiPeriod = it }, { navController.navigate("nakshatra_list") }
+                ) {
+                    RasiHoroscopeScreen(rasiSign, rasiPeriod, onPeriodChange = { rasiPeriod = it })
+                }
+            }
+            composable("rasi_info") {
+                RasiSignsOrTwoPane(
+                    rasiSign, { rasiSign = it }, rasiInfoMode, { rasiInfoMode = it },
+                    rasiPeriod, { rasiPeriod = it }, { navController.navigate("nakshatra_list") }
+                ) {
+                    RasiInfoScreen(rasiSign)
+                }
+            }
             composable("nakshatra_list") { NakshatraListScreen() }
 
             composable("compatibility") {
