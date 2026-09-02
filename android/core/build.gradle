@@ -30,6 +30,20 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
+
+    // Put failing test names and assertions in the CI log — see the same
+    // block in app/build.gradle for why the default output is unusable.
+    testOptions {
+        unitTests.all { task ->
+            task.testLogging {
+                events "failed"
+                exceptionFormat "full"
+                showCauses = true
+                showExceptions = true
+                showStackTraces = true
+            }
+        }
+    }
 }
 
 dependencies {

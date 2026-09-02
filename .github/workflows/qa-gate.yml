@@ -45,10 +45,10 @@ jobs:
       - uses: gradle/gradle-build-action@v3
         with: { gradle-version: 8.2 }
       - name: core:test
-        run: gradle -p android core:test --stacktrace
+        run: gradle -p android core:test
       - name: app unit tests (excluding features/uitest)
         run: >
-          gradle -p android app:testDebugUnitTest --stacktrace
+          gradle -p android app:testDebugUnitTest
           --tests "*"
           --tests "!com.astrochart.features.*"
           --tests "!com.astrochart.uitest.*"
@@ -71,7 +71,7 @@ jobs:
       - uses: gradle/gradle-build-action@v3
         with: { gradle-version: 8.2 }
       - name: Feature scenario tests
-        run: gradle -p android app:testDebugUnitTest --stacktrace --tests "com.astrochart.features.*"
+        run: gradle -p android app:testDebugUnitTest --tests "com.astrochart.features.*"
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
@@ -90,7 +90,7 @@ jobs:
         with: { gradle-version: 8.2 }
       - name: Compose UI tests (excluding screenshot goldens)
         run: >
-          gradle -p android app:testDebugUnitTest --stacktrace
+          gradle -p android app:testDebugUnitTest
           --tests "com.astrochart.uitest.*"
           --tests "!com.astrochart.uitest.screenshot.*"
       - name: Upload test results

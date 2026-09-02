@@ -135,6 +135,21 @@ android {
         unitTests {
             includeAndroidResources = true
             returnDefaultValues = true
+            // Without this, a failing unit test in CI prints only Gradle's own
+            // "There were failing tests, see the report at file:///..." plus
+            // several hundred lines of Gradle-internal stack trace — and the
+            // HTML report is a build artifact that can't be read from the log.
+            // The test name and assertion never appear at all. This puts them
+            // in the log, where whoever is reading the failed run can see them.
+            all { task ->
+                task.testLogging {
+                    events "failed"
+                    exceptionFormat "full"
+                    showCauses = true
+                    showExceptions = true
+                    showStackTraces = true
+                }
+            }
         }
     }
 }

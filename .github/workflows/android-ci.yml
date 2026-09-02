@@ -35,7 +35,7 @@ jobs:
         run: gradle -p android lint
 
       - name: Run Core Unit Tests
-        run: gradle -p android core:test --stacktrace
+        run: gradle -p android core:test
 
       # Unfiltered — this already runs com.astrochart.features.* and
       # com.astrochart.uitest.* (Compose/Robolectric) alongside every other
@@ -45,7 +45,7 @@ jobs:
       # separately-attributed jobs, plus screenshot/design-integrity
       # checks that don't belong on every PR — see docs/TESTING.md.
       - name: Run App Unit Tests
-        run: gradle -p android app:testDebugUnitTest --stacktrace
+        run: gradle -p android app:testDebugUnitTest
 
       - name: Build Debug APK
         run: gradle -p android app:assembleDebug --stacktrace
