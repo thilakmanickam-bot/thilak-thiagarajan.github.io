@@ -10,9 +10,11 @@ import com.astrochart.auth.AccountStore
 import com.astrochart.auth.AuthManager
 import com.astrochart.auth.ProfileSync
 import com.astrochart.data.repository.ChartRepository
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
 
 /**
  * Drives the Account screen: exposes the signed-in [Account] (if any) and the
@@ -39,11 +41,17 @@ class AccountViewModel(application: Application) : AndroidViewModel(application)
         _status.value = Status.Working
         viewModelScope.launch {
             try {
-                val account = AuthManager.signInWithGoogle(context)
+                // The Credential Manager request can hang indefinitely (e.g. a
+                // signing-certificate fingerprint that isn't registered with the
+                // Firebase/Google Cloud project) instead of failing outright, so
+                // this bounds it to a retryable error rather than a stuck spinner.
+                val account = withTimeout(20_000) { AuthManager.signInWithGoogle(context) }
                 AccountStore.save(getApplication(), account)
                 _account.value = account
                 runCatching { ProfileSync.syncAll(getApplication(), repository) }
                 _status.value = Status.Idle
+            } catch (e: TimeoutCancellationException) {
+                _status.value = Status.Error("sign-in timed out")
             } catch (e: Exception) {
                 _status.value = Status.Error(e.message ?: "sign-in failed")
             }
