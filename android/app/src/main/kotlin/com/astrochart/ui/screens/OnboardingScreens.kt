@@ -70,6 +70,7 @@ import com.astrochart.ui.i18n.PrimaryProfile
 import com.astrochart.ui.i18n.PrimaryProfileStore
 import com.astrochart.ui.theme.CardBorder
 import com.astrochart.ui.theme.GoldDeep
+import com.astrochart.ui.theme.GoldLight
 import com.astrochart.ui.theme.OnGold
 import com.astrochart.ui.theme.TextMuted
 import com.astrochart.ui.theme.fontFamilyForLanguage
