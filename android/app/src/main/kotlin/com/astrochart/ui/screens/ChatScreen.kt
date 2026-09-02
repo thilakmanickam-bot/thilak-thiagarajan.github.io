@@ -39,9 +39,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.astrochart.ui.components.CelestialCard
 import com.astrochart.ui.components.GoldButton
 import com.astrochart.ui.i18n.LocalLanguage
@@ -52,6 +53,7 @@ import com.astrochart.ui.theme.GoldDeep
 import com.astrochart.ui.theme.OnGold
 import com.astrochart.ui.theme.TextMuted
 import com.astrochart.ui.theme.TextPrimary
+import com.astrochart.ui.viewmodel.AccountViewModel
 import com.astrochart.ui.viewmodel.ChatViewModel
 
 /**
@@ -65,9 +67,9 @@ fun ChatScreen(
     onNavigateToBirthInput: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val showKeyEntry by viewModel.showKeyEntry.collectAsState()
-    if (showKeyEntry) {
-        ApiKeyEntry(viewModel = viewModel, modifier = modifier)
+    val showSignIn by viewModel.showSignIn.collectAsState()
+    if (showSignIn) {
+        SignInPrompt(modifier = modifier)
         return
     }
 
@@ -95,14 +97,6 @@ private fun ChartPicker(
             .fillMaxSize()
             .padding(horizontal = 24.dp, vertical = 16.dp)
     ) {
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-            Text(
-                text = strings.chatChangeApiKey,
-                style = MaterialTheme.typography.labelLarge,
-                color = GoldDeep,
-                modifier = Modifier.clickable { viewModel.editApiKey() }
-            )
-        }
         error?.let { ErrorLine(code = it) }
         if (charts.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -360,13 +354,18 @@ private fun SuggestionChip(text: String, onClick: () -> Unit) {
 }
 
 /**
- * First-run (and "change key") screen: the user pastes their Anthropic API key,
- * which is stored on-device and used to call the Messages API directly.
+ * Shown until the user is signed in — chat requires an account, since the
+ * server-side proxy gates on the caller's Firebase ID token (see
+ * `functions/src/index.ts`). Reuses the same Google sign-in pattern as
+ * `AccountScreen`'s `SignedOut` and the onboarding wizard's sign-in step.
  */
 @Composable
-private fun ApiKeyEntry(viewModel: ChatViewModel, modifier: Modifier) {
+private fun SignInPrompt(modifier: Modifier) {
     val strings = LocalStrings.current
-    var key by remember { mutableStateOf("") }
+    val context = LocalContext.current
+    val viewModel: AccountViewModel = viewModel()
+    val status by viewModel.status.collectAsState()
+
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -381,42 +380,26 @@ private fun ApiKeyEntry(viewModel: ChatViewModel, modifier: Modifier) {
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = strings.chatApiKeyPrompt,
+                text = strings.chatSignInPrompt,
                 style = MaterialTheme.typography.bodyMedium,
                 color = TextMuted
             )
             Spacer(modifier = Modifier.height(16.dp))
-            OutlinedTextField(
-                value = key,
-                onValueChange = { key = it },
-                placeholder = { Text(strings.chatApiKeyHint, color = TextMuted) },
-                singleLine = true,
-                visualTransformation = PasswordVisualTransformation(),
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = CardFill.copy(alpha = 0.5f),
-                    unfocusedContainerColor = CardFill.copy(alpha = 0.5f),
-                    focusedTextColor = TextPrimary,
-                    unfocusedTextColor = TextPrimary,
-                    focusedIndicatorColor = CardBorder,
-                    unfocusedIndicatorColor = CardBorder,
-                    cursorColor = GoldDeep
-                )
-            )
-            Spacer(modifier = Modifier.height(16.dp))
             GoldButton(
-                text = strings.chatConnect,
-                onClick = { viewModel.saveApiKey(key) },
-                enabled = key.isNotBlank(),
+                text = strings.accountContinueGoogle,
+                onClick = { viewModel.signInWithGoogle(context) },
+                enabled = status !is AccountViewModel.Status.Working,
+                loading = status is AccountViewModel.Status.Working,
                 modifier = Modifier.fillMaxWidth()
             )
-            Spacer(modifier = Modifier.height(12.dp))
-            Text(
-                text = strings.chatApiKeyHelp,
-                style = MaterialTheme.typography.bodySmall,
-                color = TextMuted
-            )
+            if (status is AccountViewModel.Status.Error) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = strings.accountSignInError,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
         }
     }
 }
@@ -428,6 +411,7 @@ private fun ErrorLine(code: String) {
     val text = when (code) {
         "not_configured" -> strings.chatNotConfigured
         "not_found" -> strings.chatLoadFailed
+        "rate_limited" -> strings.chatRateLimited
         else -> strings.chatError
     }
     Text(

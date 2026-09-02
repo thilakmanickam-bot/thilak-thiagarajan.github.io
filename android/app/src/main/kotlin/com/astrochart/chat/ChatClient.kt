@@ -8,20 +8,20 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 /**
- * Builds the [AnthropicApi] pointed straight at the Anthropic Messages API,
- * authenticated with the user's own API key (entered in-app, stored on-device
- * via [ApiKeyStore]). The key is attached as the `x-api-key` header on each
- * request and never sent anywhere but Anthropic.
+ * Builds the [AnthropicApi] pointed at the Halo chat proxy (see
+ * `functions/src/index.ts`), authenticated with the signed-in user's Firebase
+ * ID token. The proxy verifies that token, enforces the daily message cap,
+ * and injects the real Anthropic API key server-side — the app never holds
+ * or sends that key.
  */
 object ChatClient {
 
-    private const val BASE_URL = "https://api.anthropic.com/"
     private const val ANTHROPIC_VERSION = "2023-06-01"
 
-    fun create(apiKey: String): AnthropicApi {
+    fun create(idToken: String): AnthropicApi {
         val logging = HttpLoggingInterceptor().apply {
-            // BASIC logs only method/URL/status — never headers, so the key and
-            // the x-api-key header are not written to logcat even in debug.
+            // BASIC logs only method/URL/status — never headers, so the bearer
+            // token is not written to logcat even in debug.
             level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BASIC
             else HttpLoggingInterceptor.Level.NONE
         }
@@ -29,7 +29,7 @@ object ChatClient {
         val client = OkHttpClient.Builder()
             .addInterceptor { chain ->
                 val request = chain.request().newBuilder()
-                    .header("x-api-key", apiKey)
+                    .header("Authorization", "Bearer $idToken")
                     .header("anthropic-version", ANTHROPIC_VERSION)
                     .header("content-type", "application/json")
                     .build()
@@ -41,7 +41,7 @@ object ChatClient {
             .build()
 
         return Retrofit.Builder()
-            .baseUrl(BASE_URL)
+            .baseUrl(BuildConfig.CHAT_PROXY_BASE_URL)
             .client(client)
             .addConverterFactory(GsonConverterFactory.create())
             .build()

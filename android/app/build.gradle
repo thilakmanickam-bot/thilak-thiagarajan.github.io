@@ -33,6 +33,18 @@ android {
             ?: System.getenv("ADMOB_APP_ID")
             ?: "ca-app-pub-3940256099942544~3347511713")
         manifestPlaceholders = [admobAppId: admobAppId]
+
+        // Base URL of the deployed "Ask the Universe" chat proxy Cloud Function
+        // (see /functions). Set CHAT_PROXY_BASE_URL in gradle.properties (or as
+        // an env var / -P flag) to e.g.
+        // "https://us-central1-halo-2b942.cloudfunctions.net/chatProxy/"
+        // (trailing slash required — ChatClient.kt appends "v1/messages" to it).
+        // Left blank by default so an unconfigured build fails obviously
+        // (Retrofit rejects a blank base URL) instead of silently calling nothing.
+        def chatProxyBaseUrl = (project.findProperty("CHAT_PROXY_BASE_URL")
+            ?: System.getenv("CHAT_PROXY_BASE_URL")
+            ?: "")
+        buildConfigField "String", "CHAT_PROXY_BASE_URL", "\"${chatProxyBaseUrl}\""
     }
 
     // Release signing. The keystore + passwords come from environment variables
