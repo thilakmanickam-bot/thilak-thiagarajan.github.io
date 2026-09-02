@@ -160,8 +160,11 @@ dependencies {
     implementation "com.google.android.play:app-update-ktx:2.1.0"
 
     // Google Play Billing — Halo Premium subscriptions (monthly/yearly).
-    // Gated behind Features.BILLING_ENABLED.
-    implementation "com.android.billingclient:billing-ktx:${rootProject.ext.billingVersion}"
+    // Gated behind Features.BILLING_ENABLED. Uses the plain (non-ktx)
+    // artifact: billing-ktx's Kotlin module metadata is newer than this
+    // project's Kotlin Gradle plugin can read (breaks kaptDebugKotlin),
+    // so BillingManager.kt wraps the callback APIs itself instead.
+    implementation "com.android.billingclient:billing:${rootProject.ext.billingVersion}"
 
     // Account login + cloud sync (Firebase Auth + Firestore) and the modern
     // Credential Manager "Sign in with Google" flow. All usage is gated behind

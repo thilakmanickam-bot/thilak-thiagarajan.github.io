@@ -13,9 +13,6 @@ import com.android.billingclient.api.Purchase
 import com.android.billingclient.api.PurchasesUpdatedListener
 import com.android.billingclient.api.QueryProductDetailsParams
 import com.android.billingclient.api.QueryPurchasesParams
-import com.android.billingclient.api.acknowledgePurchase
-import com.android.billingclient.api.queryProductDetails
-import com.android.billingclient.api.queryPurchasesAsync
 import com.astrochart.BuildConfig
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.tasks.await
@@ -47,6 +44,13 @@ data class SubscriptionOption(
  * (see `functions/src/billing.ts`) before trusting it — the client never
  * decides its own entitlement, it only reports what Play returned and caches
  * whatever the server verifies (see [PremiumStore]).
+ *
+ * Depends on the plain `billing` artifact, not `billing-ktx`: the ktx
+ * suspend extensions are a thin wrapper over the same callback methods used
+ * below, and skipping them avoids a Kotlin-metadata version mismatch between
+ * a recent billing-ktx release and this project's older Kotlin Gradle plugin
+ * (surfaced as a `kaptDebugKotlin` failure — see git history for the exact
+ * error before this was reverted to plain callbacks).
  */
 class BillingManager(private val context: Context) {
 
@@ -100,8 +104,12 @@ class BillingManager(private val context: Context) {
                 }
             )
             .build()
-        val result = billingClient.queryProductDetails(params)
-        return result.productDetailsList.orEmpty().mapNotNull { details ->
+        val productDetailsList = suspendCancellableCoroutine<List<ProductDetails>?> { cont ->
+            billingClient.queryProductDetailsAsync(params) { _, list ->
+                if (cont.isActive) cont.resume(list)
+            }
+        }
+        return productDetailsList.orEmpty().mapNotNull { details ->
             val offer = details.subscriptionOfferDetails?.firstOrNull() ?: return@mapNotNull null
             val price = offer.pricingPhases.pricingPhaseList.firstOrNull() ?: return@mapNotNull null
             SubscriptionOption(
@@ -144,7 +152,11 @@ class BillingManager(private val context: Context) {
             val ackParams = AcknowledgePurchaseParams.newBuilder()
                 .setPurchaseToken(purchase.purchaseToken)
                 .build()
-            val ackResult = billingClient.acknowledgePurchase(ackParams)
+            val ackResult = suspendCancellableCoroutine<BillingResult> { cont ->
+                billingClient.acknowledgePurchase(ackParams) { billingResult ->
+                    if (cont.isActive) cont.resume(billingResult)
+                }
+            }
             if (ackResult.responseCode != BillingClient.BillingResponseCode.OK) return null
         }
         val productId = purchase.products.firstOrNull() ?: return null
@@ -164,8 +176,12 @@ class BillingManager(private val context: Context) {
         val params = QueryPurchasesParams.newBuilder()
             .setProductType(BillingClient.ProductType.SUBS)
             .build()
-        val result = billingClient.queryPurchasesAsync(params)
-        val active = result.purchasesList.firstOrNull {
+        val purchasesList = suspendCancellableCoroutine<List<Purchase>?> { cont ->
+            billingClient.queryPurchasesAsync(params) { _, list ->
+                if (cont.isActive) cont.resume(list)
+            }
+        }
+        val active = purchasesList.orEmpty().firstOrNull {
             it.purchaseState == Purchase.PurchaseState.PURCHASED
         } ?: run {
             PremiumStore.save(context, active = false, expiresAtMillis = 0L)
