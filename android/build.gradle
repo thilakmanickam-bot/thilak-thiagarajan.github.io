@@ -13,8 +13,16 @@ ext {
     compileSdk = 36
     targetSdk = 36
     minSdk = 26
+    // versionCode is overridden by CI (VERSION_CODE = the release run number),
+    // so this local value only matters for local builds.
     versionCode = 1
-    versionName = "1.0.0"
+    // Bump this on every rollout that carries a minor/major dependency update
+    // or user-visible change — the app footer shows it, so a stale versionName
+    // makes it impossible to tell from a deployed build whether it's current.
+    // See docs/RELEASE_RUNBOOK.md ("Before every rollout").
+    // 1.1.0: Play Billing 7.1.1 -> 9.1.0, onboarding wizard, bundled per-language
+    //        fonts, chat proxy, Halo Premium billing, location-search fix.
+    versionName = "1.1.0"
 
     // Dependency versions
     kotlinVersion = "1.9.22"

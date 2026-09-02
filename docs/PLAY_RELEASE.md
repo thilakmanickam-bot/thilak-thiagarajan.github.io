@@ -73,8 +73,12 @@ no analytics are included.
 ## 6. Ship a build
 
 - **Automatic version code:** the workflow sets `versionCode` to the run number, so
-  every upload is unique and increasing. Bump the human-facing `versionName` in
-  `android/build.gradle` (`ext.versionName`) when you want (e.g. `1.0.1`).
+  every upload is unique and increasing.
+- **Bump `versionName` before every rollout** that carries a minor/major dependency
+  update or a user-visible change (`ext.versionName` in `android/build.gradle`). The
+  Home-screen footer shows `v<versionName> (<versionCode>)`, so leaving it stale
+  makes deployed builds indistinguishable. See the version table in
+  [`RELEASE_RUNBOOK.md`](RELEASE_RUNBOOK.md#before-every-rollout-bump-versionname).
 - **Run it:** Actions → **Release to Play Store** → *Run workflow* → pick a track
   (`internal` to start), or push a tag: `git tag v1.0.0 && git push origin v1.0.0`.
 - The job builds `app:bundleRelease`, signs it, uploads the `.aab` as a build

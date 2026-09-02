@@ -68,8 +68,27 @@ Repo → **Settings → Secrets and variables → Actions → New repository sec
 
 ## PART B — Ship a release (every time)
 
-1. *(optional)* bump `ext.versionName` in `android/build.gradle` (e.g. `1.0.1`). The
-   `versionCode` auto-increments from the CI run number.
+### Before every rollout: bump `versionName`
+
+**Bump `ext.versionName` in `android/build.gradle` whenever the release carries a
+minor or major dependency update, or any user-visible change.** This is not
+optional bookkeeping — the app footer on the Home screen renders
+`v<versionName> (<versionCode>)`, so a stale `versionName` makes it impossible to
+tell from an installed build whether a tester is actually on the newest version.
+
+| Change in the release | New `versionName` |
+|---|---|
+| Patch dependency bump, bug fix only | `1.1.0` → `1.1.1` |
+| Minor/major dependency update (e.g. Play Billing 7.x → 9.x), or new features | `1.1.0` → `1.2.0` |
+| Breaking change / major rework | `1.1.0` → `2.0.0` |
+
+`versionCode` needs no manual edit — CI sets it to the workflow run number, so it
+increments on every rollout regardless (which is why the footer shows it too: even
+a missed `versionName` bump still leaves the build number to compare).
+
+### Then ship it
+
+1. Bump `ext.versionName` per the table above.
 2. GitHub → **Actions → "Release to Play Store" → Run workflow** → pick a track
    (`internal` first), leave **`run_qa_gate` checked** (the QA gate — modules/features/
    UI tests + a design-integrity review, see `docs/TESTING.md`) → **Run**. *Or* push a
