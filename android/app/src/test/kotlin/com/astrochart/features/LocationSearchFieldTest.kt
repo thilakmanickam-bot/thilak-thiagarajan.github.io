@@ -2,9 +2,10 @@ package com.astrochart.features
 
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.test.ExperimentalTestApi
-import androidx.compose.ui.test.assertDoesNotExist
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.performTextInput
@@ -67,7 +68,7 @@ class LocationSearchFieldTest {
 
         // "Pu" must be gone (shortened to "P") — if backspace silently did
         // nothing (the original bug), "Pu" would still be there.
-        composeTestRule.onNodeWithText("Pu", substring = true).assertDoesNotExist()
+        composeTestRule.onAllNodesWithText("Pu", substring = true).assertCountEquals(0)
     }
 
     @Test
