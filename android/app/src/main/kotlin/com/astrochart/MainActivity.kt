@@ -22,6 +22,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -40,6 +41,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
@@ -95,6 +98,8 @@ import com.astrochart.ui.theme.LocalAppTheme
 import com.astrochart.ui.theme.LocalWindowSizeClass
 import com.astrochart.ui.theme.TextPrimary
 import com.astrochart.ui.theme.ThemeStore
+import com.astrochart.ui.theme.buildTypography
+import com.astrochart.ui.theme.fontFamilyForLanguage
 import com.astrochart.ui.viewmodel.BirthInputViewModel
 import com.astrochart.ui.viewmodel.ChartViewModel
 import com.astrochart.ui.viewmodel.ChatViewModel
@@ -125,10 +130,19 @@ class MainActivity : ComponentActivity() {
             var appTheme by remember { mutableStateOf(ThemeStore.load(context)) }
             val windowSizeClass = calculateWindowSizeClass(this@MainActivity)
             var showOnboarding by remember { mutableStateOf(OnboardingStore.shouldShow(context)) }
+            // Text renders at the size it was designed at, everywhere, regardless
+            // of the device's own accessibility font-size setting — only the
+            // font-scale multiplier is pinned; real screen-density scaling
+            // (dp/pixel density, rotation, tablet width) is untouched.
+            val fixedFontDensity = Density(
+                density = LocalDensity.current.density,
+                fontScale = 1f
+            )
             AstroChartTheme {
                 CompositionLocalProvider(
                     LocalAppTheme provides appTheme,
-                    LocalWindowSizeClass provides windowSizeClass
+                    LocalWindowSizeClass provides windowSizeClass,
+                    LocalDensity provides fixedFontDensity
                 ) {
                     CelestialBackground {
                         if (showOnboarding) {
@@ -245,6 +259,11 @@ fun AppNavigation(
         LocalLanguage provides language,
         LocalChartStyle provides chartStyle
     ) {
+    // Reactive to `language`: bundled fonts guarantee the same glyphs render
+    // everywhere regardless of the device's own system font (see
+    // LocalizedFonts.kt). Only typography is overridden — colorScheme/shapes
+    // fall through to AstroChartTheme's outer MaterialTheme unchanged.
+    MaterialTheme(typography = buildTypography(fontFamilyForLanguage(language))) {
     val title = when (route) {
         "birth_input" -> strings.navCalculate
         "saved_charts" -> strings.navSavedChartsTitle
@@ -309,7 +328,7 @@ fun AppNavigation(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Transparent,
-                    titleContentColor = TextPrimary,
+                    titleContentColor = GoldDeep,
                     navigationIconContentColor = GoldDeep
                 )
             )
@@ -524,6 +543,7 @@ fun AppNavigation(
         )
     }
     }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -547,6 +567,7 @@ private fun LanguageSwitcher(
                 text = {
                     Text(
                         text = lang.displayName,
+                        style = MaterialTheme.typography.bodyLarge.copy(fontFamily = fontFamilyForLanguage(lang)),
                         color = if (lang == current) GoldDeep else TextPrimary
                     )
                 },

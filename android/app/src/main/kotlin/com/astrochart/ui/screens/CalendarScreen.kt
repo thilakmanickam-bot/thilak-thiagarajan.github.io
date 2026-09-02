@@ -102,7 +102,7 @@ fun CalendarScreen(
                     Text(
                         text = month.format(monthFmt),
                         style = MaterialTheme.typography.titleLarge,
-                        color = TextPrimary
+                        color = GoldDeep
                     )
                     Text(
                         text = tamilLabel,

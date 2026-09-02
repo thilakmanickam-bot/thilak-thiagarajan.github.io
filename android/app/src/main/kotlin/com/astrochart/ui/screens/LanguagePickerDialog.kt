@@ -17,6 +17,7 @@ import com.astrochart.core.i18n.Language
 import com.astrochart.ui.components.SectionDivider
 import com.astrochart.ui.theme.TextMuted
 import com.astrochart.ui.theme.TextPrimary
+import com.astrochart.ui.theme.fontFamilyForLanguage
 
 /**
  * First-launch language chooser: lists every supported [Language] in its own
@@ -33,7 +34,7 @@ fun LanguagePickerDialog(
         confirmButton = {
             TextButton(onClick = onSkip) { Text("Skip", color = TextMuted) }
         },
-        title = { Text("Select Your Preferred Language", color = TextPrimary) },
+        title = { Text("Select Your Preferred Language", color = GoldDeep) },
         text = {
             Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
                 Text(
@@ -45,7 +46,7 @@ fun LanguagePickerDialog(
                 Language.entries.forEach { l ->
                     Text(
                         text = l.displayName,
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleMedium.copy(fontFamily = fontFamilyForLanguage(l)),
                         color = TextPrimary,
                         modifier = Modifier
                             .fillMaxWidth()

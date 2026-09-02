@@ -119,7 +119,7 @@ fun BirthInputScreen(
         Text(
             text = strings.biHeading,
             style = MaterialTheme.typography.headlineSmall,
-            color = TextPrimary
+            color = GoldDeep
         )
 
         Spacer(modifier = Modifier.height(20.dp))

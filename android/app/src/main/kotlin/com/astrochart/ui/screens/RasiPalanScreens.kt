@@ -99,7 +99,7 @@ private fun HubRow(label: String, onClick: () -> Unit) {
             Text(
                 text = label,
                 style = MaterialTheme.typography.titleMedium,
-                color = TextPrimary,
+                color = GoldDeep,
                 modifier = Modifier.weight(1f)
             )
             androidx.compose.material3.Icon(

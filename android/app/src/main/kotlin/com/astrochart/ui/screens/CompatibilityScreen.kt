@@ -199,7 +199,7 @@ private fun PersonCard(
     lang: Language
 ) {
     CelestialCard {
-        Text(heading, style = MaterialTheme.typography.titleMedium, color = TextPrimary, fontWeight = FontWeight.SemiBold)
+        Text(heading, style = MaterialTheme.typography.titleMedium, color = GoldDeep, fontWeight = FontWeight.SemiBold)
         Spacer(Modifier.height(12.dp))
 
         Text(ps.name, style = MaterialTheme.typography.bodySmall, color = TextMuted)
@@ -284,7 +284,7 @@ private fun ResultHeader(
 private fun PersonSummary(label: String, name: String, rasi: String, nak: String, modifier: Modifier) {
     Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
         Text(label, style = MaterialTheme.typography.labelMedium, color = GoldDeep)
-        Text(name, style = MaterialTheme.typography.titleMedium, color = TextPrimary, fontWeight = FontWeight.SemiBold)
+        Text(name, style = MaterialTheme.typography.titleMedium, color = GoldDeep, fontWeight = FontWeight.SemiBold)
         Spacer(Modifier.height(6.dp))
         Text(rasi, style = MaterialTheme.typography.bodyMedium, color = TextPrimary)
         Text(nak, style = MaterialTheme.typography.bodySmall, color = TextMuted)

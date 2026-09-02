@@ -61,7 +61,7 @@ fun SubscriptionScreen(modifier: Modifier = Modifier) {
         Text(
             text = strings.premiumHeadline,
             style = MaterialTheme.typography.headlineSmall,
-            color = TextPrimary,
+            color = GoldDeep,
             textAlign = TextAlign.Center
         )
         Spacer(modifier = Modifier.height(8.dp))
@@ -127,7 +127,7 @@ private fun PerkCard(icon: ImageVector, title: String, description: String) {
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleMedium,
-                    color = TextPrimary
+                    color = GoldDeep
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(

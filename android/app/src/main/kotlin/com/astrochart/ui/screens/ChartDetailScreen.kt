@@ -313,7 +313,7 @@ private fun ChartHeader(chart: NatalChart, chartName: String) {
             Text(
                 text = chartName,
                 style = MaterialTheme.typography.titleLarge,
-                color = TextPrimary
+                color = GoldDeep
             )
             Spacer(modifier = Modifier.height(4.dp))
         }

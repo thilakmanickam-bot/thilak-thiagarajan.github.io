@@ -124,7 +124,7 @@ private fun ChartPicker(
             Text(
                 text = strings.chatChoosePrompt,
                 style = MaterialTheme.typography.titleMedium,
-                color = TextPrimary
+                color = GoldDeep
             )
             Spacer(modifier = Modifier.height(16.dp))
             LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -135,7 +135,7 @@ private fun ChartPicker(
                         Text(
                             text = chart.name,
                             style = MaterialTheme.typography.titleMedium,
-                            color = TextPrimary
+                            color = GoldDeep
                         )
                         Text(
                             text = chart.locationName,
@@ -185,7 +185,7 @@ private fun Conversation(
             Text(
                 text = chartName,
                 style = MaterialTheme.typography.titleMedium,
-                color = TextPrimary,
+                color = GoldDeep,
                 modifier = Modifier.weight(1f)
             )
             Text(
@@ -377,7 +377,7 @@ private fun ApiKeyEntry(viewModel: ChatViewModel, modifier: Modifier) {
             Text(
                 text = strings.chatConnectTitle,
                 style = MaterialTheme.typography.titleMedium,
-                color = TextPrimary
+                color = GoldDeep
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(

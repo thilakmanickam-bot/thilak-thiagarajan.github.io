@@ -26,6 +26,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import com.astrochart.Features
 import com.astrochart.core.i18n.Language
@@ -47,6 +48,7 @@ import com.astrochart.ui.theme.AppTheme
 import com.astrochart.ui.theme.GoldDeep
 import com.astrochart.ui.theme.TextMuted
 import com.astrochart.ui.theme.TextPrimary
+import com.astrochart.ui.theme.fontFamilyForLanguage
 
 /**
  * Settings / preferences: appearance (theme), chart type, defaults (language,
@@ -83,7 +85,7 @@ fun SettingsScreen(
         EyebrowLabel(text = strings.settingsAppearance)
         Spacer(Modifier.height(12.dp))
         CelestialCard {
-            Text(strings.settingsTheme, style = MaterialTheme.typography.titleMedium, color = TextPrimary)
+            Text(strings.settingsTheme, style = MaterialTheme.typography.titleMedium, color = GoldDeep)
             Text(strings.settingsThemeDesc, style = MaterialTheme.typography.bodySmall, color = TextMuted)
             Spacer(Modifier.height(8.dp))
             AppTheme.entries.forEach { theme ->
@@ -101,7 +103,7 @@ fun SettingsScreen(
         EyebrowLabel(text = strings.settingsPreferences)
         Spacer(Modifier.height(12.dp))
         CelestialCard {
-            Text(strings.settingsChartType, style = MaterialTheme.typography.titleMedium, color = TextPrimary)
+            Text(strings.settingsChartType, style = MaterialTheme.typography.titleMedium, color = GoldDeep)
             Text(strings.settingsChartTypeDesc, style = MaterialTheme.typography.bodySmall, color = TextMuted)
             Spacer(Modifier.height(8.dp))
             ChartStyle.entries.forEach { style ->
@@ -132,17 +134,18 @@ fun SettingsScreen(
         EyebrowLabel(text = strings.settingsDefaults)
         Spacer(Modifier.height(12.dp))
         CelestialCard {
-            Text(strings.languageLabel, style = MaterialTheme.typography.titleMedium, color = TextPrimary)
+            Text(strings.languageLabel, style = MaterialTheme.typography.titleMedium, color = GoldDeep)
             Spacer(Modifier.height(6.dp))
             Language.entries.forEach { l ->
                 ChoiceRow(
                     label = l.displayName,
                     selected = l == currentLanguage,
-                    onSelect = { onLanguageChange(l) }
+                    onSelect = { onLanguageChange(l) },
+                    fontFamily = fontFamilyForLanguage(l)
                 )
             }
             Spacer(Modifier.height(14.dp))
-            Text(strings.settingsCity, style = MaterialTheme.typography.titleMedium, color = TextPrimary)
+            Text(strings.settingsCity, style = MaterialTheme.typography.titleMedium, color = GoldDeep)
             Spacer(Modifier.height(6.dp))
             LabeledDropdown(
                 label = ps.location,
@@ -177,7 +180,7 @@ fun SettingsScreen(
                     Icon(Icons.Filled.AccountCircle, contentDescription = null, tint = GoldDeep)
                     Spacer(Modifier.width(12.dp))
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(strings.settingsAccountRow, style = MaterialTheme.typography.titleMedium, color = TextPrimary)
+                        Text(strings.settingsAccountRow, style = MaterialTheme.typography.titleMedium, color = GoldDeep)
                         Text(strings.settingsAccountDesc, style = MaterialTheme.typography.bodySmall, color = TextMuted)
                     }
                     Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = TextMuted)
@@ -194,7 +197,7 @@ fun SettingsScreen(
                 Icon(Icons.Filled.WorkspacePremium, contentDescription = null, tint = GoldDeep)
                 Spacer(Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(strings.premiumEntry, style = MaterialTheme.typography.titleMedium, color = TextPrimary)
+                    Text(strings.premiumEntry, style = MaterialTheme.typography.titleMedium, color = GoldDeep)
                     Text(strings.premiumComingSoon, style = MaterialTheme.typography.bodySmall, color = GoldDeep)
                 }
                 Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = TextMuted)
@@ -204,6 +207,12 @@ fun SettingsScreen(
         Spacer(Modifier.height(20.dp))
         Text(
             text = "Worldwide location search data © GeoNames.org, CC BY 4.0",
+            style = MaterialTheme.typography.bodySmall,
+            color = TextMuted
+        )
+        Spacer(Modifier.height(4.dp))
+        Text(
+            text = "Fonts: Noto Sans family © Google, SIL Open Font License 1.1",
             style = MaterialTheme.typography.bodySmall,
             color = TextMuted
         )
@@ -227,7 +236,7 @@ private fun PrimaryProfileCard(
 ) {
     val signs = ZodiacUtils.getAllSigns()
     CelestialCard(modifier = Modifier.clickable(onClick = onNavigateToEditProfile)) {
-        Text(strings.settingsPrimary, style = MaterialTheme.typography.titleMedium, color = TextPrimary)
+        Text(strings.settingsPrimary, style = MaterialTheme.typography.titleMedium, color = GoldDeep)
         Text(strings.settingsPrimaryDesc, style = MaterialTheme.typography.bodySmall, color = TextMuted)
         Spacer(Modifier.height(10.dp))
         if (primary != null) {
@@ -261,9 +270,15 @@ private fun themeLabel(theme: AppTheme, lang: Language): String = when (lang) {
     else -> theme.labelEn
 }
 
-/** Radio-button list row, reused by the onboarding wizard's own choice steps. */
+/**
+ * Radio-button list row, reused by the onboarding wizard's own choice steps.
+ * [fontFamily] overrides the row's font — used only by the language list, so
+ * each language's own name renders in its own bundled script font regardless
+ * of which language is currently active (see LocalizedFonts.kt); every other
+ * caller leaves it null and inherits the ambient typography as before.
+ */
 @Composable
-internal fun ChoiceRow(label: String, selected: Boolean, onSelect: () -> Unit) {
+internal fun ChoiceRow(label: String, selected: Boolean, onSelect: () -> Unit, fontFamily: FontFamily? = null) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -279,7 +294,11 @@ internal fun ChoiceRow(label: String, selected: Boolean, onSelect: () -> Unit) {
         )
         Text(
             text = label,
-            style = MaterialTheme.typography.bodyLarge,
+            style = if (fontFamily != null) {
+                MaterialTheme.typography.bodyLarge.copy(fontFamily = fontFamily)
+            } else {
+                MaterialTheme.typography.bodyLarge
+            },
             color = if (selected) TextPrimary else TextMuted
         )
     }

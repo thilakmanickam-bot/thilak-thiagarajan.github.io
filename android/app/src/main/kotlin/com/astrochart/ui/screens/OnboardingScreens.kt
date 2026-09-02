@@ -61,6 +61,7 @@ import com.astrochart.ui.theme.GoldDeep
 import com.astrochart.ui.theme.OnGold
 import com.astrochart.ui.theme.TextMuted
 import com.astrochart.ui.theme.TextPrimary
+import com.astrochart.ui.theme.fontFamilyForLanguage
 import com.astrochart.ui.viewmodel.AccountViewModel
 import com.astrochart.ui.viewmodel.BirthInputViewModel
 
@@ -154,7 +155,7 @@ private fun OnboardingSignInStep(onNext: () -> Unit) {
         Text(
             text = "Welcome to Halo",
             style = MaterialTheme.typography.headlineSmall,
-            color = TextPrimary,
+            color = GoldDeep,
             textAlign = TextAlign.Center
         )
         Spacer(Modifier.height(8.dp))
@@ -226,7 +227,7 @@ private fun OnboardingLanguageStep(
         Text(
             text = "Choose your language",
             style = MaterialTheme.typography.headlineSmall,
-            color = TextPrimary,
+            color = GoldDeep,
             textAlign = TextAlign.Center
         )
         Spacer(Modifier.height(8.dp))
@@ -238,7 +239,12 @@ private fun OnboardingLanguageStep(
         )
         Spacer(Modifier.height(20.dp))
         Language.entries.forEach { l ->
-            ChoiceRow(label = l.displayName, selected = l == selected, onSelect = { onSelect(l) })
+            ChoiceRow(
+                label = l.displayName,
+                selected = l == selected,
+                onSelect = { onSelect(l) },
+                fontFamily = fontFamilyForLanguage(l)
+            )
         }
         Spacer(Modifier.height(24.dp))
         GoldButton(text = "Continue", onClick = onNext, modifier = Modifier.fillMaxWidth())
@@ -320,7 +326,7 @@ private fun OnboardingChartStyleStep(
         Text(
             text = "How should your chart look?",
             style = MaterialTheme.typography.headlineSmall,
-            color = TextPrimary,
+            color = GoldDeep,
             textAlign = TextAlign.Center
         )
         Spacer(Modifier.height(8.dp))
@@ -375,7 +381,7 @@ private fun OnboardingTierStep(onFinish: () -> Unit) {
         Text(
             text = "Choose your plan",
             style = MaterialTheme.typography.headlineSmall,
-            color = TextPrimary,
+            color = GoldDeep,
             textAlign = TextAlign.Center
         )
         Spacer(Modifier.height(20.dp))
@@ -399,7 +405,7 @@ private fun TierCard(title: String, subtitle: String, selected: Boolean, comingS
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(title, style = MaterialTheme.typography.titleMedium, color = TextPrimary)
+                    Text(title, style = MaterialTheme.typography.titleMedium, color = GoldDeep)
                     if (comingSoon) {
                         Spacer(Modifier.width(8.dp))
                         ComingSoonBadge(text = "Coming soon")

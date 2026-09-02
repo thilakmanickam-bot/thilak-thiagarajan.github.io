@@ -87,7 +87,7 @@ fun AccountScreen(modifier: Modifier = Modifier) {
             Text(
                 text = signedIn.displayName.ifBlank { signedIn.email },
                 style = MaterialTheme.typography.titleLarge,
-                color = TextPrimary,
+                color = GoldDeep,
                 textAlign = TextAlign.Center
             )
             if (signedIn.email.isNotBlank() && signedIn.displayName.isNotBlank()) {

@@ -90,7 +90,7 @@ fun PanchangamScreen(
                     Text(
                         text = date.format(gregFmt),
                         style = MaterialTheme.typography.titleLarge,
-                        color = TextPrimary
+                        color = GoldDeep
                     )
                     Text(
                         text = PanchangamNames.weekdays[p.weekdayIndex].get(lang),
