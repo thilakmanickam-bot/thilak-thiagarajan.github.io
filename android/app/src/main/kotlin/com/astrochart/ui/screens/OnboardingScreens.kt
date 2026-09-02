@@ -351,6 +351,17 @@ private fun OnboardingSignInStep(onNext: () -> Unit) {
                 color = MaterialTheme.colorScheme.error,
                 textAlign = TextAlign.Center
             )
+            // The same detail the Account screen shows. This is the screen a
+            // first-run tester actually hits, so swallowing the reason here
+            // meant a bug report of "it doesn't work" and a second round trip
+            // to reproduce it somewhere the detail is visible.
+            Spacer(Modifier.height(6.dp))
+            Text(
+                text = (status as AccountViewModel.Status.Error).message,
+                style = MaterialTheme.typography.labelSmall,
+                color = TextMuted,
+                textAlign = TextAlign.Center
+            )
         }
         Spacer(Modifier.height(24.dp))
         GoldButton(text = "Continue", onClick = onNext, modifier = Modifier.fillMaxWidth())

@@ -65,8 +65,24 @@ object AuthManager {
             .split(",")
             .any { it.equals(sha1, ignoreCase = true) }
         return "activityCtx=$activityCtx playServices=$playServices " +
+            "gms=${playServicesVersion(context)} " +
             "certSha1=${sha1 ?: "unknown"} certRegistered=$registered"
     }
+
+    /**
+     * Installed Play Services version. [GoogleApiAvailability] answers only
+     * "can this device be served at all" — it returns SUCCESS for any version
+     * at or above the one the app was built against, so two devices that both
+     * report 0 can still be running Play Services builds years apart. When the
+     * same artifact signs in on one device and hangs on another, the version
+     * is one of the few things that actually differs between them, so report
+     * it rather than collapsing it into that single status code.
+     */
+    private fun playServicesVersion(context: Context): String = runCatching {
+        context.packageManager
+            .getPackageInfo("com.google.android.gms", 0)
+            .versionName ?: "unknown"
+    }.getOrElse { "absent" }
 
     /**
      * SHA-1 of the APK's signing certificate, lowercase hex without separators —

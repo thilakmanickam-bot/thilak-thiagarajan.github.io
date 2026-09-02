@@ -2,6 +2,7 @@ package com.astrochart.ui.viewmodel
 
 import android.app.Application
 import android.content.Context
+import android.os.SystemClock
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.astrochart.Features
@@ -56,6 +57,7 @@ class AccountViewModel(application: Application) : AndroidViewModel(application)
                     )
                 }
             }
+            val startedAt = SystemClock.elapsedRealtime()
             try {
                 val account = AuthManager.signInWithGoogle(context)
                 AccountStore.save(getApplication(), account)
@@ -63,8 +65,15 @@ class AccountViewModel(application: Application) : AndroidViewModel(application)
                 runCatching { ProfileSync.syncAll(getApplication(), repository) }
                 _status.value = Status.Idle
             } catch (e: Exception) {
+                // Elapsed time separates a request that failed fast (a
+                // configuration answer came back from Play Services) from one
+                // that hung and only failed much later (the request never got
+                // an answer at all) — the same exception type can arrive both
+                // ways, and they point at different layers.
+                val seconds = (SystemClock.elapsedRealtime() - startedAt) / 1000
                 _status.value = Status.Error(
-                    "${e.javaClass.simpleName}: ${e.message} — ${AuthManager.environmentSummary(context)}"
+                    "${e.javaClass.simpleName} after ${seconds}s: ${e.message} — " +
+                        AuthManager.environmentSummary(context)
                 )
             } finally {
                 watchdog.cancel()
