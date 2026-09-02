@@ -30,7 +30,9 @@ ext {
     //        indicator and Skip in the footer, gold hero on the first screen.
     // 1.1.5: report Play Services version and elapsed time in sign-in
     //        failures; show the reason on the onboarding screen too.
-    versionName = "1.1.5"
+    // 1.1.6: birthplace search tolerates approximate spellings
+    //        ("karaikudi" now finds "Kāraikkudi").
+    versionName = "1.1.6"
 
     // Dependency versions
     kotlinVersion = "1.9.22"
