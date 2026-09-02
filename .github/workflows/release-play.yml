@@ -20,7 +20,7 @@ on:
   workflow_dispatch:
     inputs:
       track:
-        description: 'Play track to release to'
+        description: 'Play track to release to (internal-app-sharing is not a track — see below)'
         default: 'internal'
         type: choice
         options:
@@ -28,6 +28,13 @@ on:
           - alpha
           - beta
           - production
+          # Not a track: Internal App Sharing is a separate Play API that
+          # returns a private install link instead of creating a release.
+          # It skips review entirely, so a build is installable in minutes
+          # rather than after a closed-testing review, and it does not
+          # consume/require a unique version code. Use it for getting a
+          # diagnostic build onto a device fast; use the real tracks to ship.
+          - internal-app-sharing
       run_qa_gate:
         description: 'Run the QA gate before this release (always forced on for production)'
         type: boolean
@@ -142,6 +149,7 @@ jobs:
           PY
 
       - name: Upload to Google Play
+        if: needs.determine-gate.outputs.track != 'internal-app-sharing'
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
@@ -149,3 +157,78 @@ jobs:
           releaseFiles: android/app/build/outputs/bundle/release/app-release.aab
           track: ${{ needs.determine-gate.outputs.track }}
           status: completed
+
+      # Internal App Sharing is a different API from the track uploads above:
+      # it takes the artifact directly rather than going through an edit, and
+      # returns a private install link instead of creating a release. The
+      # action used above drives only the edits API, so this is done directly.
+      - name: Upload to Internal App Sharing
+        if: needs.determine-gate.outputs.track == 'internal-app-sharing'
+        env:
+          PLAY_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          python3 -m pip install --quiet google-auth requests
+          python3 - <<'PY'
+          import json, os, sys
+          from google.oauth2 import service_account
+          from google.auth.transport.requests import AuthorizedSession
+
+          PKG = "com.techbyt.halo"
+          AAB = "android/app/build/outputs/bundle/release/app-release.aab"
+
+          creds = service_account.Credentials.from_service_account_info(
+              json.loads(os.environ["PLAY_JSON"]),
+              scopes=["https://www.googleapis.com/auth/androidpublisher"],
+          )
+          session = AuthorizedSession(creds)
+
+          url = (
+              "https://androidpublisher.googleapis.com/upload/androidpublisher/v3"
+              f"/applications/internalappsharing/{PKG}/artifacts/bundle"
+          )
+          # Read into memory so requests sets an explicit Content-Length; the
+          # upload endpoint does not accept chunked transfer encoding.
+          with open(AAB, "rb") as f:
+              payload = f.read()
+          print(f"uploading {len(payload)} bytes")
+
+          resp = session.post(
+              url,
+              params={"uploadType": "media"},
+              headers={"Content-Type": "application/octet-stream"},
+              data=payload,
+              timeout=900,
+          )
+          print("HTTP", resp.status_code)
+          if resp.status_code != 200:
+              print("RESPONSE:", resp.text[:2000])
+              print(
+                  "HINT: 403 = the service account lacks permission, or Internal "
+                  "app sharing is not enabled for this app in Play Console "
+                  "(Setup -> Internal app sharing). 404 = package not found."
+              )
+              sys.exit(1)
+
+          body = resp.json()
+          # certificateFingerprint is the SHA-256 of the certificate Google
+          # signed this artifact with. google-services.json registers SHA-1
+          # fingerprints, so the two are not directly comparable — but the
+          # installed build reports its own SHA-1 on the Account screen
+          # (AuthManager.environmentSummary), which is.
+          lines = [
+              "## Internal app sharing",
+              "",
+              f"**Install link:** {body['downloadUrl']}",
+              "",
+              f"- Signing certificate (SHA-256): `{body.get('certificateFingerprint', 'not reported')}`",
+              f"- Artifact SHA-256: `{body.get('sha256', 'not reported')}`",
+              "",
+              "The link only installs for accounts on the Internal app sharing",
+              "tester list in Play Console.",
+          ]
+          print("\n".join(lines))
+          summary = os.environ.get("GITHUB_STEP_SUMMARY")
+          if summary:
+              with open(summary, "a") as fh:
+                  fh.write("\n".join(lines) + "\n")
+          PY

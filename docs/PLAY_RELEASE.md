@@ -85,6 +85,33 @@ no analytics are included.
   artifact, and pushes it to the chosen Play track with status `completed`.
 - Promote from Internal → Production in the Play Console when you're ready.
 
+## 7. Internal app sharing (skip the review queue)
+
+Closed-testing releases go through Google review before testers can install them,
+which can take hours. **Internal app sharing** does not: it returns a private
+install link within a minute or two of the upload finishing. Use it to get a
+build onto a device now — for reproducing a bug, or checking a fix — and the
+real tracks to actually ship.
+
+Pick **`internal-app-sharing`** in the `track` dropdown. It is listed there for
+convenience but is *not* a track: no release is created, nothing is promoted,
+and the version code does not have to be unique or increasing.
+
+The install link is printed to the workflow's job summary, along with the
+SHA-256 fingerprint of the certificate Google signed the artifact with.
+
+One-time setup in Play Console → **Setup → Internal app sharing**:
+
+1. Turn it on for the app.
+2. Add an **uploaders** list containing the service account's `client_email`
+   (the one from §3) — without this the upload returns HTTP 403.
+3. Add the tester email addresses allowed to install from the link. The link
+   does nothing for an account that isn't on that list.
+
+On the device, the tester must enable **internal app sharing** in the Play Store
+app (Settings → General → Internal app sharing) and be signed in with a listed
+account before opening the link.
+
 ## Troubleshooting
 
 - **`Package not found` / `APK ... not allowed`** — the app isn't set up in Console
