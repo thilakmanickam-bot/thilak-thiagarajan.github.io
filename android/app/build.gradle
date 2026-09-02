@@ -163,6 +163,7 @@ android {
                 excluded.split(",").collect { it.trim() }.findAll { it }.each { pattern ->
                     task.filter.excludeTestsMatching(pattern)
                 }
+            }
         }
     }
 }
