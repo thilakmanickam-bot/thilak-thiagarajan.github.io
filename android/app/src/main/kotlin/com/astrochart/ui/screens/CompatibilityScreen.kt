@@ -80,21 +80,21 @@ fun CompatibilityScreen(
     val ps = remember(lang) { PoruthamStrings.forLanguage(lang) }
     val activity = LocalContext.current as? Activity
 
-    var boyName by remember { mutableStateOf("") }
-    var boyRasi by remember { mutableStateOf<Int?>(null) }
-    var boyNak by remember { mutableStateOf<Int?>(null) }
-    var girlName by remember { mutableStateOf("") }
-    var girlRasi by remember { mutableStateOf<Int?>(null) }
-    var girlNak by remember { mutableStateOf<Int?>(null) }
+    var groomName by remember { mutableStateOf("") }
+    var groomRasi by remember { mutableStateOf<Int?>(null) }
+    var groomNak by remember { mutableStateOf<Int?>(null) }
+    var brideName by remember { mutableStateOf("") }
+    var brideRasi by remember { mutableStateOf<Int?>(null) }
+    var brideNak by remember { mutableStateOf<Int?>(null) }
     var result by remember { mutableStateOf<PoruthamResult?>(null) }
-    var shownBoy by remember { mutableStateOf("") }
-    var shownGirl by remember { mutableStateOf("") }
-    var shownBoyRasi by remember { mutableStateOf(0) }
-    var shownGirlRasi by remember { mutableStateOf(0) }
-    var shownBoyNak by remember { mutableStateOf(0) }
-    var shownGirlNak by remember { mutableStateOf(0) }
+    var shownGroom by remember { mutableStateOf("") }
+    var shownBride by remember { mutableStateOf("") }
+    var shownGroomRasi by remember { mutableStateOf(0) }
+    var shownBrideRasi by remember { mutableStateOf(0) }
+    var shownGroomNak by remember { mutableStateOf(0) }
+    var shownBrideNak by remember { mutableStateOf(0) }
 
-    val ready = boyRasi != null && boyNak != null && girlRasi != null && girlNak != null
+    val ready = groomRasi != null && groomNak != null && brideRasi != null && brideNak != null
 
     Column(
         modifier = modifier
@@ -111,19 +111,24 @@ fun CompatibilityScreen(
         )
         Spacer(Modifier.height(16.dp))
 
+        // Headings carry no emoji: the celestial-gold system in
+        // docs/DESIGN_SYSTEM.md has its own vocabulary for this, and the
+        // bride/groom glyphs rendered as whatever each device's font happened
+        // to supply — full-colour, off-palette, and inconsistent between
+        // phones.
         PersonCard(
-            heading = "👰‍♂️  ${ps.boyDetails}",
-            name = boyName, onName = { boyName = it }, namePlaceholder = ps.enterBoyName,
-            rasi = boyRasi, onRasi = { boyRasi = it },
-            nak = boyNak, onNak = { boyNak = it },
+            heading = ps.groomDetails,
+            name = groomName, onName = { groomName = it }, namePlaceholder = ps.enterGroomName,
+            rasi = groomRasi, onRasi = { groomRasi = it },
+            nak = groomNak, onNak = { groomNak = it },
             ps = ps, lang = lang
         )
         Spacer(Modifier.height(16.dp))
         PersonCard(
-            heading = "👰  ${ps.girlDetails}",
-            name = girlName, onName = { girlName = it }, namePlaceholder = ps.enterGirlName,
-            rasi = girlRasi, onRasi = { girlRasi = it },
-            nak = girlNak, onNak = { girlNak = it },
+            heading = ps.brideDetails,
+            name = brideName, onName = { brideName = it }, namePlaceholder = ps.enterBrideName,
+            rasi = brideRasi, onRasi = { brideRasi = it },
+            nak = brideNak, onNak = { brideNak = it },
             ps = ps, lang = lang
         )
 
@@ -132,11 +137,11 @@ fun CompatibilityScreen(
         Button(
             onClick = {
                 if (ready) {
-                    result = Porutham.compute(boyRasi!!, boyNak!!, girlRasi!!, girlNak!!)
-                    shownBoy = boyName.ifBlank { ps.boyName }
-                    shownGirl = girlName.ifBlank { ps.girlName }
-                    shownBoyRasi = boyRasi!!; shownGirlRasi = girlRasi!!
-                    shownBoyNak = boyNak!!; shownGirlNak = girlNak!!
+                    result = Porutham.compute(groomRasi!!, groomNak!!, brideRasi!!, brideNak!!)
+                    shownGroom = groomName.ifBlank { ps.groomName }
+                    shownBride = brideName.ifBlank { ps.brideName }
+                    shownGroomRasi = groomRasi!!; shownBrideRasi = brideRasi!!
+                    shownGroomNak = groomNak!!; shownBrideNak = brideNak!!
                     activity?.let { com.astrochart.ads.InterstitialAds.maybeShow(it) }
                 }
             },
@@ -144,7 +149,7 @@ fun CompatibilityScreen(
             colors = ButtonDefaults.buttonColors(containerColor = GoldDeep, contentColor = Color.White),
             modifier = Modifier.fillMaxWidth().height(52.dp)
         ) {
-            Text("💍  ${ps.calculate}", style = MaterialTheme.typography.titleMedium)
+            Text(ps.calculate, style = MaterialTheme.typography.titleMedium)
         }
 
         if (!ready) {
@@ -162,7 +167,7 @@ fun CompatibilityScreen(
             Spacer(Modifier.height(24.dp))
             ResultHeader(
                 r, ps, lang,
-                shownBoy, shownGirl, shownBoyRasi, shownGirlRasi, shownBoyNak, shownGirlNak
+                shownGroom, shownBride, shownGroomRasi, shownBrideRasi, shownGroomNak, shownBrideNak
             )
             Spacer(Modifier.height(16.dp))
             KutaTable(r, ps)
@@ -251,13 +256,13 @@ private fun ResultHeader(
     ps: PoruthamStrings,
     lang: Language,
     boy: String, girl: String,
-    boyRasi: Int, girlRasi: Int,
-    boyNak: Int, girlNak: Int
+    groomRasi: Int, brideRasi: Int,
+    groomNak: Int, brideNak: Int
 ) {
     CelestialCard {
         Row(modifier = Modifier.fillMaxWidth()) {
-            PersonSummary(ps.boyName, boy, Translations.signName(SIGN_ORDER[boyRasi], lang), PanchangamNames.nakshatras[boyNak].get(lang), Modifier.weight(1f))
-            PersonSummary(ps.girlName, girl, Translations.signName(SIGN_ORDER[girlRasi], lang), PanchangamNames.nakshatras[girlNak].get(lang), Modifier.weight(1f))
+            PersonSummary(ps.groomName, boy, Translations.signName(SIGN_ORDER[groomRasi], lang), PanchangamNames.nakshatras[groomNak].get(lang), Modifier.weight(1f))
+            PersonSummary(ps.brideName, girl, Translations.signName(SIGN_ORDER[brideRasi], lang), PanchangamNames.nakshatras[brideNak].get(lang), Modifier.weight(1f))
         }
         Spacer(Modifier.height(12.dp))
         SectionDivider(modifier = Modifier.fillMaxWidth(), width = 200)

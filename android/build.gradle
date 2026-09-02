@@ -32,7 +32,8 @@ ext {
     //        failures; show the reason on the onboarding screen too.
     // 1.1.6: birthplace search tolerates approximate spellings
     //        ("karaikudi" now finds "Kāraikkudi").
-    versionName = "1.1.6"
+    // 1.1.7: matchmaking speaks of the groom and bride, and drops the emoji.
+    versionName = "1.1.7"
 
     // Dependency versions
     kotlinVersion = "1.9.22"
