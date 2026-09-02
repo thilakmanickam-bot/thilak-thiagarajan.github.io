@@ -8,7 +8,13 @@ name: Release to Play Store
 #   ANDROID_KEY_ALIAS           - key alias inside the keystore
 #   ANDROID_KEY_PASSWORD        - key password
 #   PLAY_SERVICE_ACCOUNT_JSON   - Play Console service-account JSON (full contents)
+#   ANTHROPIC_API_KEY           - used by qa-gate.yml's design-integrity review
 # See docs/PLAY_RELEASE.md for how to create each of these.
+#
+# QA gate (qa-gate.yml): on-demand via the `run_qa_gate` checkbox for
+# internal/alpha/beta, but ALWAYS forced on for `production` regardless of
+# that checkbox — determine-gate below is the single place that decides
+# this, so the gate can never be silently bypassed for a production ship.
 
 on:
   workflow_dispatch:
@@ -22,12 +28,48 @@ on:
           - alpha
           - beta
           - production
+      run_qa_gate:
+        description: 'Run the QA gate before this release (always forced on for production)'
+        type: boolean
+        default: true
   push:
     tags:
       - 'v*'
 
 jobs:
+  determine-gate:
+    runs-on: ubuntu-latest
+    outputs:
+      required: ${{ steps.decide.outputs.required }}
+      track: ${{ steps.decide.outputs.track }}
+    steps:
+      - id: decide
+        run: |
+          TRACK="${{ github.event.inputs.track || 'internal' }}"
+          RUN_QA_GATE="${{ github.event.inputs.run_qa_gate }}"
+          if [ "$TRACK" = "production" ]; then
+            echo "required=true" >> "$GITHUB_OUTPUT"
+          elif [ "$RUN_QA_GATE" = "false" ]; then
+            echo "required=false" >> "$GITHUB_OUTPUT"
+          else
+            # Covers the checkbox left checked, and tag pushes (which have
+            # no dispatch inputs at all) — fail safe to gated.
+            echo "required=true" >> "$GITHUB_OUTPUT"
+          fi
+          echo "track=$TRACK" >> "$GITHUB_OUTPUT"
+
+  call-qa-gate:
+    needs: determine-gate
+    if: needs.determine-gate.outputs.required == 'true'
+    uses: ./.github/workflows/qa-gate.yml
+    secrets: inherit
+
   publish:
+    needs: [determine-gate, call-qa-gate]
+    # `call-qa-gate` is skipped (not run) when the gate wasn't required —
+    # `success() || skipped()`-shaped check so publish proceeds either way,
+    # but never when the gate actually ran and failed.
+    if: always() && (needs.call-qa-gate.result == 'success' || needs.call-qa-gate.result == 'skipped')
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -105,5 +147,5 @@ jobs:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
           packageName: com.techbyt.halo
           releaseFiles: android/app/build/outputs/bundle/release/app-release.aab
-          track: ${{ github.event.inputs.track || 'internal' }}
+          track: ${{ needs.determine-gate.outputs.track }}
           status: completed

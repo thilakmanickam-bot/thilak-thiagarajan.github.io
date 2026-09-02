@@ -37,6 +37,13 @@ jobs:
       - name: Run Core Unit Tests
         run: gradle -p android core:test --stacktrace
 
+      # Unfiltered — this already runs com.astrochart.features.* and
+      # com.astrochart.uitest.* (Compose/Robolectric) alongside every other
+      # unit test, so feature and UI regressions are caught on every PR
+      # without a second, duplicate test run. qa-gate.yml (used for the
+      # alpha/production release gate) runs the same tests split into
+      # separately-attributed jobs, plus screenshot/design-integrity
+      # checks that don't belong on every PR — see docs/TESTING.md.
       - name: Run App Unit Tests
         run: gradle -p android app:testDebugUnitTest --stacktrace
 

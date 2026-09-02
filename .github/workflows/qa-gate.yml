@@ -1,0 +1,164 @@
+name: QA Gate
+
+# Reusable testing/QA gate covering four separately-attributed concerns:
+# modules (core business logic), features (cross-class scenario tests),
+# UI (Compose render/interaction), and design integrity (screenshot
+# regression + an LLM review against docs/DESIGN_SYSTEM.md).
+#
+# Two callers, one gate — no duplicated logic:
+#   - release-play.yml calls this via `workflow_call` for both the alpha
+#     on-demand path and the production-required path.
+#   - It's also directly workflow_dispatch-able on its own (Actions tab),
+#     independent of any release.
+#
+# android-ci.yml deliberately does NOT call this: its existing
+# `app:testDebugUnitTest` step is unfiltered, so it already runs the
+# features/uitest packages on every PR without a second, duplicate run —
+# see docs/TESTING.md.
+
+on:
+  workflow_call:
+    inputs:
+      include_design_integrity:
+        description: 'Run the design-integrity job (screenshot tests + LLM review)'
+        type: boolean
+        default: true
+    outputs:
+      result:
+        description: 'success/failure of qa-gate-summary'
+        value: ${{ jobs.qa-gate-summary.outputs.result }}
+  workflow_dispatch:
+    inputs:
+      include_design_integrity:
+        description: 'Run the design-integrity job (screenshot tests + LLM review)'
+        type: boolean
+        default: true
+
+jobs:
+  modules-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { java-version: '17', distribution: 'temurin' }
+      - uses: gradle/gradle-build-action@v3
+        with: { gradle-version: 8.2 }
+      - name: core:test
+        run: gradle -p android core:test --stacktrace
+      - name: app unit tests (excluding features/uitest)
+        run: >
+          gradle -p android app:testDebugUnitTest --stacktrace
+          --tests "*"
+          --tests "!com.astrochart.features.*"
+          --tests "!com.astrochart.uitest.*"
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: modules-test-results
+          path: |
+            android/core/build/reports/
+            android/app/build/reports/
+
+  feature-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { java-version: '17', distribution: 'temurin' }
+      - uses: gradle/gradle-build-action@v3
+        with: { gradle-version: 8.2 }
+      - name: Feature scenario tests
+        run: gradle -p android app:testDebugUnitTest --stacktrace --tests "com.astrochart.features.*"
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: feature-test-results
+          path: android/app/build/reports/
+
+  ui-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { java-version: '17', distribution: 'temurin' }
+      - uses: gradle/gradle-build-action@v3
+        with: { gradle-version: 8.2 }
+      - name: Compose UI tests (excluding screenshot goldens)
+        run: >
+          gradle -p android app:testDebugUnitTest --stacktrace
+          --tests "com.astrochart.uitest.*"
+          --tests "!com.astrochart.uitest.screenshot.*"
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-test-results
+          path: android/app/build/reports/
+
+  design-integrity:
+    needs: ui-tests
+    if: inputs.include_design_integrity
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # Report-only during burn-in: a false positive here must never block a
+    # real release. Flip to blocking (remove continue-on-error) once this
+    # step's accuracy is proven over several real PRs — see docs/TESTING.md.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { java-version: '17', distribution: 'temurin' }
+      - uses: gradle/gradle-build-action@v3
+        with: { gradle-version: 8.2 }
+      - name: Screenshot regression (Roborazzi)
+        run: gradle -p android app:verifyRoborazziDebug --stacktrace --tests "com.astrochart.uitest.screenshot.*"
+      - name: Upload screenshot diffs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: roborazzi-diffs
+          path: android/app/build/outputs/roborazzi/
+          if-no-files-found: ignore
+      - name: Design-system review
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            Review the diff in this PR/commit under
+            android/app/src/main/kotlin/com/astrochart/ui/theme/ and
+            android/app/src/main/kotlin/com/astrochart/ui/screens/.
+            Check it against docs/DESIGN_SYSTEM.md (color tokens, typography
+            scale, card/button shape language). Flag only concrete
+            violations (new hardcoded colors/fonts/shapes that bypass the
+            documented tokens/components) — not subjective taste. Write a
+            short verdict (pass/flag, with specifics) to the job summary.
+
+  qa-gate-summary:
+    needs: [modules-tests, feature-tests, ui-tests, design-integrity]
+    if: always()
+    runs-on: ubuntu-latest
+    outputs:
+      result: ${{ steps.summarize.outputs.result }}
+    steps:
+      - id: summarize
+        run: |
+          # design-integrity is intentionally excluded from the pass/fail
+          # verdict while it runs in report-only mode (continue-on-error
+          # above already keeps it from failing the job outright; this is
+          # an extra explicit guard so the summary logic stays correct even
+          # if that's changed later without updating this step).
+          if [ "${{ needs.modules-tests.result }}" = "success" ] && \
+             [ "${{ needs.feature-tests.result }}" = "success" ] && \
+             [ "${{ needs.ui-tests.result }}" = "success" ]; then
+            echo "result=success" >> "$GITHUB_OUTPUT"
+            echo "QA gate: PASSED (modules/features/UI green)"
+          else
+            echo "result=failure" >> "$GITHUB_OUTPUT"
+            echo "QA gate: FAILED"
+            exit 1
+          fi
