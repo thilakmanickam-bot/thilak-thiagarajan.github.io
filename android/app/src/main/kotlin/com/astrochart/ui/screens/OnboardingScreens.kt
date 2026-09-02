@@ -1,14 +1,23 @@
 package com.astrochart.ui.screens
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -39,6 +48,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -60,7 +72,6 @@ import com.astrochart.ui.theme.CardBorder
 import com.astrochart.ui.theme.GoldDeep
 import com.astrochart.ui.theme.OnGold
 import com.astrochart.ui.theme.TextMuted
-import com.astrochart.ui.theme.TextPrimary
 import com.astrochart.ui.theme.fontFamilyForLanguage
 import com.astrochart.ui.viewmodel.AccountViewModel
 import com.astrochart.ui.viewmodel.BirthInputViewModel
@@ -84,49 +95,184 @@ fun OnboardingWizard(onFinished: () -> Unit, modifier: Modifier = Modifier) {
     var language by remember { mutableStateOf(LanguageStore.load(context)) }
     var chartStyle by remember { mutableStateOf(ChartStyleStore.load(context)) }
 
+    val finish = { OnboardingStore.markCompleted(context); onFinished() }
+    // "Skip" advances one step rather than abandoning the wizard: every step
+    // either has a sensible default already applied (language, chart style) or
+    // is genuinely optional (sign-in, profile), so skipping ahead never leaves
+    // the app in a state it can't run in.
+    val advance: () -> Unit = {
+        when (step) {
+            OnboardingStep.SIGN_IN -> step = OnboardingStep.LANGUAGE
+            OnboardingStep.LANGUAGE -> step = OnboardingStep.PROFILE
+            OnboardingStep.PROFILE -> step = OnboardingStep.CHART_STYLE
+            OnboardingStep.CHART_STYLE -> step = OnboardingStep.TIER
+            OnboardingStep.TIER -> finish()
+        }
+    }
+
     Column(modifier = modifier.fillMaxSize()) {
         Spacer(Modifier.height(24.dp))
-        StepDots(current = step.ordinal, total = OnboardingStep.entries.size)
         Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
             when (step) {
-                OnboardingStep.SIGN_IN -> OnboardingSignInStep(onNext = { step = OnboardingStep.LANGUAGE })
+                OnboardingStep.SIGN_IN -> OnboardingSignInStep(onNext = advance)
                 OnboardingStep.LANGUAGE -> OnboardingLanguageStep(
                     selected = language,
                     onSelect = { language = it; LanguageStore.save(context, it) },
-                    onNext = { step = OnboardingStep.PROFILE }
+                    onNext = advance
                 )
                 OnboardingStep.PROFILE -> OnboardingProfileStep(
-                    onSaved = { step = OnboardingStep.CHART_STYLE },
-                    onSkip = { step = OnboardingStep.CHART_STYLE }
+                    onSaved = advance,
+                    onSkip = advance,
+                    // The wizard's own footer carries Skip; a second one inside
+                    // the step would be two skip buttons on the same screen.
+                    showSkip = false
                 )
                 OnboardingStep.CHART_STYLE -> OnboardingChartStyleStep(
                     selected = chartStyle,
                     onSelect = { chartStyle = it; ChartStyleStore.save(context, it) },
-                    onNext = { step = OnboardingStep.TIER }
+                    onNext = advance
                 )
-                OnboardingStep.TIER -> OnboardingTierStep(
-                    onFinish = { OnboardingStore.markCompleted(context); onFinished() }
-                )
+                OnboardingStep.TIER -> OnboardingTierStep(onFinish = finish)
             }
         }
+        OnboardingFooter(
+            current = step.ordinal,
+            total = OnboardingStep.entries.size,
+            // The last step's own "Get Started" is the way out; a Skip beside
+            // it would be a second button doing the same thing.
+            showSkip = step != OnboardingStep.TIER,
+            onSkip = advance
+        )
     }
 }
 
+/**
+ * Bottom bar for the wizard: Skip, above a progress indicator that spans the
+ * full width of the screen edge to edge.
+ */
 @Composable
-private fun StepDots(current: Int, total: Int, modifier: Modifier = Modifier) {
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.Center
+private fun OnboardingFooter(
+    current: Int,
+    total: Int,
+    showSkip: Boolean,
+    onSkip: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier.fillMaxWidth().navigationBarsPadding(),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        repeat(total) { i ->
-            Box(
-                modifier = Modifier
-                    .padding(horizontal = 4.dp)
-                    .size(8.dp)
-                    .clip(CircleShape)
-                    .background(if (i == current) GoldDeep else CardBorder)
-            )
+        // The row keeps its height on the last step, where Skip is hidden, so
+        // the progress bar doesn't jump up the screen on the final transition.
+        Box(
+            modifier = Modifier.fillMaxWidth().height(48.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            if (showSkip) {
+                TextButton(onClick = onSkip) {
+                    Text(
+                        text = "Skip",
+                        color = TextMuted,
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                }
+            }
         }
+        StepProgressBar(current = current, total = total)
+    }
+}
+
+/**
+ * Progress as a single gold dash sliding along a full-width track, one
+ * step-width per step. Deliberately unpadded so it runs edge to edge, and
+ * unrounded for the same reason — a pill shape would read as a floating
+ * element rather than as the bottom edge of the screen.
+ */
+@Composable
+private fun StepProgressBar(current: Int, total: Int, modifier: Modifier = Modifier) {
+    val fraction by animateFloatAsState(
+        targetValue = if (total <= 0) 0f else current.toFloat() / total,
+        animationSpec = tween(durationMillis = 320),
+        label = "onboardingProgress"
+    )
+    BoxWithConstraints(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(4.dp)
+            .background(CardBorder.copy(alpha = 0.25f))
+    ) {
+        Box(
+            modifier = Modifier
+                .offset(x = maxWidth * fraction)
+                .width(if (total <= 0) maxWidth else maxWidth / total)
+                .fillMaxHeight()
+                .background(Brush.horizontalGradient(listOf(GoldLight, GoldDeep)))
+        )
+    }
+}
+
+/**
+ * Vertically centres a step's content, and scrolls instead once the content is
+ * taller than the viewport. [heightIn] against the measured viewport height is
+ * what makes both true at once: inside a `verticalScroll` the column is
+ * measured with unbounded height, so `Arrangement.Center` alone would have
+ * nothing to centre within.
+ */
+@Composable
+private fun OnboardingStepScaffold(
+    modifier: Modifier = Modifier,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    BoxWithConstraints(modifier = modifier.fillMaxSize()) {
+        val viewportHeight = maxHeight
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .heightIn(min = viewportHeight)
+                .padding(horizontal = 24.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+            content = content
+        )
+    }
+}
+
+/**
+ * The wizard's hero mark: the app icon inside a gold ring with a soft radial
+ * glow behind it. Carries the "Halo" name and gives the first-run screens a
+ * focal point that a bare tinted icon didn't.
+ */
+@Composable
+private fun HaloHero(icon: ImageVector, modifier: Modifier = Modifier) {
+    Box(modifier = modifier.size(132.dp), contentAlignment = Alignment.Center) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(CircleShape)
+                .background(
+                    Brush.radialGradient(
+                        listOf(GoldDeep.copy(alpha = 0.30f), Color.Transparent)
+                    )
+                )
+        )
+        Box(
+            modifier = Modifier
+                .size(96.dp)
+                .clip(CircleShape)
+                .background(GoldDeep.copy(alpha = 0.10f))
+                .border(
+                    width = 1.5.dp,
+                    brush = Brush.linearGradient(listOf(GoldLight, GoldDeep)),
+                    shape = CircleShape
+                )
+        )
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = GoldDeep,
+            modifier = Modifier.size(52.dp)
+        )
     }
 }
 
@@ -140,32 +286,30 @@ private fun OnboardingSignInStep(onNext: () -> Unit) {
     // A returning signed-in user (or a fresh success mid-wizard) skips straight ahead.
     LaunchedEffect(account) { if (account != null) onNext() }
 
-    Column(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Spacer(Modifier.height(8.dp))
-        Icon(
-            imageVector = Icons.Filled.AccountCircle,
-            contentDescription = null,
-            tint = GoldDeep,
-            modifier = Modifier.size(56.dp)
-        )
-        Spacer(Modifier.height(16.dp))
+    OnboardingStepScaffold {
+        HaloHero(icon = Icons.Filled.AccountCircle)
+        Spacer(Modifier.height(20.dp))
         Text(
             text = "Welcome to Halo",
-            style = MaterialTheme.typography.headlineSmall,
+            style = MaterialTheme.typography.displaySmall,
             color = GoldDeep,
             textAlign = TextAlign.Center
         )
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(10.dp))
         Text(
-            text = "Sign in to back up your profile and charts across devices — or skip for now.",
-            style = MaterialTheme.typography.bodyMedium,
+            text = "Your chart, your panchangam, your day — read the sky in your own language.",
+            style = MaterialTheme.typography.bodyLarge,
             color = TextMuted,
             textAlign = TextAlign.Center
         )
-        Spacer(Modifier.height(28.dp))
+        Spacer(Modifier.height(6.dp))
+        Text(
+            text = "Sign in to back up your profile and charts across devices.",
+            style = MaterialTheme.typography.bodySmall,
+            color = TextMuted,
+            textAlign = TextAlign.Center
+        )
+        Spacer(Modifier.height(32.dp))
         Button(
             onClick = { viewModel.signInWithGoogle(context) },
             enabled = status !is AccountViewModel.Status.Working,
@@ -225,14 +369,11 @@ internal fun OnboardingLanguageStep(
     onSelect: (Language) -> Unit,
     onNext: () -> Unit
 ) {
-    Column(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
+    OnboardingStepScaffold {
         Spacer(Modifier.height(8.dp))
         Text(
             text = "Choose your language",
-            style = MaterialTheme.typography.headlineSmall,
+            style = MaterialTheme.typography.headlineMedium,
             color = GoldDeep,
             textAlign = TextAlign.Center
         )
@@ -264,9 +405,16 @@ internal fun OnboardingLanguageStep(
  * counterpart to its tropical [com.astrochart.core.models.NatalChart]) rather
  * than hand-picked. `internal` so Settings' "Change primary profile" flow can
  * reuse this exact same step, prefilled the same way.
+ *
+ * [showSkip] is false inside the wizard, whose footer already offers Skip, and
+ * true for the Settings route, where this button is the only way back out.
  */
 @Composable
-internal fun OnboardingProfileStep(onSaved: () -> Unit, onSkip: () -> Unit) {
+internal fun OnboardingProfileStep(
+    onSaved: () -> Unit,
+    onSkip: () -> Unit,
+    showSkip: Boolean = true
+) {
     val context = LocalContext.current
     val viewModel: BirthInputViewModel = viewModel()
     val existing = remember { PrimaryProfileStore.load(context) }
@@ -312,8 +460,10 @@ internal fun OnboardingProfileStep(onSaved: () -> Unit, onSkip: () -> Unit) {
                 onSaved()
             }
         )
-        TextButton(onClick = onSkip, modifier = Modifier.fillMaxWidth()) {
-            Text("Skip for now", color = TextMuted)
+        if (showSkip) {
+            TextButton(onClick = onSkip, modifier = Modifier.fillMaxWidth()) {
+                Text("Skip for now", color = TextMuted)
+            }
         }
     }
 }
@@ -325,14 +475,11 @@ internal fun OnboardingChartStyleStep(
     onSelect: (ChartStyle) -> Unit,
     onNext: () -> Unit
 ) {
-    Column(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
+    OnboardingStepScaffold {
         Spacer(Modifier.height(8.dp))
         Text(
             text = "How should your chart look?",
-            style = MaterialTheme.typography.headlineSmall,
+            style = MaterialTheme.typography.headlineMedium,
             color = GoldDeep,
             textAlign = TextAlign.Center
         )
@@ -373,25 +520,16 @@ internal fun OnboardingChartStyleStep(
 
 @Composable
 private fun OnboardingTierStep(onFinish: () -> Unit) {
-    Column(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Spacer(Modifier.height(8.dp))
-        Icon(
-            imageVector = Icons.Filled.WorkspacePremium,
-            contentDescription = null,
-            tint = GoldDeep,
-            modifier = Modifier.size(48.dp)
-        )
-        Spacer(Modifier.height(12.dp))
+    OnboardingStepScaffold {
+        HaloHero(icon = Icons.Filled.WorkspacePremium)
+        Spacer(Modifier.height(16.dp))
         Text(
             text = "Choose your plan",
-            style = MaterialTheme.typography.headlineSmall,
+            style = MaterialTheme.typography.headlineMedium,
             color = GoldDeep,
             textAlign = TextAlign.Center
         )
-        Spacer(Modifier.height(20.dp))
+        Spacer(Modifier.height(24.dp))
         TierCard(title = "Basic", subtitle = "Free, with occasional ads", selected = true)
         Spacer(Modifier.height(12.dp))
         TierCard(

@@ -51,6 +51,28 @@ existing `MaterialTheme.typography.*` style, not define a one-off
   (non-dark) status bar icons (`Theme.kt`'s `AstroChartTheme`) — a new
   top-level screen should not reintroduce an opaque status bar.
 
+### Onboarding (`OnboardingScreens.kt`)
+
+The first-run wizard has its own layout rules, deliberately different
+from the rest of the app. They are documented here so the design-integrity
+review grades against them rather than flagging them:
+
+- **Every step is vertically centred**, and scrolls only once its content
+  is taller than the viewport (`OnboardingStepScaffold`). Steps must not
+  be top-aligned — a short step stranded against the top of a tall screen
+  is what this replaced.
+- **The step indicator is full-bleed**: a 4dp track pinned to the bottom
+  of the screen, running edge to edge with no horizontal padding, carrying
+  a single gold-gradient dash one step wide that slides as steps advance
+  (`StepProgressBar`). It is intentionally **not** rounded and
+  intentionally **not** inset — a pill would read as a floating control
+  rather than as the bottom edge of the screen. This is the one place a
+  full-bleed unrounded element is correct.
+- **Skip lives in the footer**, above the indicator, not inside step
+  content — one skip affordance per screen, in a fixed position.
+- Icon-led steps use `HaloHero`: the icon inside a gold-gradient ring over
+  a soft radial glow, rather than a bare tinted `Icon`.
+
 ## What "correct" vs "violates the system" looks like
 
 **Correct** — reusing tokens and existing components:
