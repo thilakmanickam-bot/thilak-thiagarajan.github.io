@@ -33,7 +33,8 @@ ext {
     // 1.1.6: birthplace search tolerates approximate spellings
     //        ("karaikudi" now finds "Kāraikkudi").
     // 1.1.7: matchmaking speaks of the groom and bride, and drops the emoji.
-    versionName = "1.1.7"
+    // 1.1.8: database v3 — saved_matches table for saved marriage matches.
+    versionName = "1.1.8"
 
     // Dependency versions
     kotlinVersion = "1.9.22"
