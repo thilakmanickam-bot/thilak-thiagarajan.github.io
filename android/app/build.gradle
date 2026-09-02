@@ -149,7 +149,20 @@ android {
                     showExceptions = true
                     showStackTraces = true
                 }
-            }
+
+                // Gradle's `--tests` only ever adds *include* patterns (it binds
+                // to setTestNameIncludePatterns); there is no command-line
+                // exclude, and excludes are a separate set reachable only from
+                // here. So `--tests "!com.foo.*"` is not a negation — it is an
+                // include pattern that happens to contain "!" and matches
+                // nothing, which is silently harmless when OR'd with a broader
+                // include and silently wrong the rest of the time.
+                // qa-gate.yml needs real exclusions to attribute its jobs:
+                //   -PexcludeTests=com.astrochart.features.*,com.astrochart.uitest.*
+                def excluded = (project.findProperty("excludeTests") ?: "").toString()
+                excluded.split(",").collect { it.trim() }.findAll { it }.each { pattern ->
+                    task.filter.excludeTestsMatching(pattern)
+                }
         }
     }
 }

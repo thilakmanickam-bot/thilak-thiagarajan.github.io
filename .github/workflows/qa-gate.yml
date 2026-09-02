@@ -46,12 +46,15 @@ jobs:
         with: { gradle-version: 8.2 }
       - name: core:test
         run: gradle -p android core:test
+      # Exclusions go through -PexcludeTests, not `--tests "!..."`: Gradle's
+      # --tests only adds include patterns, so a "!"-prefixed one matches
+      # nothing and, OR'd with `--tests "*"`, silently ran the whole suite
+      # here — making this job's "excluding features/uitest" name a fiction.
+      # See the excludeTests block in android/app/build.gradle.
       - name: app unit tests (excluding features/uitest)
         run: >
           gradle -p android app:testDebugUnitTest
-          --tests "*"
-          --tests "!com.astrochart.features.*"
-          --tests "!com.astrochart.uitest.*"
+          -PexcludeTests="com.astrochart.features.*,com.astrochart.uitest.*"
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
@@ -92,7 +95,7 @@ jobs:
         run: >
           gradle -p android app:testDebugUnitTest
           --tests "com.astrochart.uitest.*"
-          --tests "!com.astrochart.uitest.screenshot.*"
+          -PexcludeTests="com.astrochart.uitest.screenshot.*"
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
