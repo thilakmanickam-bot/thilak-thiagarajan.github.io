@@ -44,18 +44,21 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.google.android.gms.ads.MobileAds
+import kotlinx.coroutines.launch
 import com.astrochart.core.i18n.Language
 import com.astrochart.notify.NotificationScheduler
 import com.astrochart.update.InAppUpdate
 import com.astrochart.ui.components.AdBanner
 import com.astrochart.ui.components.CelestialBackground
 import com.astrochart.ui.components.ResponsiveContainer
+import com.astrochart.billing.BillingManager
 import com.astrochart.ui.i18n.ChartStyleStore
 import com.astrochart.ui.i18n.LanguageStore
 import com.astrochart.ui.i18n.LocalChartStyle
@@ -108,6 +111,7 @@ class MainActivity : ComponentActivity() {
 
     private var inAppUpdate: InAppUpdate? = null
     private lateinit var updateLauncher: ActivityResultLauncher<IntentSenderRequest>
+    private var billingManager: BillingManager? = null
 
     @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -118,6 +122,15 @@ class MainActivity : ComponentActivity() {
             // Safe to call repeatedly; no-ops without Play services present.
             runCatching { MobileAds.initialize(this) }
             com.astrochart.ads.InterstitialAds.preload(this)
+        }
+        if (Features.BILLING_ENABLED) {
+            // Re-verifies whatever subscription Play reports once per launch —
+            // the app's whole entitlement-refresh mechanism (no RTDN/Pub-Sub;
+            // see the billing plan). Failures are silent: PremiumStore simply
+            // keeps its last-known state until the next successful refresh.
+            billingManager = BillingManager(this).also {
+                lifecycleScope.launch { it.refreshEntitlement() }
+            }
         }
         updateLauncher = registerForActivityResult(
             ActivityResultContracts.StartIntentSenderForResult()

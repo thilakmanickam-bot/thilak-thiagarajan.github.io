@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import com.astrochart.Features
 import com.astrochart.ads.Ads
@@ -26,7 +27,8 @@ import com.google.android.gms.ads.AdView
  */
 @Composable
 fun AdBanner(modifier: Modifier = Modifier) {
-    if (!Features.ADS_ENABLED || Premium.isActive) {
+    val context = LocalContext.current
+    if (!Features.ADS_ENABLED || Premium.isActive(context)) {
         Spacer(modifier = modifier.fillMaxWidth().navigationBarsPadding())
         return
     }

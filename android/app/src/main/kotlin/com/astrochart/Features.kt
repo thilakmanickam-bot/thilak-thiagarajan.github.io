@@ -48,4 +48,15 @@ object Features {
      * Facebook button renders disabled with a "coming soon" hint.
      */
     const val FACEBOOK_LOGIN_ENABLED = false
+
+    /**
+     * Real Google Play Billing for Halo Premium (monthly/yearly subscriptions).
+     * The app-side implementation (Billing Library wiring, purchase flow,
+     * entitlement caching) is complete, but it depends on the `verifyPurchase`
+     * Cloud Function (see /functions) and the two subscription products, both
+     * of which must be set up in Play Console separately — flipping this to
+     * `true` before that's done means every purchase attempt fails to verify.
+     * See functions/README.md for the exact one-time setup steps.
+     */
+    const val BILLING_ENABLED = false
 }

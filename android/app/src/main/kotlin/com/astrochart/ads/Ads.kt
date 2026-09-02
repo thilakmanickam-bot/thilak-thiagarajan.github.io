@@ -1,5 +1,8 @@
 package com.astrochart.ads
 
+import android.content.Context
+import com.astrochart.billing.PremiumStore
+
 /**
  * AdMob ad-unit configuration.
  *
@@ -36,10 +39,12 @@ object Ads {
 }
 
 /**
- * Whether the current viewer has the ad-free Premium tier. There is no billing
- * yet (Premium is "coming soon"), so everyone is on the basic, ad-supported
- * tier. When the subscription ships, back [isActive] with the real entitlement.
+ * Whether the current viewer has the ad-free Premium tier. Backed by
+ * [PremiumStore], a local cache of the entitlement last verified server-side
+ * by the `verifyPurchase` Cloud Function (see `BillingManager`) — refreshed
+ * on every app launch, so it stays close to the real Play subscription state
+ * without needing push notifications from Play.
  */
 object Premium {
-    const val isActive: Boolean = false
+    fun isActive(context: Context): Boolean = PremiumStore.load(context).active
 }

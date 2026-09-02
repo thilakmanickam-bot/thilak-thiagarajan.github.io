@@ -45,6 +45,16 @@ android {
             ?: System.getenv("CHAT_PROXY_BASE_URL")
             ?: "")
         buildConfigField "String", "CHAT_PROXY_BASE_URL", "\"${chatProxyBaseUrl}\""
+
+        // URL of the deployed `verifyPurchase` Cloud Function (see
+        // /functions/src/billing.ts) — a separate function from the chat proxy
+        // above, so a separate URL. Set BILLING_VERIFY_BASE_URL the same way,
+        // e.g. "https://us-central1-halo-2b942.cloudfunctions.net/verifyPurchase".
+        // No trailing path is appended, so no trailing slash is needed here.
+        def billingVerifyBaseUrl = (project.findProperty("BILLING_VERIFY_BASE_URL")
+            ?: System.getenv("BILLING_VERIFY_BASE_URL")
+            ?: "")
+        buildConfigField "String", "BILLING_VERIFY_BASE_URL", "\"${billingVerifyBaseUrl}\""
     }
 
     // Release signing. The keystore + passwords come from environment variables
@@ -148,6 +158,10 @@ dependencies {
     // Google Play in-app updates — prompt installed users to update
     implementation "com.google.android.play:app-update:2.1.0"
     implementation "com.google.android.play:app-update-ktx:2.1.0"
+
+    // Google Play Billing — Halo Premium subscriptions (monthly/yearly).
+    // Gated behind Features.BILLING_ENABLED.
+    implementation "com.android.billingclient:billing-ktx:${rootProject.ext.billingVersion}"
 
     // Account login + cloud sync (Firebase Auth + Firestore) and the modern
     // Credential Manager "Sign in with Google" flow. All usage is gated behind
