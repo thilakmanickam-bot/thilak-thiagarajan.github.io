@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.astrochart.core.i18n.Language
 import com.astrochart.ui.components.SectionDivider
+import com.astrochart.ui.theme.GoldDeep
 import com.astrochart.ui.theme.TextMuted
 import com.astrochart.ui.theme.TextPrimary
 import com.astrochart.ui.theme.fontFamilyForLanguage
