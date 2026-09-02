@@ -60,8 +60,16 @@ class HomeScreenTest {
         }
     }
 
+    /**
+     * [ignoreCase] is required, not incidental: [com.astrochart.ui.components.GoldButton]
+     * and `OutlineGoldButton` render `text.uppercase()`, so the semantics tree
+     * holds "CALCULATE MY CHART" while [com.astrochart.ui.i18n.UiStrings] holds
+     * "Calculate My Chart". Matching case-sensitively finds nothing. Asserting
+     * on the uppercased form instead would just hard-code a styling decision
+     * into every test.
+     */
     private fun clickAndExpect(label: String, destination: String) {
-        composeTestRule.onNodeWithText(label).performScrollTo().performClick()
+        composeTestRule.onNodeWithText(label, ignoreCase = true).performScrollTo().performClick()
 
         assertEquals(listOf(destination), visited)
         visited.clear()
@@ -115,7 +123,13 @@ class HomeScreenTest {
     fun chatEntry_followsTheFeatureFlag() {
         setContent()
 
-        val chatEntries = composeTestRule.onAllNodesWithText(strings.chatEntry)
+        // ignoreCase for the same reason as clickAndExpect — and here it is what
+        // makes the assertion mean anything. Without it this test passed while
+        // CHAT_ENABLED was false, but for the wrong reason: the case-sensitive
+        // match found nothing whether the button was rendered or not, so it
+        // would have kept passing the day the flag was flipped on and the
+        // gate silently stopped being tested at all.
+        val chatEntries = composeTestRule.onAllNodesWithText(strings.chatEntry, ignoreCase = true)
         chatEntries.assertCountEquals(if (Features.CHAT_ENABLED) 1 else 0)
     }
 }

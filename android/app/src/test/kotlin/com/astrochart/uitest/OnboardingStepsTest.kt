@@ -85,7 +85,10 @@ class OnboardingStepsTest {
             }
         }
 
-        composeTestRule.onNodeWithText("Continue").performScrollTo().performClick()
+        // GoldButton renders text.uppercase(), so the semantics say "CONTINUE".
+        composeTestRule.onNodeWithText("Continue", ignoreCase = true)
+            .performScrollTo()
+            .performClick()
 
         assertTrue(advanced)
         assertNull(selected)
