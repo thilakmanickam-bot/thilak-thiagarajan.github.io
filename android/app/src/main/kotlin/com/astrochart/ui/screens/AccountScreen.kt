@@ -74,6 +74,7 @@ fun AccountScreen(modifier: Modifier = Modifier) {
                 comingSoon = strings.accountComingSoon,
                 errorText = strings.accountSignInError,
                 working = status is AccountViewModel.Status.Working,
+                workingNote = (status as? AccountViewModel.Status.Working)?.note,
                 showError = status is AccountViewModel.Status.Error,
                 errorDetail = (status as? AccountViewModel.Status.Error)?.message,
                 onGoogle = { viewModel.signInWithGoogle(context) }
@@ -127,6 +128,7 @@ private fun SignedOut(
     comingSoon: String,
     errorText: String,
     working: Boolean,
+    workingNote: String? = null,
     showError: Boolean,
     errorDetail: String? = null,
     onGoogle: () -> Unit
@@ -161,6 +163,18 @@ private fun SignedOut(
     if (working) {
         Spacer(Modifier.height(20.dp))
         CircularProgressIndicator(color = GoldDeep)
+        // A sign-in that is still running after 15s is itself a finding, and the
+        // request is deliberately not cancelled, so say so rather than leaving a
+        // silent spinner that looks identical to a request that has died.
+        if (!workingNote.isNullOrBlank()) {
+            Spacer(Modifier.height(8.dp))
+            Text(
+                text = workingNote,
+                style = MaterialTheme.typography.labelSmall,
+                color = TextMuted,
+                textAlign = TextAlign.Center
+            )
+        }
     }
     if (showError) {
         Spacer(Modifier.height(16.dp))

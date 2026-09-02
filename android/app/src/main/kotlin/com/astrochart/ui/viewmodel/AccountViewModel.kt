@@ -10,11 +10,11 @@ import com.astrochart.auth.AccountStore
 import com.astrochart.auth.AuthManager
 import com.astrochart.auth.ProfileSync
 import com.astrochart.data.repository.ChartRepository
-import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeout
 
 /**
  * Drives the Account screen: exposes the signed-in [Account] (if any) and the
@@ -37,30 +37,37 @@ class AccountViewModel(application: Application) : AndroidViewModel(application)
 
     /** Google sign-in. [context] must be an Activity context (Credential Manager UI). */
     fun signInWithGoogle(context: Context) {
-        if (!Features.AUTH_ENABLED || _status.value == Status.Working) return
-        _status.value = Status.Working
+        if (!Features.AUTH_ENABLED || _status.value is Status.Working) return
+        _status.value = Status.Working()
         viewModelScope.launch {
+            // A watchdog that *reports* slowness without cancelling. An earlier
+            // build wrapped this call in withTimeout(20s); that cancellation
+            // threw away the exception the request was about to produce and
+            // triggered Credential Manager's own "sign-in request cancelled"
+            // toast, so the only thing the failure reported was our own timeout.
+            // The request now always runs to its own terminal state.
+            val watchdog = launch {
+                var waited = 0
+                while (isActive) {
+                    delay(15_000)
+                    waited += 15
+                    _status.value = Status.Working(
+                        "still waiting ${waited}s — ${AuthManager.environmentSummary(context)}"
+                    )
+                }
+            }
             try {
-                // Observed in the field: the Credential Manager request can hang
-                // indefinitely rather than failing, so this bounds it to a
-                // retryable error instead of a stuck spinner. The cause of the
-                // hang is still unidentified — hence the environment reporting
-                // in the timeout branch below rather than a guess here.
-                val account = withTimeout(20_000) { AuthManager.signInWithGoogle(context) }
+                val account = AuthManager.signInWithGoogle(context)
                 AccountStore.save(getApplication(), account)
                 _account.value = account
                 runCatching { ProfileSync.syncAll(getApplication(), repository) }
                 _status.value = Status.Idle
-            } catch (e: TimeoutCancellationException) {
-                // The request hung rather than failing, so there's no exception
-                // to inspect — report the environment facts instead, which are
-                // what distinguish "can't show UI" from "Play Services can't
-                // serve this" from "something else entirely".
-                _status.value = Status.Error("timed out — ${AuthManager.environmentSummary(context)}")
             } catch (e: Exception) {
                 _status.value = Status.Error(
                     "${e.javaClass.simpleName}: ${e.message} — ${AuthManager.environmentSummary(context)}"
                 )
+            } finally {
+                watchdog.cancel()
             }
         }
     }
@@ -82,7 +89,8 @@ class AccountViewModel(application: Application) : AndroidViewModel(application)
 
     sealed class Status {
         object Idle : Status()
-        object Working : Status()
+        /** [note] carries progress detail for a request that is taking unusually long. */
+        data class Working(val note: String? = null) : Status()
         data class Error(val message: String) : Status()
     }
 }

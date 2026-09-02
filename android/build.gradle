@@ -24,7 +24,9 @@ ext {
     //        fonts, chat proxy, Halo Premium billing, location-search fix.
     // 1.1.1: surface the real sign-in failure reason instead of a generic message.
     // 1.1.2: report Play Services status + Activity-context in sign-in failures.
-    versionName = "1.1.2"
+    // 1.1.3: report the running build's signing certificate and whether it is
+    //        registered; stop cancelling a slow sign-in (it destroyed the error).
+    versionName = "1.1.3"
 
     // Dependency versions
     kotlinVersion = "1.9.22"

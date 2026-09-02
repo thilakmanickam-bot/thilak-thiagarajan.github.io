@@ -55,6 +55,26 @@ android {
             ?: System.getenv("BILLING_VERIFY_BASE_URL")
             ?: "")
         buildConfigField "String", "BILLING_VERIFY_BASE_URL", "\"${billingVerifyBaseUrl}\""
+
+        // The signing-certificate SHA-1s registered as Android OAuth clients for
+        // this app, read straight out of google-services.json so the two can
+        // never drift. AuthManager compares the *running* build's certificate
+        // against these when reporting a sign-in failure, which turns "is this
+        // build's certificate one Google will accept?" from an assumption into a
+        // value a tester can read off the screen.
+        def registeredCertHashes = []
+        def googleServicesFile = file("google-services.json")
+        if (googleServicesFile.exists()) {
+            def parsed = new groovy.json.JsonSlurper().parse(googleServicesFile)
+            parsed.client.each { client ->
+                (client.oauth_client ?: []).each { oauthClient ->
+                    def hash = oauthClient.android_info?.certificate_hash
+                    if (hash) registeredCertHashes << hash.toString().toLowerCase()
+                }
+            }
+        }
+        buildConfigField "String", "REGISTERED_CERT_SHA1",
+            "\"${registeredCertHashes.unique().join(",")}\""
     }
 
     // Release signing. The keystore + passwords come from environment variables
