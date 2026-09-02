@@ -107,6 +107,16 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+
+    // Lets Robolectric-backed unit tests (including Compose UI tests via
+    // createComposeRule()) load real Android resources instead of stubs,
+    // so screens render against the app's actual theme/strings in tests.
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+            returnDefaultValues = true
+        }
+    }
 }
 
 dependencies {
@@ -189,6 +199,10 @@ dependencies {
     testImplementation "org.mockito.kotlin:mockito-kotlin:5.2.0"
     testImplementation "androidx.room:room-testing:${rootProject.ext.roomVersion}"
     testImplementation "org.robolectric:robolectric:4.12.2"
+    // Compose UI tests, run on the JVM via Robolectric (no emulator/androidTest
+    // needed) — versions resolve off the compose-bom above, so no manual pin.
+    testImplementation "androidx.compose.ui:ui-test-junit4"
+    debugImplementation "androidx.compose.ui:ui-test-manifest"
 
     // Debug
     debugImplementation "androidx.compose.ui:ui-tooling"
