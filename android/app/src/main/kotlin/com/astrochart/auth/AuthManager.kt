@@ -1,6 +1,7 @@
 package com.astrochart.auth
 
 import android.content.Context
+import android.util.Log
 import androidx.credentials.ClearCredentialStateRequest
 import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
@@ -23,6 +24,8 @@ import kotlinx.coroutines.tasks.await
  */
 object AuthManager {
 
+    private const val TAG = "AuthManager"
+
     /** The currently signed-in account, or null. */
     fun currentAccount(): Account? = FirebaseAuth.getInstance().currentUser?.toAccount()
 
@@ -42,7 +45,18 @@ object AuthManager {
             .addCredentialOption(googleIdOption)
             .build()
 
-        val response = CredentialManager.create(context).getCredential(context, request)
+        val response = try {
+            CredentialManager.create(context).getCredential(context, request)
+        } catch (t: Throwable) {
+            // Credential Manager failures are environmental far more often than
+            // they are user error (signing certificate not registered against
+            // the Firebase project, Google provider disabled, no Play Services,
+            // no account on device). The exception type and message name the
+            // cause outright, so log it before the caller collapses it into a
+            // friendly one-liner: `adb logcat -s AuthManager`.
+            Log.e(TAG, "Credential Manager sign-in failed (webClientId=$webClientId)", t)
+            throw t
+        }
         val credential = response.credential
         if (credential is CustomCredential &&
             credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL

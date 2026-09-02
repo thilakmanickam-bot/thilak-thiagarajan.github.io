@@ -75,6 +75,7 @@ fun AccountScreen(modifier: Modifier = Modifier) {
                 errorText = strings.accountSignInError,
                 working = status is AccountViewModel.Status.Working,
                 showError = status is AccountViewModel.Status.Error,
+                errorDetail = (status as? AccountViewModel.Status.Error)?.message,
                 onGoogle = { viewModel.signInWithGoogle(context) }
             )
         } else {
@@ -127,6 +128,7 @@ private fun SignedOut(
     errorText: String,
     working: Boolean,
     showError: Boolean,
+    errorDetail: String? = null,
     onGoogle: () -> Unit
 ) {
     Text(
@@ -168,5 +170,20 @@ private fun SignedOut(
             color = MaterialTheme.colorScheme.error,
             textAlign = TextAlign.Center
         )
+        // The underlying exception message, shown verbatim. Sign-in failures
+        // here are almost always environmental (an unregistered signing
+        // certificate, a disabled provider, no Play Services) rather than
+        // something the user did, and the generic line above gives a tester
+        // nothing to report back. See also the Log.e in AuthManager for the
+        // full stack trace via logcat.
+        if (!errorDetail.isNullOrBlank()) {
+            Spacer(Modifier.height(6.dp))
+            Text(
+                text = errorDetail,
+                style = MaterialTheme.typography.labelSmall,
+                color = TextMuted,
+                textAlign = TextAlign.Center
+            )
+        }
     }
 }
