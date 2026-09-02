@@ -41,19 +41,26 @@ class AccountViewModel(application: Application) : AndroidViewModel(application)
         _status.value = Status.Working
         viewModelScope.launch {
             try {
-                // The Credential Manager request can hang indefinitely (e.g. a
-                // signing-certificate fingerprint that isn't registered with the
-                // Firebase/Google Cloud project) instead of failing outright, so
-                // this bounds it to a retryable error rather than a stuck spinner.
+                // Observed in the field: the Credential Manager request can hang
+                // indefinitely rather than failing, so this bounds it to a
+                // retryable error instead of a stuck spinner. The cause of the
+                // hang is still unidentified — hence the environment reporting
+                // in the timeout branch below rather than a guess here.
                 val account = withTimeout(20_000) { AuthManager.signInWithGoogle(context) }
                 AccountStore.save(getApplication(), account)
                 _account.value = account
                 runCatching { ProfileSync.syncAll(getApplication(), repository) }
                 _status.value = Status.Idle
             } catch (e: TimeoutCancellationException) {
-                _status.value = Status.Error("sign-in timed out")
+                // The request hung rather than failing, so there's no exception
+                // to inspect — report the environment facts instead, which are
+                // what distinguish "can't show UI" from "Play Services can't
+                // serve this" from "something else entirely".
+                _status.value = Status.Error("timed out — ${AuthManager.environmentSummary(context)}")
             } catch (e: Exception) {
-                _status.value = Status.Error(e.message ?: "sign-in failed")
+                _status.value = Status.Error(
+                    "${e.javaClass.simpleName}: ${e.message} — ${AuthManager.environmentSummary(context)}"
+                )
             }
         }
     }

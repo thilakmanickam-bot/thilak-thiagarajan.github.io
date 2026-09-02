@@ -23,7 +23,8 @@ ext {
     // 1.1.0: Play Billing 7.1.1 -> 9.1.0, onboarding wizard, bundled per-language
     //        fonts, chat proxy, Halo Premium billing, location-search fix.
     // 1.1.1: surface the real sign-in failure reason instead of a generic message.
-    versionName = "1.1.1"
+    // 1.1.2: report Play Services status + Activity-context in sign-in failures.
+    versionName = "1.1.2"
 
     // Dependency versions
     kotlinVersion = "1.9.22"
