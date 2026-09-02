@@ -33,8 +33,9 @@ project — none of these steps can be done from the app's source code.
    ```
    Paste your own key (from https://console.anthropic.com/) when prompted.
    You're billed by Anthropic directly for whatever signed-in users send
-   through the app — the 20/day cap in `src/index.ts` bounds that, but raise
-   or lower `DAILY_MESSAGE_LIMIT` to taste before deploying.
+   through the app — the daily caps in `src/chat.ts`
+   (`DAILY_MESSAGE_LIMIT_BASIC`/`DAILY_MESSAGE_LIMIT_PREMIUM`) bound that,
+   but raise or lower them to taste before deploying.
 4. **Install dependencies and deploy:**
    ```
    cd functions
@@ -62,9 +63,11 @@ project — none of these steps can be done from the app's source code.
 
 1. **Create the two subscription products** in Play Console → your app →
    Monetize → Subscriptions, with product IDs `halo_premium_monthly` and
-   `halo_premium_yearly` (must match `BillingManager.kt` exactly) and
-   whatever prices/base plans you choose — pricing lives entirely in Play
-   Console and is never hardcoded in the app.
+   `halo_premium_yearly` (must match `BillingManager.kt` exactly). Chosen
+   pricing: **$4.99/month**, **$49.99/year**. Pricing lives entirely in Play
+   Console and is never hardcoded in the app — this is just where the
+   decision is recorded; enter it as each base plan's price when creating
+   the products (Play converts to local currency per region automatically).
 2. **Grant the existing release service account "View financial data"
    access.** This project already has a Play Console service account used
    for `release-play.yml` (release uploads); in Play Console → Users and
