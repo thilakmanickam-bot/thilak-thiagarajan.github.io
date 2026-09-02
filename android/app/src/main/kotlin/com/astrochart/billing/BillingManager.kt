@@ -105,8 +105,8 @@ class BillingManager(private val context: Context) {
             )
             .build()
         val productDetailsList = suspendCancellableCoroutine<List<ProductDetails>?> { cont ->
-            billingClient.queryProductDetailsAsync(params) { _, list ->
-                if (cont.isActive) cont.resume(list)
+            billingClient.queryProductDetailsAsync(params) { _, result ->
+                if (cont.isActive) cont.resume(result.productDetailsList)
             }
         }
         return productDetailsList.orEmpty().mapNotNull { details ->
