@@ -1,11 +1,14 @@
 package com.astrochart.ui.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -18,13 +21,20 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ScrollableTabRow
+import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -42,6 +52,7 @@ import com.astrochart.ui.components.SectionDivider
 import com.astrochart.ui.components.zodiacIconRes
 import com.astrochart.ui.i18n.LocalLanguage
 import com.astrochart.ui.i18n.RasiStrings
+import com.astrochart.ui.theme.CardBorder
 import com.astrochart.ui.theme.GoldDeep
 import com.astrochart.ui.theme.GoldLight
 import com.astrochart.ui.theme.TextMuted
@@ -103,7 +114,11 @@ private fun HubRow(label: String, onClick: () -> Unit) {
 // ---- Sign picker --------------------------------------------------------
 
 @Composable
-fun RasiSignsScreen(onPick: (Int) -> Unit, modifier: Modifier = Modifier) {
+fun RasiSignsScreen(
+    onPick: (Int) -> Unit,
+    forcedColumns: Int? = null,
+    modifier: Modifier = Modifier
+) {
     val lang = LocalLanguage.current
     val rs = remember(lang) { RasiStrings.forLanguage(lang) }
     val signs = remember { ZodiacUtils.getAllSigns() }
@@ -117,12 +132,11 @@ fun RasiSignsScreen(onPick: (Int) -> Unit, modifier: Modifier = Modifier) {
         EyebrowLabel(text = rs.chooseSign)
         Spacer(Modifier.height(12.dp))
         BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-            // 3 columns on phones, more as the available width grows (tablets/laptops).
-            val columns = when {
-                maxWidth < 400.dp -> 3
-                maxWidth < 520.dp -> 4
-                else -> 5
-            }
+            // Exactly two tiers, both evenly dividing the 12 signs (3x4 or
+            // 6x2) — no uneven trailing row. `forcedColumns` lets a caller
+            // (the tablet two-pane right pane) pin this to 3 regardless of
+            // measured width, so it always reads "3x4" there as intended.
+            val columns = forcedColumns ?: if (maxWidth < 520.dp) 3 else 6
             Column {
                 signs.chunked(columns).forEachIndexed { rowIdx, rowSigns ->
                     Row(modifier = Modifier.fillMaxWidth()) {
@@ -166,8 +180,14 @@ fun RasiSignsScreen(onPick: (Int) -> Unit, modifier: Modifier = Modifier) {
 
 // ---- Horoscope for one sign & period -----------------------------------
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RasiHoroscopeScreen(signIndex: Int, period: RasiPeriod, modifier: Modifier = Modifier) {
+fun RasiHoroscopeScreen(
+    signIndex: Int,
+    period: RasiPeriod,
+    onPeriodChange: (RasiPeriod) -> Unit,
+    modifier: Modifier = Modifier
+) {
     val lang = LocalLanguage.current
     val rs = remember(lang) { RasiStrings.forLanguage(lang) }
     val sign = ZodiacUtils.getAllSigns()[signIndex.coerceIn(0, 11)]
@@ -175,10 +195,8 @@ fun RasiHoroscopeScreen(signIndex: Int, period: RasiPeriod, modifier: Modifier =
     val paragraphs = remember(signIndex, period, lang, today) {
         RasiPalanText.horoscope(signIndex, period, today, lang)
     }
-    val periodLabel = when (period) {
-        RasiPeriod.DAY -> rs.today; RasiPeriod.WEEK -> rs.weekly
-        RasiPeriod.MONTH -> rs.monthly; RasiPeriod.YEAR -> rs.yearly
-    }
+    val periods = remember { listOf(RasiPeriod.DAY, RasiPeriod.WEEK, RasiPeriod.MONTH, RasiPeriod.YEAR) }
+    val periodLabels = listOf(rs.today, rs.weekly, rs.monthly, rs.yearly)
 
     Column(
         modifier = modifier
@@ -198,11 +216,23 @@ fun RasiHoroscopeScreen(signIndex: Int, period: RasiPeriod, modifier: Modifier =
             style = MaterialTheme.typography.headlineSmall,
             color = GoldLight
         )
-        Text(
-            text = periodLabel,
-            style = MaterialTheme.typography.titleMedium,
-            color = TextMuted
-        )
+        Spacer(Modifier.height(8.dp))
+        ScrollableTabRow(
+            selectedTabIndex = periods.indexOf(period).coerceAtLeast(0),
+            containerColor = Color.Transparent,
+            contentColor = GoldDeep,
+            edgePadding = 0.dp
+        ) {
+            periods.forEachIndexed { i, p ->
+                Tab(
+                    selected = period == p,
+                    onClick = { onPeriodChange(p) },
+                    selectedContentColor = GoldDeep,
+                    unselectedContentColor = TextMuted,
+                    text = { Text(periodLabels[i], style = MaterialTheme.typography.titleSmall) }
+                )
+            }
+        }
         Spacer(Modifier.height(12.dp))
         paragraphs.forEach { para ->
             CelestialCard(modifier = Modifier.padding(vertical = 6.dp)) {
@@ -258,6 +288,70 @@ fun RasiInfoScreen(signIndex: Int, modifier: Modifier = Modifier) {
             InfoRow(rs.gemstone, info.gemstone.get(lang), last = true)
         }
         Spacer(Modifier.height(16.dp))
+    }
+}
+
+// ---- Tablet two-pane (Expanded width only) ------------------------------
+
+/**
+ * Rasi Palan on a wide (Expanded) window: a persistent left menu — the same
+ * options as [RasiHubScreen] — and a right pane that shows the sign grid
+ * (pinned to 3 columns, per the "3x4 ratio on the right" spec) until a sign
+ * is tapped, then that sign's horoscope (with its own period toggle) or
+ * info, without leaving this pane. Reuses [RasiSignsScreen], [RasiHoroscopeScreen]
+ * and [RasiInfoScreen] unmodified; only [showGrid] is local, pane-scoped UI
+ * state (which step the right pane is on), reset whenever the left menu
+ * selection changes.
+ */
+@Composable
+fun RasiPalanTwoPane(
+    rasiSign: Int,
+    onRasiSignChange: (Int) -> Unit,
+    rasiInfoMode: Boolean,
+    onInfoModeChange: (Boolean) -> Unit,
+    rasiPeriod: RasiPeriod,
+    onPeriodChange: (RasiPeriod) -> Unit,
+    onAboutNakshatras: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val lang = LocalLanguage.current
+    val rs = remember(lang) { RasiStrings.forLanguage(lang) }
+    var showGrid by remember { mutableStateOf(true) }
+
+    Row(modifier = modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .width(260.dp)
+                .fillMaxHeight()
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp)
+        ) {
+            HubRow(rs.today) { onPeriodChange(RasiPeriod.DAY); onInfoModeChange(false); showGrid = true }
+            HubRow(rs.weekly) { onPeriodChange(RasiPeriod.WEEK); onInfoModeChange(false); showGrid = true }
+            HubRow(rs.monthly) { onPeriodChange(RasiPeriod.MONTH); onInfoModeChange(false); showGrid = true }
+            HubRow(rs.yearly) { onPeriodChange(RasiPeriod.YEAR); onInfoModeChange(false); showGrid = true }
+            Spacer(Modifier.height(8.dp))
+            HubRow(rs.aboutSigns) { onInfoModeChange(true); showGrid = true }
+            HubRow(rs.aboutNakshatras, onClick = onAboutNakshatras) // full nav — nakshatra untouched
+        }
+        Box(
+            modifier = Modifier
+                .fillMaxHeight()
+                .width(1.dp)
+                .background(CardBorder)
+        )
+        Box(modifier = Modifier.weight(1f).fillMaxHeight()) {
+            if (showGrid) {
+                RasiSignsScreen(
+                    onPick = { i -> onRasiSignChange(i); showGrid = false },
+                    forcedColumns = 3
+                )
+            } else if (rasiInfoMode) {
+                RasiInfoScreen(signIndex = rasiSign)
+            } else {
+                RasiHoroscopeScreen(signIndex = rasiSign, period = rasiPeriod, onPeriodChange = onPeriodChange)
+            }
+        }
     }
 }
 
