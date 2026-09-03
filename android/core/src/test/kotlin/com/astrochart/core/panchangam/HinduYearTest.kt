@@ -233,12 +233,38 @@ class HinduYearTest {
     }
 
     @Test
-    fun ugadiIsShuklaPratipada() {
-        // The name of the day is literally "first tithi of the bright half",
-        // so the panchangam and this file must agree about what day it is.
-        val ugadi = HinduYear.ugadi(2026, lat, lon, zone)
-        val (tithi, _) = Panchangam.tithiNakshatraAtSunrise(ugadi, lat, lon, zone)
-        assertEquals(HinduYear.Paksha.SHUKLA, HinduYear.paksha(tithi))
-        assertEquals(1, HinduYear.tithiInPaksha(tithi))
+    fun ugadiCarriesShuklaPratipadaOrIsTheDayItBegins() {
+        // The day is named for the first tithi of the bright half, but a tithi
+        // is only *on average* a day long: it can open after one sunrise and
+        // close before the next, touching no sunrise at all. 2026 is exactly
+        // that — the new moon lands at 06:54 IST, 38 minutes after sunrise,
+        // and pratipada is gone by the next one. The convention then gives the
+        // name to the day it began on, which is why the published date is the
+        // 19th and a naive "first sunrise in pratipada" answers the 20th.
+        //
+        // So the invariant is not "pratipada at sunrise" but: pratipada is
+        // either running at Ugadi's sunrise, or it begins during Ugadi.
+        for (year in 2020..2027) {
+            val ugadi = HinduYear.ugadi(year, lat, lon, zone)
+            val (atSunrise, _) = Panchangam.tithiNakshatraAtSunrise(ugadi, lat, lon, zone)
+            val (nextSunrise, _) =
+                Panchangam.tithiNakshatraAtSunrise(ugadi.plusDays(1), lat, lon, zone)
+            // Running at sunrise, or begun since the previous sunrise: either
+            // way the tithi at Ugadi's own sunrise is amavasya or pratipada,
+            // never anything later.
+            assertTrue(
+                atSunrise == 0 || atSunrise == 29,
+                "Ugadi $year ($ugadi) had tithi index $atSunrise at sunrise"
+            )
+            if (atSunrise == 29) {
+                // The kshaya case: pratipada opened after this sunrise, so by
+                // the next one the month is already under way.
+                assertTrue(
+                    nextSunrise <= 1,
+                    "Ugadi $year ($ugadi) was amavasya at sunrise but the next " +
+                        "sunrise was tithi $nextSunrise, too late to be Chaitra's start"
+                )
+            }
+        }
     }
 }

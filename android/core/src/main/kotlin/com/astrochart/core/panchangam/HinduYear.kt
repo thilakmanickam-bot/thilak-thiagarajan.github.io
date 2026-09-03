@@ -132,25 +132,41 @@ object HinduYear {
     ): String = samvatsaraName(yearStartGregorian(date, latDeg, lonEastDeg, zone, reckoning))
 
     /**
-     * Tamil New Year (Puthandu) for [year]: the first sunrise with the Sun in
-     * sidereal Mesha.
+     * Tamil New Year (Puthandu) for [year].
      *
-     * The scan window is deliberately far wider than the 13–15 April the date
-     * actually falls on — Mesha sankranti drifts about a day per 70 years
-     * against the Gregorian calendar, so a tight window would quietly start
-     * failing centuries from now. Nothing before mid-April can match: the Sun
-     * is in Meena until then.
+     * **Not** the first sunrise with the Sun in Mesha. Tamil Nadu reckons a
+     * solar month from the sankranti itself: if the Sun's ingress happens
+     * before sunset, that day is the first of the month; if after sunset, the
+     * next day is. In 2026 the ingress falls at 09:03 IST — after sunrise, so
+     * a sunrise test would answer 15 April, while every almanac prints the
+     * 14th.
+     *
+     * (Other regions cut elsewhere — Kerala at aparahna, Bengal at midnight —
+     * which is why this is a Tamil-specific function rather than a general
+     * "when does the solar month begin".)
      */
     fun meshaSankranti(year: Int, latDeg: Double, lonEastDeg: Double, zone: ZoneId): LocalDate {
-        var d = LocalDate.of(year, 3, 25)
-        repeat(37) {
-            if (Panchangam.sidSunSignAtSunrise(d, latDeg, lonEastDeg, zone) == 0) return d
-            d = d.plusDays(1)
+        val ingress = meshaIngressJd(year)
+        val day = SunEvents.instant(ingress).atZone(zone).toLocalDate()
+        val sun = SunTimes.compute(day, latDeg, lonEastDeg, zone)
+        val sunset = sun.sunsetJdUt ?: return day
+        return if (ingress <= sunset) day else day.plusDays(1)
+    }
+
+    /**
+     * The instant the Sun's sidereal longitude crosses 0° — bisected on the
+     * 359°→0° wrap, since that is the only place the value decreases.
+     */
+    private fun meshaIngressJd(year: Int): Double {
+        // The ingress has sat in 13-15 April for centuries and drifts about a
+        // day per 70 years, so bracket generously rather than tightly.
+        var lo = SolarLunar.julianDayUt(LocalDate.of(year, 3, 25), 0.0)
+        var hi = SolarLunar.julianDayUt(LocalDate.of(year, 4, 30), 0.0)
+        repeat(40) {
+            val mid = (lo + hi) / 2.0
+            if (sidSunAtJd(mid, year) > 180.0) lo = mid else hi = mid
         }
-        // Unreachable for any plausible ayanamsa: the Sun enters Mesha exactly
-        // once a year, and always inside this window. Fail loudly rather than
-        // return a plausible-looking wrong date.
-        error("No Mesha sankranti found between 25 March and 30 April $year")
+        return (lo + hi) / 2.0
     }
 
     /**
@@ -170,11 +186,40 @@ object HinduYear {
         repeat(4) {
             val newMoon = newMoonAtOrBefore(jd, year)
             if (sidSunSignAtJd(newMoon, year) == MEENA) {
-                return firstSunriseOnOrAfter(newMoon, latDeg, lonEastDeg, zone)
+                return pratipadaDay(newMoon, latDeg, lonEastDeg, zone)
             }
             jd = newMoon - 1.0
         }
         error("No Chaitra new moon found for $year")
+    }
+
+    /**
+     * The day that carries the shukla pratipada beginning at [newMoon].
+     *
+     * A lunar day is named for the tithi running at sunrise, so normally this
+     * is the first sunrise inside pratipada. But a tithi is shorter than a day
+     * only on average: pratipada can open after one sunrise and close before
+     * the next, touching no sunrise at all. That is a *kshaya* tithi, and the
+     * convention is that the day it begins on takes the name.
+     *
+     * 2026 is exactly that case — the new moon falls at 06:54 IST, 38 minutes
+     * after sunrise, and pratipada is over before the next one — which is why
+     * "first sunrise at or after the new moon" answered 20 March against a
+     * published 19th.
+     */
+    private fun pratipadaDay(
+        newMoon: Double,
+        latDeg: Double,
+        lonEastDeg: Double,
+        zone: ZoneId
+    ): LocalDate {
+        val begins = SunEvents.instant(newMoon).atZone(zone).toLocalDate()
+        for (offset in 0L..1L) {
+            val d = begins.plusDays(offset)
+            val (tithi, _) = Panchangam.tithiNakshatraAtSunrise(d, latDeg, lonEastDeg, zone)
+            if (tithi == 0) return d
+        }
+        return begins
     }
 
     /**
@@ -240,11 +285,14 @@ object HinduYear {
         )
     }
 
-    private fun sidSunSignAtJd(jdUt: Double, year: Int): Int {
+    /** The Sun's sidereal longitude, 0–360. */
+    private fun sidSunAtJd(jdUt: Double, year: Int): Double {
         val jde = SolarLunar.toJde(jdUt, year)
-        val sid = Ayanamsa.toSidereal(SolarLunar.sunApparentLongitude(jde), jde)
-        return floor(sid / 30.0).toInt() % 12
+        return Ayanamsa.toSidereal(SolarLunar.sunApparentLongitude(jde), jde)
     }
+
+    private fun sidSunSignAtJd(jdUt: Double, year: Int): Int =
+        floor(sidSunAtJd(jdUt, year) / 30.0).toInt() % 12
 
     /**
      * The instant of the last new moon at or before [jdUt].
@@ -271,19 +319,4 @@ object HinduYear {
         return (lo + hi) / 2.0
     }
 
-    /** The date whose sunrise is the first at or after [jdUt]. */
-    private fun firstSunriseOnOrAfter(
-        jdUt: Double,
-        latDeg: Double,
-        lonEastDeg: Double,
-        zone: ZoneId
-    ): LocalDate {
-        var d = SunEvents.instant(jdUt).atZone(zone).toLocalDate()
-        repeat(3) {
-            val sun = SunTimes.compute(d, latDeg, lonEastDeg, zone)
-            if ((sun.sunriseJdUt ?: sun.solarNoonJdUt) >= jdUt) return d
-            d = d.plusDays(1)
-        }
-        return d
-    }
 }
