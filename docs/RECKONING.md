@@ -72,9 +72,45 @@ either publishing Halo's source or buying a licence from Astrodienst.
   no place in a jathagam.
 - **Nodes:** the **mean** node. Tamil almanacs tabulate the mean node; the true
   node oscillates around it by up to ~1.6°, half a pada.
-- **Tamil calendar:** a solar month begins on the day of the sankranti when that
-  falls before sunset, otherwise the next day. Kerala cuts at aparahna and
-  Bengal at midnight — Halo follows the Tamil rule.
+- **Tamil calendar:** the month is taken from the Sun's sidereal sign at
+  sunrise. **This is an open question** — see below.
+
+### Open: the Tamil month boundary
+
+Halo currently starts a Tamil solar month at the first sunrise with the Sun in
+the new sign. The commonly stated Tamil rule is different — the month begins on
+the day of the sankranti when that falls before sunset — and the two disagree
+for 7 of the 12 months in 2026.
+
+The public evidence does not settle it, and it is worth setting out so nobody
+"fixes" this from a half-memory:
+
+| month | sankranti (IST) | published start | implies |
+|---|---|---|---|
+| Chithirai | 14 Apr 09:32 | 14 Apr (Puthandu) | same day |
+| Aavani | 17 Aug 07:58 | 18 Aug | next day |
+| Purattasi | 17 Sep 07:52 | 18 Sep | next day |
+
+All three sankrantis are in the morning, and they imply opposite rules. No
+cutoff — sunrise, sunset, or aparahna — produces both.
+
+The ingress times themselves are not in doubt: Makara computes to 14 Jan 15:07
+against a published 15:13, and Simha to 17 Aug 07:58 against a published
+07:50–08:04.
+
+The likely resolution is that **Puthandu and Pongal are civil holidays fixed by
+the Tamil Nadu government** to 14 April and 14 January, independent of the
+astronomical rule — in which case Aavani and Purattasi are the honest evidence,
+the sunrise rule is right, and the app is already correct.
+
+One printed Tamil panchangam settles all twelve months: if it gives **Aavani 1 =
+17 August 2026** the sunset rule is right; **18 August** and the sunrise rule is.
+Until then `Panchangam.tamilDate()` is left alone.
+
+(`HinduYear.meshaSankranti` currently uses the sunset rule and so may disagree
+with `tamilDate` by a day on the Chithirai boundary. It only shifts the
+samvatsara name within that one-day window, and it is part of the same open
+question.)
 - **Year:** both reckonings are supported, because South India genuinely uses
   two. The Tamil year turns at Mesha sankranti (Puthandu, ~14 April); the
   Telugu, Kannada and Marathi year turns at Chaitra shukla pratipada (Ugadi,
