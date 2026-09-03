@@ -2,6 +2,7 @@ package com.astrochart.core.utils
 
 import com.astrochart.core.models.BirthData
 import com.astrochart.core.models.PlanetaryPosition
+import com.astrochart.core.panchangam.Ayanamsa
 import kotlin.math.*
 
 object EphemerisCalculator {
@@ -23,12 +24,21 @@ object EphemerisCalculator {
             val lon = calculatePlanetLongitude(planet, jd)
             if (planet == "Sun") sunLon = lon
 
-            val sign = ZodiacUtils.getSignFromLongitude(lon)
-            val element = ZodiacUtils.getElement(sign)
-            val modality = ZodiacUtils.getModality(sign)
-            val (degree, minute) = ZodiacUtils.formatPosition(lon)
-            val label = "$degree°$minute' $sign"
+            // The rasi is sidereal. Ayanamsa.lahiri wants a JDE and this is a
+            // UT Julian Day, but the ayanamsa moves 1.396° per century, so the
+            // ~70 seconds of deltaT between them shifts it by about 3e-8° —
+            // some eight orders of magnitude below the arc-minute the model
+            // itself is good for.
+            val siderealLon = Ayanamsa.toSidereal(lon, jd)
+            val sign = ZodiacUtils.getSignFromLongitude(siderealLon)
+            val (degree, minute) = ZodiacUtils.formatPosition(siderealLon)
+            val tropicalSign = ZodiacUtils.getSignFromLongitude(lon)
+            val (tropicalDegree, tropicalMinute) = ZodiacUtils.formatPosition(lon)
 
+            // Houses stay in the tropical frame on both sides. A house number
+            // is where a planet falls between two cusps, so shifting planet and
+            // cusps by the same ayanamsa leaves it unchanged — mixing the two
+            // frames is the only way to get this wrong.
             val houseCusps = HouseCalculator.calculatePlacidusHouses(birthData, sunLon)
             val house = HouseCalculator.getHouseForLongitude(houseCusps, lon)
 
@@ -36,12 +46,15 @@ object EphemerisCalculator {
                 PlanetaryPosition(
                     name = planet,
                     lon = lon,
+                    siderealLon = siderealLon,
                     sign = sign,
-                    element = element,
-                    modality = modality,
+                    element = ZodiacUtils.getElement(sign),
+                    modality = ZodiacUtils.getModality(sign),
                     degree = degree,
                     minute = minute,
-                    label = label,
+                    label = "$degree°$minute' $sign",
+                    tropicalSign = tropicalSign,
+                    tropicalLabel = "$tropicalDegree°$tropicalMinute' $tropicalSign",
                     house = house
                 )
             )
@@ -51,6 +64,22 @@ object EphemerisCalculator {
         val midheaven = calculateMidheaven(birthData)
 
         return Pair(positions, Pair(ascendant, midheaven))
+    }
+
+    /**
+     * The Lahiri sidereal longitude for a tropical [tropicalLon] at
+     * [birthData]'s instant — so callers that hold an angle rather than a
+     * planet (the ascendant and midheaven, computed separately) convert it the
+     * same way the planet loop above does, instead of reimplementing the
+     * julian-day arithmetic and drifting from it.
+     */
+    fun toSidereal(birthData: BirthData, tropicalLon: Double): Double {
+        val utc = birthData.toUTC()
+        val jd = julianDay(
+            utc.year, utc.monthValue, utc.dayOfMonth,
+            utc.hour.toDouble() + utc.minute / 60.0
+        )
+        return Ayanamsa.toSidereal(tropicalLon, jd)
     }
 
     private fun calculateAscendant(birthData: BirthData): Double {

@@ -43,7 +43,11 @@ private fun norm(d: Double): Double = ((d % 360.0) + 360.0) % 360.0
 
 /** Spread planet glyphs that sit within MIN_SEP degrees so they don't overlap. */
 internal fun spreadPlanets(planets: List<PlanetaryPosition>): List<WheelPlanet> {
-    val ps = planets.map { WheelPlanet(it.name, it.lon, it.lon, it.label) }
+    // Tropical throughout: this is the Western wheel, so it draws at the
+    // tropical longitude and must label with the tropical sign to match.
+    // PlanetaryPosition.label is the sidereal rasi, which belongs to the
+    // koshtam, not here.
+    val ps = planets.map { WheelPlanet(it.name, it.lon, it.lon, it.tropicalLabel) }
         .sortedBy { it.lon }
         .toMutableList()
     if (ps.size < 2) return ps
