@@ -201,37 +201,44 @@ object Translations {
     private val planetNameTa = mapOf(
         "Sun" to "சூரியன்", "Moon" to "சந்திரன்", "Mercury" to "புதன்", "Venus" to "சுக்கிரன்",
         "Mars" to "செவ்வாய்", "Jupiter" to "குரு", "Saturn" to "சனி", "Uranus" to "யுரேனஸ்",
-        "Neptune" to "நெப்டியூன்", "Pluto" to "புளூட்டோ"
+        "Neptune" to "நெப்டியூன்", "Pluto" to "புளூட்டோ",
+        "Rahu" to "ராகு", "Ketu" to "கேது"
     )
     private val planetNameZh = mapOf(
         "Sun" to "太阳", "Moon" to "月亮", "Mercury" to "水星", "Venus" to "金星",
         "Mars" to "火星", "Jupiter" to "木星", "Saturn" to "土星", "Uranus" to "天王星",
-        "Neptune" to "海王星", "Pluto" to "冥王星"
+        "Neptune" to "海王星", "Pluto" to "冥王星",
+        "Rahu" to "罗睺", "Ketu" to "计都"
     )
     private val planetNameHi = mapOf(
         "Sun" to "सूर्य", "Moon" to "चंद्र", "Mercury" to "बुध", "Venus" to "शुक्र",
         "Mars" to "मंगल", "Jupiter" to "बृहस्पति", "Saturn" to "शनि", "Uranus" to "यूरेनस",
-        "Neptune" to "नेप्च्यून", "Pluto" to "प्लूटो"
+        "Neptune" to "नेप्च्यून", "Pluto" to "प्लूटो",
+        "Rahu" to "राहु", "Ketu" to "केतु"
     )
     private val planetNameTe = mapOf(
         "Sun" to "సూర్యుడు", "Moon" to "చంద్రుడు", "Mercury" to "బుధుడు", "Venus" to "శుక్రుడు",
         "Mars" to "కుజుడు", "Jupiter" to "గురుడు", "Saturn" to "శని", "Uranus" to "యురేనస్",
-        "Neptune" to "నెప్ట్యూన్", "Pluto" to "ప్లూటో"
+        "Neptune" to "నెప్ట్యూన్", "Pluto" to "ప్లూటో",
+        "Rahu" to "రాహువు", "Ketu" to "కేతువు"
     )
     private val planetNameKn = mapOf(
         "Sun" to "ಸೂರ್ಯ", "Moon" to "ಚಂದ್ರ", "Mercury" to "ಬುಧ", "Venus" to "ಶುಕ್ರ",
         "Mars" to "ಮಂಗಳ", "Jupiter" to "ಗುರು", "Saturn" to "ಶನಿ", "Uranus" to "ಯುರೇನಸ್",
-        "Neptune" to "ನೆಪ್ಚೂನ್", "Pluto" to "ಪ್ಲೂಟೊ"
+        "Neptune" to "ನೆಪ್ಚೂನ್", "Pluto" to "ಪ್ಲೂಟೊ",
+        "Rahu" to "ರಾಹು", "Ketu" to "ಕೇತು"
     )
     private val planetNameMl = mapOf(
         "Sun" to "സൂര്യൻ", "Moon" to "ചന്ദ്രൻ", "Mercury" to "ബുധൻ", "Venus" to "ശുക്രൻ",
         "Mars" to "ചൊവ്വ", "Jupiter" to "വ്യാഴം", "Saturn" to "ശനി", "Uranus" to "യുറാനസ്",
-        "Neptune" to "നെപ്റ്റ്യൂൺ", "Pluto" to "പ്ലൂട്ടോ"
+        "Neptune" to "നെപ്റ്റ്യൂൺ", "Pluto" to "പ്ലൂട്ടോ",
+        "Rahu" to "രാഹു", "Ketu" to "കേതു"
     )
     private val planetNameMr = mapOf(
         "Sun" to "सूर्य", "Moon" to "चंद्र", "Mercury" to "बुध", "Venus" to "शुक्र",
         "Mars" to "मंगळ", "Jupiter" to "गुरू", "Saturn" to "शनी", "Uranus" to "युरेनस",
-        "Neptune" to "नेपच्यून", "Pluto" to "प्लुटो"
+        "Neptune" to "नेपच्यून", "Pluto" to "प्लुटो",
+        "Rahu" to "राहू", "Ketu" to "केतू"
     )
     private val planetRoleTa = mapOf(
         "Sun" to "மைய அடையாளமும் உயிர்ச்சக்தியும்",
@@ -243,7 +250,8 @@ object Translations {
         "Saturn" to "ஒழுக்கம், அமைப்பு, பொறுப்பு",
         "Uranus" to "தனித்துவமும் மாற்றத் தேவையும்",
         "Neptune" to "கற்பனை, கனவுகள், ஆன்மிகம்",
-        "Pluto" to "அதிகாரமும் மாற்றும் ஆற்றலும்"
+        "Pluto" to "அதிகாரமும் மாற்றும் ஆற்றலும்",
+        "Rahu" to "ஆசையும் இயக்கமும்", "Ketu" to "விடுதலையும் பற்றின்மையும்"
     )
     private val planetRoleZh = mapOf(
         "Sun" to "核心自我与生命力",
@@ -255,7 +263,8 @@ object Translations {
         "Saturn" to "纪律、结构与责任",
         "Uranus" to "个性与求变",
         "Neptune" to "想象、梦想与灵性",
-        "Pluto" to "力量与蜕变的能力"
+        "Pluto" to "力量与蜕变的能力",
+        "Rahu" to "执念与前行的动力", "Ketu" to "放下与既有的积累"
     )
 
     fun planetName(p: String, lang: Language): String = when (lang) {
@@ -274,35 +283,40 @@ object Translations {
         "Mercury" to "मन और संवाद", "Venus" to "प्रेम, मूल्य, सौंदर्यबोध",
         "Mars" to "प्रेरणा, साहस, इच्छा", "Jupiter" to "वृद्धि, भाग्य, आशावाद",
         "Saturn" to "अनुशासन, संरचना, जिम्मेदारी", "Uranus" to "विशिष्टता और परिवर्तन की चाह",
-        "Neptune" to "कल्पना, स्वप्न, आध्यात्म", "Pluto" to "शक्ति और रूपांतरण की क्षमता"
+        "Neptune" to "कल्पना, स्वप्न, आध्यात्म", "Pluto" to "शक्ति और रूपांतरण की क्षमता",
+        "Rahu" to "महत्वाकांक्षा और आगे खींचने वाली शक्ति", "Ketu" to "वैराग्य और संचित संस्कार"
     )
     private val planetRoleTe = mapOf(
         "Sun" to "మూల గుర్తింపు, జీవశక్తి", "Moon" to "భావోద్వేగ స్వభావం, అంతర్జ్ఞానం",
         "Mercury" to "మనసు, సంభాషణ", "Venus" to "ప్రేమ, విలువలు, సౌందర్యం",
         "Mars" to "ప్రేరణ, ధైర్యం, కోరిక", "Jupiter" to "వృద్ధి, అదృష్టం, ఆశావాదం",
         "Saturn" to "క్రమశిక్షణ, నిర్మాణం, బాధ్యత", "Uranus" to "విశిష్టత, మార్పు అవసరం",
-        "Neptune" to "ఊహ, కలలు, ఆధ్యాత్మికత", "Pluto" to "శక్తి, పరివర్తన సామర్థ్యం"
+        "Neptune" to "ఊహ, కలలు, ఆధ్యాత్మికత", "Pluto" to "శక్తి, పరివర్తన సామర్థ్యం",
+        "Rahu" to "ఆకాంక్ష, ముందుకు లాగే శక్తి", "Ketu" to "వైరాగ్యం, గత సంస్కారం"
     )
     private val planetRoleKn = mapOf(
         "Sun" to "ಮೂಲ ಗುರುತು, ಜೀವಶಕ್ತಿ", "Moon" to "ಭಾವನಾತ್ಮಕ ಸ್ವಭಾವ, ಅಂತರ್ಬೋಧೆ",
         "Mercury" to "ಮನಸ್ಸು, ಸಂವಹನ", "Venus" to "ಪ್ರೀತಿ, ಮೌಲ್ಯ, ಸೌಂದರ್ಯ",
         "Mars" to "ಪ್ರೇರಣೆ, ಧೈರ್ಯ, ಬಯಕೆ", "Jupiter" to "ಬೆಳವಣಿಗೆ, ಅದೃಷ್ಟ, ಆಶಾವಾದ",
         "Saturn" to "ಶಿಸ್ತು, ರಚನೆ, ಜವಾಬ್ದಾರಿ", "Uranus" to "ವಿಶಿಷ್ಟತೆ, ಬದಲಾವಣೆಯ ಅಗತ್ಯ",
-        "Neptune" to "ಕಲ್ಪನೆ, ಕನಸು, ಆಧ್ಯಾತ್ಮ", "Pluto" to "ಶಕ್ತಿ, ಪರಿವರ್ತನೆ ಸಾಮರ್ಥ್ಯ"
+        "Neptune" to "ಕಲ್ಪನೆ, ಕನಸು, ಆಧ್ಯಾತ್ಮ", "Pluto" to "ಶಕ್ತಿ, ಪರಿವರ್ತನೆ ಸಾಮರ್ಥ್ಯ",
+        "Rahu" to "ಮಹತ್ವಾಕಾಂಕ್ಷೆ, ಮುಂದೆ ಸೆಳೆಯುವ ಶಕ್ತಿ", "Ketu" to "ವೈರಾಗ್ಯ, ಸಂಚಿತ ಸಂಸ್ಕಾರ"
     )
     private val planetRoleMl = mapOf(
         "Sun" to "അടിസ്ഥാന വ്യക്തിത്വം, ജീവശക്തി", "Moon" to "വൈകാരിക സ്വഭാവം, അന്തർജ്ഞാനം",
         "Mercury" to "മനസ്സ്, ആശയവിനിമയം", "Venus" to "സ്നേഹം, മൂല്യങ്ങൾ, സൗന്ദര്യം",
         "Mars" to "പ്രേരണ, ധൈര്യം, ആഗ്രഹം", "Jupiter" to "വളർച്ച, ഭാഗ്യം, ശുഭാപ്തി",
         "Saturn" to "അച്ചടക്കം, ഘടന, ഉത്തരവാദിത്വം", "Uranus" to "വ്യക്തിത്വം, മാറ്റത്തിന്റെ ആവശ്യം",
-        "Neptune" to "ഭാവന, സ്വപ്നം, ആത്മീയത", "Pluto" to "ശക്തി, പരിവർത്തന ശേഷി"
+        "Neptune" to "ഭാവന, സ്വപ്നം, ആത്മീയത", "Pluto" to "ശക്തി, പരിവർത്തന ശേഷി",
+        "Rahu" to "അഭിലാഷവും മുന്നോട്ടുള്ള ചലനവും", "Ketu" to "വൈരാഗ്യവും സഞ്ചിതവും"
     )
     private val planetRoleMr = mapOf(
         "Sun" to "मूळ ओळख, जीवनशक्ती", "Moon" to "भावनिक स्वभाव, अंतर्ज्ञान",
         "Mercury" to "मन, संवाद", "Venus" to "प्रेम, मूल्ये, सौंदर्यदृष्टी",
         "Mars" to "प्रेरणा, धैर्य, इच्छा", "Jupiter" to "वाढ, भाग्य, आशावाद",
         "Saturn" to "शिस्त, रचना, जबाबदारी", "Uranus" to "वेगळेपण, बदलाची गरज",
-        "Neptune" to "कल्पना, स्वप्ने, अध्यात्म", "Pluto" to "शक्ती, परिवर्तनक्षमता"
+        "Neptune" to "कल्पना, स्वप्ने, अध्यात्म", "Pluto" to "शक्ती, परिवर्तनक्षमता",
+        "Rahu" to "महत्त्वाकांक्षा आणि पुढे ओढणारी शक्ती", "Ketu" to "वैराग्य आणि संचित संस्कार"
     )
 
     fun planetRole(p: String, lang: Language): String = when (lang) {
@@ -445,42 +459,50 @@ object Translations {
     private val bodyAbbrEn = mapOf(
         "Sun" to "Su", "Moon" to "Mo", "Mercury" to "Me", "Venus" to "Ve",
         "Mars" to "Ma", "Jupiter" to "Ju", "Saturn" to "Sa", "Uranus" to "Ur",
-        "Neptune" to "Ne", "Pluto" to "Pl", "Ascendant" to "Asc"
+        "Neptune" to "Ne", "Pluto" to "Pl", "Ascendant" to "Asc",
+        "Rahu" to "Ra", "Ketu" to "Ke"
     )
     private val bodyAbbrTa = mapOf(
         "Sun" to "சூரி", "Moon" to "சந்", "Mercury" to "புத", "Venus" to "சுக்",
         "Mars" to "செவ்", "Jupiter" to "குரு", "Saturn" to "சனி", "Uranus" to "யுரே",
-        "Neptune" to "நெப்", "Pluto" to "புளூ", "Ascendant" to "லக்"
+        "Neptune" to "நெப்", "Pluto" to "புளூ", "Ascendant" to "லக்",
+        "Rahu" to "ரா", "Ketu" to "கே"
     )
     private val bodyAbbrZh = mapOf(
         "Sun" to "日", "Moon" to "月", "Mercury" to "水", "Venus" to "金",
         "Mars" to "火", "Jupiter" to "木", "Saturn" to "土", "Uranus" to "天",
-        "Neptune" to "海", "Pluto" to "冥", "Ascendant" to "命"
+        "Neptune" to "海", "Pluto" to "冥", "Ascendant" to "命",
+        "Rahu" to "罗", "Ketu" to "计"
     )
     private val bodyAbbrHi = mapOf(
         "Sun" to "सू", "Moon" to "चं", "Mercury" to "बु", "Venus" to "शु",
         "Mars" to "मं", "Jupiter" to "गु", "Saturn" to "श", "Uranus" to "यु",
-        "Neptune" to "ने", "Pluto" to "प्लू", "Ascendant" to "लग्न"
+        "Neptune" to "ने", "Pluto" to "प्लू", "Ascendant" to "लग्न",
+        "Rahu" to "रा", "Ketu" to "के"
     )
     private val bodyAbbrTe = mapOf(
         "Sun" to "సూ", "Moon" to "చం", "Mercury" to "బు", "Venus" to "శు",
         "Mars" to "కు", "Jupiter" to "గు", "Saturn" to "శ", "Uranus" to "యు",
-        "Neptune" to "నె", "Pluto" to "ప్లూ", "Ascendant" to "లగ్న"
+        "Neptune" to "నె", "Pluto" to "ప్లూ", "Ascendant" to "లగ్న",
+        "Rahu" to "రా", "Ketu" to "కే"
     )
     private val bodyAbbrKn = mapOf(
         "Sun" to "ಸೂ", "Moon" to "ಚಂ", "Mercury" to "ಬು", "Venus" to "ಶು",
         "Mars" to "ಮಂ", "Jupiter" to "ಗು", "Saturn" to "ಶ", "Uranus" to "ಯು",
-        "Neptune" to "ನೆ", "Pluto" to "ಪ್ಲೂ", "Ascendant" to "ಲಗ್ನ"
+        "Neptune" to "ನೆ", "Pluto" to "ಪ್ಲೂ", "Ascendant" to "ಲಗ್ನ",
+        "Rahu" to "ರಾ", "Ketu" to "ಕೇ"
     )
     private val bodyAbbrMl = mapOf(
         "Sun" to "സൂ", "Moon" to "ച", "Mercury" to "ബു", "Venus" to "ശു",
         "Mars" to "ചൊ", "Jupiter" to "വ്യാ", "Saturn" to "ശ", "Uranus" to "യു",
-        "Neptune" to "നെ", "Pluto" to "പ്ലൂ", "Ascendant" to "ലഗ്ന"
+        "Neptune" to "നെ", "Pluto" to "പ്ലൂ", "Ascendant" to "ലഗ്ന",
+        "Rahu" to "രാ", "Ketu" to "കേ"
     )
     private val bodyAbbrMr = mapOf(
         "Sun" to "सू", "Moon" to "चं", "Mercury" to "बु", "Venus" to "शु",
         "Mars" to "मं", "Jupiter" to "गु", "Saturn" to "श", "Uranus" to "यु",
-        "Neptune" to "ने", "Pluto" to "प्लू", "Ascendant" to "लग्न"
+        "Neptune" to "ने", "Pluto" to "प्लू", "Ascendant" to "लग्न",
+        "Rahu" to "रा", "Ketu" to "के"
     )
 
     /** Compact label for a body (planet or "Ascendant"), used in the square chart. */
