@@ -93,6 +93,9 @@ and conflating them is the obvious bug.
 
 ### 4b. Ṛtu — the season
 
+> **Superseded — see §13.** Ritu follows the *lunar* month, not the solar
+> sign. The pairing below is left for the record; do not implement it.
+
 Six, two solar signs each: Vasanta (Mesha, Vrishabha), Grīṣma (Mithuna,
 Karka), Varṣā (Simha, Kanya), Śarad (Tula, Vrischika), Hemanta (Dhanus,
 Makara), Śiśira (Kumbha, Meena).
@@ -302,16 +305,53 @@ controls for Basic, PDF export of the framing.
 
 ---
 
-## 12. Open questions for the user
+## 12. Decisions (answered)
 
-1. **One at a time, or several?** The tradition is emphatic that a sankalpa is
-   singular. The plan above assumes one live at a time, with past ones kept.
-   Allowing several would be more app-like and less faithful.
-2. **Sanskrit transliteration style.** IAST with diacritics (*Kṛṣṇa pakṣa*) or
-   plain (*Krishna paksha*)? The app currently uses plain elsewhere — matching
-   that is probably right, but the framing is the one place diacritics would
-   be defensible.
-3. **Samvatsara epoch** — §4c. If you have a printed almanac to hand, two
-   known years settles it and I will pin the test to them.
-4. **Where does it live?** A home-screen entry of its own, or inside the
-   panchangam, where the muhurta windows already are?
+All four are settled; recorded here so they are not reopened.
+
+1. **Several sankalpas in parallel**, not one at a time. Less faithful to the
+   tradition, which is emphatic that a sankalpa is singular, but the user's
+   call and the friendlier app. The data model already allows it.
+2. **Plain transliteration** — *Krishna paksha*, *ritu*, *samvatsara* — never
+   IAST diacritics, matching the rest of the app. In the Indic scripts the terms
+   are written natively; the question only ever applied to the Latin locales.
+   Implemented in `SankalpaStrings.kt` across all eight languages.
+3. **Samvatsara epoch: pinned and verified**, no almanac needed in the end. The
+   cycle is fixed by four independent facts that must hold at once — Prabhava is
+   1987, Parabhava is 2026, Krodhi and Vishvavasu are 2024 and 2025, and the
+   traditional Brahma/Vishnu/Shiva grouping puts Vyaya at 20, Sarvajit at 21 and
+   Parabhava at 40. `index = ((startYear − 66) mod 60)`, asserted in
+   `HinduYearTest`.
+4. **Its own destination**, reached from a bottom navigation bar carrying Home,
+   Calendar, Sankalpa, Rasi Palan and Settings — Calendar and Settings moving
+   down out of the top app bar. `AppBottomNav.kt` exists; wiring it into
+   `MainActivity` is the remaining step.
+
+## 13. Correction: ritu follows the *lunar* month
+
+§4b originally paired ritu with solar signs. That was wrong, and the sources
+disagree with each other on the solar pairing in a way that would have produced
+a silently wrong season.
+
+The classical definition every source agrees on is by **lunar month**, two at a
+time: Vasanta = Chaitra + Vaishakha, Grishma = Jyeshtha + Ashadha, Varsha =
+Shravana + Bhadrapada, Sharad = Ashvina + Kartika, Hemanta = Margashirsha +
+Pausha, Shishira = Magha + Phalguna.
+
+It is also the right choice on the merits: a sankalpa recites the **lunar**
+month ("chaitre masi"), not the solar one, so the whole framing should rest on
+the same reckoning. `HinduYear.ritu(lunarMonthIndex)` implements it.
+
+Two further corrections landed with it, both caught by CI rather than by
+reading:
+
+- **Puthandu is not "the first sunrise with the Sun in Mesha".** Tamil Nadu
+  begins a solar month on the day of the sankranti when it falls before sunset.
+  In 2026 the ingress is 14 April 09:03 IST, so a sunrise test answers the 15th
+  against a printed 14th.
+- **Ugadi is not "the first sunrise after the Chaitra new moon".** In 2026 the
+  new moon is at 06:54 IST, 38 minutes *after* sunrise, and the pratipada it
+  opens ends before the next one — a kshaya tithi, touching no sunrise at all.
+  The day it begins on takes the name, which is why the published date is the
+  19th. `HinduYear.lunarMonth` carries the same rule, so Ugadi reads Chaitra
+  rather than Phalguna.
