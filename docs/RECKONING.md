@@ -74,6 +74,11 @@ either publishing Halo's source or buying a licence from Astrodienst.
   node oscillates around it by up to ~1.6°, half a pada.
 - **Tamil calendar:** the month is taken from the Sun's sidereal sign at
   sunrise. **This is an open question** — see below.
+- **Year:** both reckonings are supported, because South India genuinely uses
+  two. The Tamil year turns at Mesha sankranti (Puthandu, ~14 April); the
+  Telugu, Kannada and Marathi year turns at Chaitra shukla pratipada (Ugadi,
+  which was 19 March in 2026). Between those dates the two disagree on the
+  samvatsara name, and **both are right**.
 
 ### Open: the Tamil month boundary
 
@@ -111,12 +116,6 @@ Until then `Panchangam.tamilDate()` is left alone.
 with `tamilDate` by a day on the Chithirai boundary. It only shifts the
 samvatsara name within that one-day window, and it is part of the same open
 question.)
-- **Year:** both reckonings are supported, because South India genuinely uses
-  two. The Tamil year turns at Mesha sankranti (Puthandu, ~14 April); the
-  Telugu, Kannada and Marathi year turns at Chaitra shukla pratipada (Ugadi,
-  which was 19 March in 2026). Between those dates the two disagree on the
-  samvatsara name, and **both are right**.
-
 ## If your printed jathagam differs
 
 Work down this list before assuming a bug.
