@@ -43,6 +43,12 @@ data class PanchangamStrings(
     val noSunToday: String,
     val swipeHint: String,
     val vrathaTitle: String,
+    /** Notification channel name — user-visible in Android's app settings. */
+    val reminderChannelName: String,
+    /** Notification title on the morning of an observance the user opted into. */
+    val reminderTitle: String,
+    /** Why the toggles are inert for a user without Premium. */
+    val remindersPremium: String,
     val vrathaNames: Map<String, String>
 ) {
     fun vratha(key: String): String = vrathaNames[key] ?: key
@@ -99,6 +105,9 @@ data class PanchangamStrings(
             noSunToday = "No sunrise/sunset at this location today.",
             swipeHint = "Swipe up for today's panchangam",
             vrathaTitle = "Vratham & special days",
+            reminderChannelName = "Vratham reminders",
+            reminderTitle = "Today's observance",
+            remindersPremium = "Reminders are part of Halo Premium.",
             vrathaNames = mapOf(
                 "amavasai" to "Amavasai (new moon)", "pournami" to "Pournami (full moon)",
                 "ekadasi" to "Ekadasi", "sashti" to "Sashti", "chaturthi" to "Chaturthi",
@@ -135,6 +144,9 @@ data class PanchangamStrings(
             noSunToday = "इस स्थान पर आज सूर्योदय/सूर्यास्त नहीं है।",
             swipeHint = "आज के पंचांग के लिए ऊपर स्वाइप करें",
             vrathaTitle = "व्रत और विशेष दिन",
+            reminderChannelName = "व्रत अनुस्मारक",
+            reminderTitle = "आज का व्रत",
+            remindersPremium = "अनुस्मारक हेलो प्रीमियम का हिस्सा हैं।",
             vrathaNames = mapOf(
                 "amavasai" to "अमावस्या", "pournami" to "पूर्णिमा",
                 "ekadasi" to "एकादशी", "sashti" to "षष्ठी", "chaturthi" to "चतुर्थी",
@@ -171,6 +183,9 @@ data class PanchangamStrings(
             noSunToday = "ఈ స్థలంలో నేడు సూర్యోదయం/సూర్యాస్తమయం లేదు.",
             swipeHint = "నేటి పంచాంగం కోసం పైకి స్వైప్ చేయండి",
             vrathaTitle = "వ్రతం & విశేష దినాలు",
+            reminderChannelName = "వ్రత రిమైండర్లు",
+            reminderTitle = "నేటి వ్రతం",
+            remindersPremium = "రిమైండర్లు హాలో ప్రీమియంలో భాగం.",
             vrathaNames = mapOf(
                 "amavasai" to "అమావాస్య", "pournami" to "పౌర్ణమి",
                 "ekadasi" to "ఏకాదశి", "sashti" to "షష్ఠి", "chaturthi" to "చతుర్థి",
@@ -207,6 +222,9 @@ data class PanchangamStrings(
             noSunToday = "ಈ ಸ್ಥಳದಲ್ಲಿ ಇಂದು ಸೂರ್ಯೋದಯ/ಸೂರ್ಯಾಸ್ತ ಇಲ್ಲ.",
             swipeHint = "ಇಂದಿನ ಪಂಚಾಂಗಕ್ಕಾಗಿ ಮೇಲಕ್ಕೆ ಸ್ವೈಪ್ ಮಾಡಿ",
             vrathaTitle = "ವ್ರತ & ವಿಶೇಷ ದಿನಗಳು",
+            reminderChannelName = "ವ್ರತ ಜ್ಞಾಪನೆಗಳು",
+            reminderTitle = "ಇಂದಿನ ವ್ರತ",
+            remindersPremium = "ಜ್ಞಾಪನೆಗಳು ಹ್ಯಾಲೋ ಪ್ರೀಮಿಯಂನ ಭಾಗ.",
             vrathaNames = mapOf(
                 "amavasai" to "ಅಮಾವಾಸ್ಯೆ", "pournami" to "ಪೂರ್ಣಿಮೆ",
                 "ekadasi" to "ಏಕಾದಶಿ", "sashti" to "ಷಷ್ಠಿ", "chaturthi" to "ಚತುರ್ಥಿ",
@@ -243,6 +261,9 @@ data class PanchangamStrings(
             noSunToday = "ഈ സ്ഥലത്ത് ഇന്ന് സൂര്യോദയം/സൂര്യാസ്തമയം ഇല്ല.",
             swipeHint = "ഇന്നത്തെ പഞ്ചാംഗത്തിന് മുകളിലേക്ക് സ്വൈപ്പ് ചെയ്യുക",
             vrathaTitle = "വ്രതം & വിശേഷ ദിനങ്ങൾ",
+            reminderChannelName = "വ്രത ഓർമ്മപ്പെടുത്തലുകൾ",
+            reminderTitle = "ഇന്നത്തെ വ്രതം",
+            remindersPremium = "ഓർമ്മപ്പെടുത്തലുകൾ ഹാലോ പ്രീമിയത്തിന്റെ ഭാഗമാണ്.",
             vrathaNames = mapOf(
                 "amavasai" to "അമാവാസി", "pournami" to "പൗർണമി",
                 "ekadasi" to "ഏകാദശി", "sashti" to "ഷഷ്ഠി", "chaturthi" to "ചതുർത്ഥി",
@@ -279,6 +300,9 @@ data class PanchangamStrings(
             noSunToday = "या स्थानी आज सूर्योदय/सूर्यास्त नाही.",
             swipeHint = "आजच्या पंचांगासाठी वर स्वाइप करा",
             vrathaTitle = "व्रत आणि विशेष दिवस",
+            reminderChannelName = "व्रत स्मरणपत्रे",
+            reminderTitle = "आजचे व्रत",
+            remindersPremium = "स्मरणपत्रे हॅलो प्रीमियमचा भाग आहेत.",
             vrathaNames = mapOf(
                 "amavasai" to "अमावस्या", "pournami" to "पौर्णिमा",
                 "ekadasi" to "एकादशी", "sashti" to "षष्ठी", "chaturthi" to "चतुर्थी",
@@ -315,6 +339,9 @@ data class PanchangamStrings(
             noSunToday = "இந்த இடத்தில் இன்று சூரிய உதயம்/அஸ்தமனம் இல்லை.",
             swipeHint = "இன்றைய பஞ்சாங்கத்திற்கு மேலே தள்ளுங்கள்",
             vrathaTitle = "விரத & விசேஷ தினங்கள்",
+            reminderChannelName = "விரத நினைவூட்டல்கள்",
+            reminderTitle = "இன்றைய விரதம்",
+            remindersPremium = "நினைவூட்டல்கள் ஹேலோ பிரீமியத்தின் ஒரு பகுதி.",
             vrathaNames = mapOf(
                 "amavasai" to "அமாவாசை", "pournami" to "பௌர்ணமி",
                 "ekadasi" to "ஏகாதசி", "sashti" to "சஷ்டி", "chaturthi" to "சதுர்த்தி",
@@ -352,6 +379,9 @@ data class PanchangamStrings(
             noSunToday = "该地点今日无日出/日落。",
             swipeHint = "上滑查看今日黄历",
             vrathaTitle = "斋戒与特殊日",
+            reminderChannelName = "斋戒日提醒",
+            reminderTitle = "今日斋戒",
+            remindersPremium = "提醒功能属于 Halo 高级版。",
             vrathaNames = mapOf(
                 "amavasai" to "新月 (Amavasai)", "pournami" to "满月 (Pournami)",
                 "ekadasi" to "Ekadasi", "sashti" to "Sashti", "chaturthi" to "Chaturthi",

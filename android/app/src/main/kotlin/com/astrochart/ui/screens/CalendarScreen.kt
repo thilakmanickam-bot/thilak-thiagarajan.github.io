@@ -23,13 +23,18 @@ import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -53,12 +58,24 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 
+/**
+ * @param remindersOn the observance keys the user has switched a reminder on
+ *   for. Keys, not display names, so the state survives a language change.
+ * @param remindersUnlocked whether the switches do anything. Off for a user
+ *   without Premium, who still sees them — greyed rather than hidden, so the
+ *   feature is discoverable and its absence is explained rather than silent.
+ * @param onReminderChange fired only when [remindersUnlocked]; the caller owns
+ *   persistence, which keeps this screen drivable from a test.
+ */
 @Composable
 fun CalendarScreen(
     month: YearMonth,
     onMonthChange: (YearMonth) -> Unit,
     location: LocationOption,
     onDaySelected: (LocalDate) -> Unit,
+    remindersOn: Set<String> = emptySet(),
+    remindersUnlocked: Boolean = false,
+    onReminderChange: (String, Boolean) -> Unit = { _, _ -> },
     modifier: Modifier = Modifier
 ) {
     val lang = LocalLanguage.current
@@ -168,6 +185,16 @@ fun CalendarScreen(
             Spacer(Modifier.height(16.dp))
             CelestialCard {
                 EyebrowLabel(text = ps.vrathaTitle)
+                // Says why the switches are inert rather than leaving a row of
+                // dead controls to be puzzled over.
+                if (!remindersUnlocked) {
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = ps.remindersPremium,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = TextMuted
+                    )
+                }
                 Spacer(Modifier.height(8.dp))
                 vratha.forEachIndexed { i, group ->
                     Row(
@@ -199,6 +226,13 @@ fun CalendarScreen(
                             textAlign = TextAlign.End,
                             modifier = Modifier.weight(1f)
                         )
+                        Spacer(Modifier.width(4.dp))
+                        ReminderSwitch(
+                            on = group.key in remindersOn,
+                            enabled = remindersUnlocked,
+                            contentDescription = ps.vratha(group.key),
+                            onChange = { onReminderChange(group.key, it) }
+                        )
                     }
                     if (i < vratha.lastIndex) SectionDivider()
                 }
@@ -207,6 +241,39 @@ fun CalendarScreen(
 
         Spacer(Modifier.height(20.dp))
     }
+}
+
+/**
+ * The per-observance reminder switch: gold when on, an outline when off.
+ *
+ * Scaled down because it sits at the end of a row that already carries a name
+ * and up to two dates; a full-size switch would squeeze both. Disabled for a
+ * user without Premium — present but visibly inert, which is the point, and
+ * Material already renders that state at reduced alpha.
+ */
+@Composable
+private fun ReminderSwitch(
+    on: Boolean,
+    enabled: Boolean,
+    contentDescription: String,
+    onChange: (Boolean) -> Unit
+) {
+    Switch(
+        checked = on,
+        onCheckedChange = onChange,
+        enabled = enabled,
+        colors = SwitchDefaults.colors(
+            checkedThumbColor = OnGold,
+            checkedTrackColor = GoldDeep,
+            checkedBorderColor = GoldDeep,
+            uncheckedThumbColor = TextMuted,
+            uncheckedTrackColor = Color.Transparent,
+            uncheckedBorderColor = TextMuted
+        ),
+        modifier = Modifier
+            .scale(0.72f)
+            .semantics { this.contentDescription = contentDescription }
+    )
 }
 
 /**

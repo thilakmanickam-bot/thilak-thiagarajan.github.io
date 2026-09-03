@@ -23,6 +23,7 @@ object NotificationScheduler {
     // silent (low-importance) settings apply even where the old channel exists.
     const val CHANNEL_ID = "daily_reading_v2"
     private const val WORK_NAME = "daily_reading"
+    private const val VRATHAM_WORK_NAME = "vratham_reminders"
     private const val NOTIFY_HOUR = 6
 
     /**
@@ -43,13 +44,8 @@ object NotificationScheduler {
 
     /** Enqueues a daily periodic worker whose first run lands on the next 6:00 AM. */
     fun scheduleDaily(context: Context) {
-        val now = LocalDateTime.now()
-        var next = LocalDateTime.of(now.toLocalDate(), LocalTime.of(NOTIFY_HOUR, 0))
-        if (!next.isAfter(now)) next = next.plusDays(1)
-        val delayMinutes = Duration.between(now, next).toMinutes()
-
         val request = PeriodicWorkRequestBuilder<DailyReadingWorker>(1, TimeUnit.DAYS)
-            .setInitialDelay(delayMinutes, TimeUnit.MINUTES)
+            .setInitialDelay(minutesUntilNextNotifyHour(), TimeUnit.MINUTES)
             .build()
 
         WorkManager.getInstance(context).enqueueUniquePeriodicWork(
@@ -57,5 +53,32 @@ object NotificationScheduler {
             ExistingPeriodicWorkPolicy.UPDATE,
             request
         )
+    }
+
+    /**
+     * Enqueues the vratham reminder check, also daily at ~6:00 AM.
+     *
+     * Always enqueued rather than added and cancelled as switches are flipped:
+     * [VrathamReminderWorker] reads the stored choices itself and returns
+     * immediately when there are none, so there is no window in which a toggle
+     * and the queue disagree, and nothing to repair if a cancel is missed.
+     */
+    fun scheduleVrathamReminders(context: Context) {
+        val request = PeriodicWorkRequestBuilder<VrathamReminderWorker>(1, TimeUnit.DAYS)
+            .setInitialDelay(minutesUntilNextNotifyHour(), TimeUnit.MINUTES)
+            .build()
+
+        WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+            VRATHAM_WORK_NAME,
+            ExistingPeriodicWorkPolicy.UPDATE,
+            request
+        )
+    }
+
+    private fun minutesUntilNextNotifyHour(): Long {
+        val now = LocalDateTime.now()
+        var next = LocalDateTime.of(now.toLocalDate(), LocalTime.of(NOTIFY_HOUR, 0))
+        if (!next.isAfter(now)) next = next.plusDays(1)
+        return Duration.between(now, next).toMinutes()
     }
 }

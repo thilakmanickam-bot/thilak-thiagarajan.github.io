@@ -56,6 +56,7 @@ import androidx.navigation.navArgument
 import com.google.android.gms.ads.MobileAds
 import kotlinx.coroutines.launch
 import com.astrochart.core.i18n.Language
+import com.astrochart.ads.Premium
 import com.astrochart.notify.NotificationScheduler
 import com.astrochart.update.InAppUpdate
 import com.astrochart.ui.components.AdBanner
@@ -75,6 +76,7 @@ import com.astrochart.ui.i18n.PanchangamStrings
 import com.astrochart.ui.i18n.PrimaryProfileStore
 import com.astrochart.ui.i18n.RasiStrings
 import com.astrochart.ui.i18n.UiStrings
+import com.astrochart.ui.i18n.VrathamReminderStore
 import com.astrochart.ui.screens.BirthInputScreen
 import com.astrochart.ui.screens.CalendarScreen
 import com.astrochart.ui.screens.ChartDetailScreen
@@ -123,6 +125,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         NotificationScheduler.ensureChannel(this)
         NotificationScheduler.scheduleDaily(this)
+        NotificationScheduler.scheduleVrathamReminders(this)
         if (Features.ADS_ENABLED) {
             // Safe to call repeatedly; no-ops without Play services present.
             runCatching { MobileAds.initialize(this) }
@@ -526,6 +529,11 @@ fun AppNavigation(
             }
 
             composable("calendar") {
+                // Read per-visit rather than hoisted: an entitlement is
+                // refreshed on launch and can be bought on the Premium screen
+                // mid-session, so the switches unlock on returning here.
+                var remindersOn by remember { mutableStateOf(VrathamReminderStore.enabled(context)) }
+                val remindersUnlocked = remember { Premium.isActive(context) }
                 CalendarScreen(
                     month = panchangamMonth,
                     onMonthChange = { panchangamMonth = it },
@@ -535,6 +543,12 @@ fun AppNavigation(
                         navController.navigate("panchangam") {
                             popUpTo("panchangam") { inclusive = true }
                         }
+                    },
+                    remindersOn = remindersOn,
+                    remindersUnlocked = remindersUnlocked,
+                    onReminderChange = { key, on ->
+                        VrathamReminderStore.setEnabled(context, key, on)
+                        remindersOn = VrathamReminderStore.enabled(context)
                     }
                 )
             }
