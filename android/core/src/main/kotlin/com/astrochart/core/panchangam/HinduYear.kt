@@ -231,7 +231,21 @@ object HinduYear {
         return if (sign >= MAKARA || sign <= MITHUNA) Ayana.UTTARAYANA else Ayana.DAKSHINAYANA
     }
 
-    /** The amanta lunar month prevailing at sunrise on [date]. */
+    /**
+     * The amanta lunar month a civil [date] belongs to.
+     *
+     * Normally this is simply the month running at sunrise. The exception is
+     * the same kshaya case [ugadi] has to handle: when a new moon falls after
+     * today's sunrise and the pratipada it opens is gone before tomorrow's,
+     * no sunrise ever lands in the new month's first tithi. The convention
+     * gives that day to the new month anyway — which is why 19 March 2026 is
+     * Chaitra in every almanac even though its sunrise, at 06:16, still falls
+     * in Phalguna's amavasya with the new moon 38 minutes away.
+     *
+     * A new moon that falls late in the day, with pratipada still running at
+     * the next sunrise, does *not* promote: that day stays the old month's
+     * amavasya and the next day begins the new month, as it should.
+     */
     fun lunarMonth(
         date: LocalDate,
         latDeg: Double,
@@ -239,7 +253,18 @@ object HinduYear {
         zone: ZoneId
     ): LunarMonth {
         val sun = SunTimes.compute(date, latDeg, lonEastDeg, zone)
-        return lunarMonthAtJd(sun.sunriseJdUt ?: sun.solarNoonJdUt, date.year)
+        val atSunrise = lunarMonthAtJd(sun.sunriseJdUt ?: sun.solarNoonJdUt, date.year)
+
+        val tomorrow = date.plusDays(1)
+        val next = SunTimes.compute(tomorrow, latDeg, lonEastDeg, zone)
+        val atNextSunrise = lunarMonthAtJd(next.sunriseJdUt ?: next.solarNoonJdUt, date.year)
+        if (atNextSunrise.index != atSunrise.index) {
+            val (tithi, _) = Panchangam.tithiNakshatraAtSunrise(tomorrow, latDeg, lonEastDeg, zone)
+            // Tomorrow has already moved past pratipada, so pratipada touched
+            // no sunrise at all and today carries the new month.
+            if (tithi != 0) return atNextSunrise
+        }
+        return atSunrise
     }
 
     /**

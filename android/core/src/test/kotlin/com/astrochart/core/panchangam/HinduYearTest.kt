@@ -162,10 +162,18 @@ class HinduYearTest {
 
     @Test
     fun ugadiIsTheFirstDayOfChaitra() {
-        val ugadi = HinduYear.ugadi(2026, lat, lon, zone)
-        assertEquals(0, HinduYear.lunarMonth(ugadi, lat, lon, zone).index)
-        // …and the day before it is still Phalguna, the last month.
-        assertEquals(11, HinduYear.lunarMonth(ugadi.minusDays(1), lat, lon, zone).index)
+        // Across all eight years, not just the one — the kshaya promotion in
+        // lunarMonth only fires in some of them, and both branches must land
+        // Ugadi on Chaitra and the day before it on Phalguna.
+        for (year in 2020..2027) {
+            val ugadi = HinduYear.ugadi(year, lat, lon, zone)
+            assertEquals(0, HinduYear.lunarMonth(ugadi, lat, lon, zone).index, "Ugadi $year")
+            assertEquals(
+                11,
+                HinduYear.lunarMonth(ugadi.minusDays(1), lat, lon, zone).index,
+                "day before Ugadi $year"
+            )
+        }
     }
 
     @Test
@@ -180,7 +188,12 @@ class HinduYearTest {
             val m = HinduYear.lunarMonth(d, lat, lon, zone).index
             assertTrue(m in 0..11, "month index $m on $d")
             if (m != previous) {
-                assertTrue(previous == -1 || m == previous + 1, "jumped $previous -> $m on $d")
+                // Months advance by one, wrapping Phalguna (11) back to
+                // Chaitra (0) — the sampling can straddle a year boundary.
+                assertTrue(
+                    previous == -1 || m == (previous + 1) % 12,
+                    "jumped $previous -> $m on $d"
+                )
                 previous = m
                 seen++
             }
