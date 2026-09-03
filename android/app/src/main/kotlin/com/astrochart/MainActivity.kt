@@ -37,6 +37,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -46,10 +47,12 @@ import androidx.compose.ui.unit.Density
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.google.android.gms.ads.MobileAds
 import kotlinx.coroutines.launch
 import com.astrochart.core.i18n.Language
@@ -88,7 +91,9 @@ import com.astrochart.ui.screens.RasiHubScreen
 import com.astrochart.ui.screens.RasiInfoScreen
 import com.astrochart.ui.screens.RasiPalanTwoPane
 import com.astrochart.ui.screens.RasiSignsScreen
+import com.astrochart.data.repository.SavedMatchRepository
 import com.astrochart.ui.screens.SavedChartsScreen
+import com.astrochart.ui.screens.SavedMatchesScreen
 import com.astrochart.ui.screens.SettingsScreen
 import com.astrochart.ui.screens.AccountScreen
 import com.astrochart.ui.screens.SubscriptionScreen
@@ -239,6 +244,14 @@ private fun RasiSignsOrTwoPane(
     }
 }
 
+/**
+ * Matchmaking, optionally reopening a saved match. The id is a query parameter
+ * rather than a path segment so `navigate("compatibility")` still resolves —
+ * that is how the home screen reaches it, and an optional argument keeps both
+ * entry points on one destination instead of two near-identical ones.
+ */
+private const val COMPATIBILITY_ROUTE = "compatibility?matchId={matchId}"
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppNavigation(
@@ -288,7 +301,11 @@ fun AppNavigation(
         "account" -> strings.navAccountTitle
         "panchangam" -> PanchangamStrings.forLanguage(language).title
         "calendar" -> PanchangamStrings.forLanguage(language).calendarTitle
-        "compatibility" -> PoruthamStrings.forLanguage(language).title
+        // The pattern, not the bare name: NavController reports a
+        // destination's route template, and this one now carries an
+        // optional matchId for reopening a saved match.
+        "compatibility", COMPATIBILITY_ROUTE -> PoruthamStrings.forLanguage(language).title
+        "saved_matches" -> PoruthamStrings.forLanguage(language).savedMatches
         "rasi_hub", "rasi_signs", "rasi_horoscope" -> RasiStrings.forLanguage(language).title
         "rasi_info" -> RasiStrings.forLanguage(language).aboutSigns
         "nakshatra_list" -> RasiStrings.forLanguage(language).aboutNakshatras
@@ -413,9 +430,37 @@ fun AppNavigation(
             }
             composable("nakshatra_list") { NakshatraListScreen() }
 
-            composable("compatibility") {
+            composable(
+                route = COMPATIBILITY_ROUTE,
+                arguments = listOf(
+                    navArgument("matchId") {
+                        type = NavType.LongType
+                        // -1 rather than a nullable argument: NavType.LongType
+                        // cannot be null, and no real row id is negative.
+                        defaultValue = -1L
+                    }
+                )
+            ) { entry ->
+                val matchId = entry.arguments?.getLong("matchId") ?: -1L
                 CompatibilityScreen(
-                    onNavigateToPremium = { navController.navigate("premium") }
+                    onNavigateToPremium = { navController.navigate("premium") },
+                    onNavigateToSavedMatches = { navController.navigate("saved_matches") },
+                    initialMatchId = matchId.takeIf { it >= 0 }
+                )
+            }
+
+            composable("saved_matches") {
+                val repository = remember(context) { SavedMatchRepository(context) }
+                val scope = rememberCoroutineScope()
+                // Remembered, not called per composition: observeAll() hands
+                // back a fresh Flow each call, and collecting a new one on
+                // every recomposition would restart the query each time.
+                val matches by remember(repository) { repository.observeAll() }
+                    .collectAsState(initial = emptyList())
+                SavedMatchesScreen(
+                    matches = matches,
+                    onMatchSelected = { id -> navController.navigate("compatibility?matchId=$id") },
+                    onDelete = { id -> scope.launch { repository.delete(id) } }
                 )
             }
 

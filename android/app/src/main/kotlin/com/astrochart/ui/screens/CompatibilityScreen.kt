@@ -35,6 +35,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import android.app.Activity
 import androidx.compose.ui.Alignment
@@ -58,6 +59,8 @@ import com.astrochart.core.panchangam.Panchangam
 import com.astrochart.core.panchangam.PanchangamNames
 import com.astrochart.core.utils.ChartCalculator
 import com.astrochart.data.LocationOption
+import com.astrochart.data.db.entities.SavedMatchEntity
+import com.astrochart.data.repository.SavedMatchRepository
 import com.astrochart.ui.components.CelestialCard
 import com.astrochart.ui.components.LabeledDropdown
 import com.astrochart.ui.components.NatalWheel
@@ -72,6 +75,7 @@ import com.astrochart.ui.theme.CardBorder
 import com.astrochart.ui.theme.GoldDeep
 import com.astrochart.ui.theme.TextMuted
 import com.astrochart.ui.theme.TextPrimary
+import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.Month
 import java.time.Year
@@ -158,10 +162,69 @@ private class PersonInput {
         location = null; derived = null
         clearToken++
     }
+
+    /**
+     * Refills this person from a saved row.
+     *
+     * The stored rasi and nakshatra go into the hand-picked slots so a match
+     * saved without birth details reopens complete. Where birth details were
+     * stored they are restored too, and [derived] then recomputes from them —
+     * to the same pair, since it is the same arithmetic on the same instant.
+     */
+    fun restore(
+        name: String,
+        rasi: Int,
+        nakshatra: Int,
+        birthDateTime: LocalDateTime?,
+        latitude: Double?,
+        longitude: Double?,
+        timeZone: String?,
+        locationName: String?
+    ) {
+        this.name = name
+        pickedRasi = rasi
+        pickedNak = nakshatra
+        if (birthDateTime == null || latitude == null || longitude == null || timeZone == null) {
+            return
+        }
+        year = birthDateTime.year
+        month = birthDateTime.monthValue
+        day = birthDateTime.dayOfMonth
+        hour = birthDateTime.hour
+        minute = birthDateTime.minute
+        location = locationFrom(locationName.orEmpty(), latitude, longitude, timeZone)
+        showBirthDetails = true
+    }
 }
 
-/** Canonical zodiac-sign order; index = rasi index (0 = Aries). */
-private val SIGN_ORDER = listOf(
+/**
+ * Rebuilds a [LocationOption] from the single display name a saved match
+ * stores. Splitting at the *last* ", " round-trips [LocationOption.displayName]
+ * exactly, including city names that contain a comma of their own.
+ */
+internal fun locationFrom(
+    displayName: String,
+    latitude: Double,
+    longitude: Double,
+    zoneId: String
+): LocationOption {
+    val split = displayName.lastIndexOf(", ")
+    return LocationOption(
+        city = if (split >= 0) displayName.take(split) else displayName,
+        country = if (split >= 0) displayName.substring(split + 2) else "",
+        latitude = latitude,
+        longitude = longitude,
+        zoneId = zoneId
+    )
+}
+
+/**
+ * Canonical zodiac-sign order; index = rasi index (0 = Aries), matching
+ * [com.astrochart.data.db.entities.SavedMatchEntity.groomRasi]. `internal` so
+ * [SavedMatchesScreen] resolves a saved row's rasi the same way rather than
+ * keeping a second copy of the list.
+ */
+internal val SIGN_ORDER = listOf(
     "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo",
     "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"
 )
@@ -180,11 +243,16 @@ private val SIGN_ORDER = listOf(
 @Composable
 fun CompatibilityScreen(
     onNavigateToPremium: () -> Unit,
+    onNavigateToSavedMatches: () -> Unit = {},
+    initialMatchId: Long? = null,
     modifier: Modifier = Modifier
 ) {
     val lang = LocalLanguage.current
     val ps = remember(lang) { PoruthamStrings.forLanguage(lang) }
-    val activity = LocalContext.current as? Activity
+    val context = LocalContext.current
+    val activity = context as? Activity
+    val scope = rememberCoroutineScope()
+    val repository = remember(context) { SavedMatchRepository(context) }
 
     val groom = remember { PersonInput() }
     val bride = remember { PersonInput() }
@@ -200,8 +268,52 @@ fun CompatibilityScreen(
     // showing nothing.
     var shownGroomChart by remember { mutableStateOf<NatalChart?>(null) }
     var shownBrideChart by remember { mutableStateOf<NatalChart?>(null) }
+    // The row this result is stored as, or null while it is unsaved. Also what
+    // stops the same match being saved twice by a second tap.
+    var savedId by remember { mutableStateOf<Long?>(null) }
 
     val ready = groom.rasi != null && groom.nak != null && bride.rasi != null && bride.nak != null
+
+    // Shared by the Calculate button and by reopening a saved match, so a
+    // reopened match shows exactly what a freshly computed one does.
+    val showMatch: () -> Unit = {
+        val groomRasi = groom.rasi
+        val groomNak = groom.nak
+        val brideRasi = bride.rasi
+        val brideNak = bride.nak
+        if (groomRasi != null && groomNak != null && brideRasi != null && brideNak != null) {
+            result = Porutham.compute(groomRasi, groomNak, brideRasi, brideNak)
+            shownGroom = groom.name.ifBlank { ps.groomName }
+            shownBride = bride.name.ifBlank { ps.brideName }
+            shownGroomRasi = groomRasi; shownBrideRasi = brideRasi
+            shownGroomNak = groomNak; shownBrideNak = brideNak
+            // Computed once, here, rather than in composition — the results
+            // below recompose on scroll and on a chart-style change, and this
+            // is the one genuinely expensive step.
+            shownGroomChart = groom.birthData()?.let { ChartCalculator.calculateNatalChart(it) }
+            shownBrideChart = bride.birthData()?.let { ChartCalculator.calculateNatalChart(it) }
+            savedId = null
+        }
+    }
+
+    LaunchedEffect(initialMatchId) {
+        val id = initialMatchId ?: return@LaunchedEffect
+        val match = repository.getById(id) ?: return@LaunchedEffect
+        groom.restore(
+            match.groomName, match.groomRasi, match.groomNakshatra,
+            match.groomBirthDateTime, match.groomLatitude, match.groomLongitude,
+            match.groomTimeZone, match.groomLocationName
+        )
+        bride.restore(
+            match.brideName, match.brideRasi, match.brideNakshatra,
+            match.brideBirthDateTime, match.brideLatitude, match.brideLongitude,
+            match.brideTimeZone, match.brideLocationName
+        )
+        showMatch()
+        // showMatch clears this, so it is set after: the row already exists and
+        // reopening it must not offer to store a duplicate.
+        savedId = id
+    }
 
     Column(
         modifier = modifier
@@ -216,7 +328,12 @@ fun CompatibilityScreen(
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth()
         )
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(12.dp))
+
+        TextButton(onClick = onNavigateToSavedMatches, modifier = Modifier.fillMaxWidth()) {
+            Text(ps.savedMatches, color = GoldDeep, style = MaterialTheme.typography.bodyMedium)
+        }
+        Spacer(Modifier.height(4.dp))
 
         // Headings carry no emoji: the celestial-gold system in
         // docs/DESIGN_SYSTEM.md has its own vocabulary for this, and the
@@ -241,19 +358,8 @@ fun CompatibilityScreen(
 
         Button(
             onClick = {
-                if (ready) {
-                    result = Porutham.compute(groom.rasi!!, groom.nak!!, bride.rasi!!, bride.nak!!)
-                    shownGroom = groom.name.ifBlank { ps.groomName }
-                    shownBride = bride.name.ifBlank { ps.brideName }
-                    shownGroomRasi = groom.rasi!!; shownBrideRasi = bride.rasi!!
-                    shownGroomNak = groom.nak!!; shownBrideNak = bride.nak!!
-                    // Computed once, on the tap, rather than in composition —
-                    // the results below recompose on scroll and on a chart-style
-                    // change, and this is the one genuinely expensive step.
-                    shownGroomChart = groom.birthData()?.let { ChartCalculator.calculateNatalChart(it) }
-                    shownBrideChart = bride.birthData()?.let { ChartCalculator.calculateNatalChart(it) }
-                    activity?.let { com.astrochart.ads.InterstitialAds.maybeShow(it) }
-                }
+                showMatch()
+                activity?.let { com.astrochart.ads.InterstitialAds.maybeShow(it) }
             },
             enabled = ready,
             colors = ButtonDefaults.buttonColors(containerColor = GoldDeep, contentColor = Color.White),
@@ -296,6 +402,48 @@ fun CompatibilityScreen(
             }
             SummaryCard(r, ps)
             Spacer(Modifier.height(16.dp))
+
+            val alreadySaved = savedId != null
+            OutlinedButton(
+                onClick = {
+                    if (!alreadySaved) {
+                        scope.launch {
+                            savedId = repository.save(
+                                SavedMatchEntity(
+                                    groomName = shownGroom,
+                                    brideName = shownBride,
+                                    groomRasi = shownGroomRasi,
+                                    groomNakshatra = shownGroomNak,
+                                    brideRasi = shownBrideRasi,
+                                    brideNakshatra = shownBrideNak,
+                                    total = r.total,
+                                    savedAt = LocalDateTime.now(),
+                                    groomBirthDateTime = groom.birthDateTime,
+                                    groomLatitude = groom.location?.latitude,
+                                    groomLongitude = groom.location?.longitude,
+                                    groomTimeZone = groom.location?.zoneId,
+                                    groomLocationName = groom.location?.displayName,
+                                    brideBirthDateTime = bride.birthDateTime,
+                                    brideLatitude = bride.location?.latitude,
+                                    brideLongitude = bride.location?.longitude,
+                                    brideTimeZone = bride.location?.zoneId,
+                                    brideLocationName = bride.location?.displayName
+                                )
+                            )
+                        }
+                    }
+                },
+                enabled = !alreadySaved,
+                modifier = Modifier.fillMaxWidth().height(50.dp)
+            ) {
+                Text(
+                    text = if (alreadySaved) ps.matchSaved else ps.saveMatch,
+                    color = if (alreadySaved) TextMuted else GoldDeep,
+                    style = MaterialTheme.typography.titleMedium
+                )
+            }
+            Spacer(Modifier.height(12.dp))
+
             OutlinedButton(
                 onClick = onNavigateToPremium,
                 modifier = Modifier.fillMaxWidth().height(50.dp)
