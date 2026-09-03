@@ -101,6 +101,18 @@ class ChartDetailTwoPaneTest {
     }
 
     @Test
+    fun aPhoneInLandscapeStaysSingleColumn() {
+        // 700dp is Medium — a large phone turned sideways, not a tablet. It
+        // must keep the stacked phone layout: the split needs Expanded width
+        // to give the details rail room, and in landscape there is barely
+        // enough height for the tab strip and chart as it is.
+        setContent(width = 700)
+
+        assertHeaderIsWhole()
+        composeTestRule.onNodeWithText(strings.tabWheel).assertExists()
+    }
+
+    @Test
     fun theTabsStillSwitchPanesOnATablet() {
         setContent(width = 1280)
 

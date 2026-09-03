@@ -108,7 +108,14 @@ fun ChartDetailScreen(
     // half a screen down, and the details stay readable while the tabs change.
     // The 30/70 split is the point — the details column is bounded content, the
     // chart is what wants the room.
-    val isWide = LocalWindowSizeClass.current.widthSizeClass != WindowWidthSizeClass.Compact
+    //
+    // Expanded (>=840dp), not merely "not Compact". Medium starts at 600dp,
+    // which is a large *phone in landscape* — there the split has ~250dp for
+    // the details rail (too narrow for the stacked values, per the note on
+    // ChartHeader's `stacked`) and only ~360dp of height to hold a tab strip
+    // and a chart. This also matches RasiSignsOrTwoPane, the app's other
+    // two-pane layout, so the two agree on what counts as a tablet.
+    val isWide = LocalWindowSizeClass.current.widthSizeClass == WindowWidthSizeClass.Expanded
 
     if (isWide) {
         Row(modifier = modifier.fillMaxSize()) {
