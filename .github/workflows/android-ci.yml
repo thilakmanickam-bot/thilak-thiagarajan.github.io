@@ -5,11 +5,13 @@ on:
     branches: [ main, "claude/**" ]
     paths:
       - 'android/**'
+      - 'tools/**'
       - '.github/workflows/android-ci.yml'
   pull_request:
     branches: [ main ]
     paths:
       - 'android/**'
+      - 'tools/**'
 
 jobs:
   build-and-test:
@@ -33,6 +35,16 @@ jobs:
 
       - name: Run Lint
         run: gradle -p android lint
+
+      # The app computes its own ephemeris on device, so nothing outside it
+      # checks the arithmetic. This regenerates the golden longitudes from the
+      # Swiss Ephemeris and fails if the committed file disagrees — which is
+      # what stops the golden values being edited to make a failing test pass.
+      # Swiss is a dev/CI tool only and is never bundled; see docs/RECKONING.md.
+      - name: Verify ephemeris golden values against the Swiss Ephemeris
+        run: |
+          python3 -m pip install --quiet pyswisseph
+          python3 tools/ephemeris_oracle.py --check
 
       - name: Run Core Unit Tests
         run: gradle -p android core:test
