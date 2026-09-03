@@ -30,6 +30,14 @@ data class PanchangamStrings(
     val paksha: String,
     val rasiPalan: String,
     val until: String,
+    /**
+     * Whether [until] reads before the time or after it.
+     *
+     * Defaults to after, because six of the eight languages here are
+     * postpositional — Tamil "02:56 AM வரை", Hindi "…तक" — and a new Indic
+     * translation is the likelier addition. English and Chinese set it true.
+     */
+    val untilPrecedesTime: Boolean = false,
     val then: String,
     val nextDay: String,
     val noSunToday: String,
@@ -38,6 +46,17 @@ data class PanchangamStrings(
     val vrathaNames: Map<String, String>
 ) {
     fun vratha(key: String): String = vrathaNames[key] ?: key
+
+    /**
+     * "until 02:56 AM (next day)" in English, "02:56 AM (next day) வரை" in
+     * Tamil. Where the word sits is grammar, not layout, so it is decided here
+     * next to the translations rather than by the screen doing the drawing.
+     *
+     * [time] is the whole time phrase including any "(next day)" — the word
+     * governs the phrase, so it must not land between the two.
+     */
+    fun untilTime(time: String): String =
+        if (untilPrecedesTime) "$until $time" else "$time $until"
 
     companion object {
         fun forLanguage(lang: Language): PanchangamStrings = when (lang) {
@@ -74,6 +93,7 @@ data class PanchangamStrings(
             paksha = "Paksha",
             rasiPalan = "Daily rasi palan",
             until = "until",
+            untilPrecedesTime = true,
             then = "then",
             nextDay = "(next day)",
             noSunToday = "No sunrise/sunset at this location today.",
@@ -326,6 +346,7 @@ data class PanchangamStrings(
             paksha = "月相",
             rasiPalan = "每日星座运势",
             until = "至",
+            untilPrecedesTime = true,
             then = "之后",
             nextDay = "（次日）",
             noSunToday = "该地点今日无日出/日落。",

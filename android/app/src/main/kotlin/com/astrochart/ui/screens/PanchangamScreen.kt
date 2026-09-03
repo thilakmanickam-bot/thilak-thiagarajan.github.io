@@ -179,7 +179,8 @@ fun PanchangamScreen(
             )
             ElementRowRaw(
                 label = ps.karana,
-                text = "${PanchangamNames.karanaName(p.karanaHalf0).get(lang)}  ${p.karanaEndsAt.format(timeFmt)} ${ps.until}"
+                text = "${PanchangamNames.karanaName(p.karanaHalf0).get(lang)}  " +
+                    ps.untilTime(p.karanaEndsAt.format(timeFmt))
             )
         }
 
@@ -258,7 +259,7 @@ private fun ElementRow(
     timeFmt: DateTimeFormatter
 ) {
     val suffix = if (element.endsNextDay) " ${ps.nextDay}" else ""
-    ElementRowRaw(label, "$name  ${element.endsAt.format(timeFmt)}$suffix ${ps.until}")
+    ElementRowRaw(label, "$name  " + ps.untilTime(element.endsAt.format(timeFmt) + suffix))
 }
 
 @Composable

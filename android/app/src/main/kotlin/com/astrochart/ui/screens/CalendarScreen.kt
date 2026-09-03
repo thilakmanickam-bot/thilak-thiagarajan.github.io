@@ -3,7 +3,6 @@ package com.astrochart.ui.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -175,13 +174,22 @@ fun CalendarScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 6.dp),
-                        verticalAlignment = Alignment.Top
+                        // Centred, not top-aligned: a name long enough to wrap
+                        // ("Amavasai (new moon)", "Sankatahara Chaturthi") left
+                        // its date pinned beside the first line, reading as
+                        // though it belonged to that line rather than the entry.
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
                             text = ps.vratha(group.key),
                             style = MaterialTheme.typography.bodyMedium,
                             color = TextPrimary,
-                            modifier = Modifier.weight(1f)
+                            // The names are the long half and the dates the
+                            // short one — usually "17 Thu" — yet the split was
+                            // 1 : 1.1 the other way, which is what forced those
+                            // two names onto a second line with the date column
+                            // half empty beside them.
+                            modifier = Modifier.weight(1.4f)
                         )
                         Spacer(Modifier.width(12.dp))
                         Text(
@@ -189,7 +197,7 @@ fun CalendarScreen(
                             style = MaterialTheme.typography.bodyMedium,
                             color = GoldDeep,
                             textAlign = TextAlign.End,
-                            modifier = Modifier.weight(1.1f)
+                            modifier = Modifier.weight(1f)
                         )
                     }
                     if (i < vratha.lastIndex) SectionDivider()
@@ -201,17 +209,27 @@ fun CalendarScreen(
     }
 }
 
+/**
+ * A Box, not a Column: the moon dot is positioned over the cell rather than
+ * stacked under the number.
+ *
+ * As a centred Column, a cell carrying a dot was taller than its neighbours,
+ * so centring the *stack* pushed the number upward — every new-moon and
+ * full-moon date rode visibly higher than the rest of its week. Anchoring the
+ * number to the cell's centre and the dot to its bottom edge means the numbers
+ * share one baseline across the whole grid, marked or not, and the dots line
+ * up with each other too.
+ */
 @Composable
 private fun DayCell(day: LocalDate, isToday: Boolean, mark: MoonMark, onClick: (LocalDate) -> Unit) {
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(2.dp)
             .clip(CircleShape)
             .then(if (isToday) Modifier.background(GoldDeep) else Modifier)
             .clickable { onClick(day) },
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        contentAlignment = Alignment.Center
     ) {
         Text(
             text = day.dayOfMonth.toString(),
@@ -219,8 +237,15 @@ private fun DayCell(day: LocalDate, isToday: Boolean, mark: MoonMark, onClick: (
             color = if (isToday) OnGold else TextPrimary
         )
         if (mark != MoonMark.NONE) {
-            Spacer(Modifier.height(2.dp))
-            MoonDot(mark, isToday)
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    // Clear of the clipped circle's edge, which narrows fast
+                    // near the bottom on a day that is also today.
+                    .padding(bottom = 3.dp)
+            ) {
+                MoonDot(mark, isToday)
+            }
         }
     }
 }
