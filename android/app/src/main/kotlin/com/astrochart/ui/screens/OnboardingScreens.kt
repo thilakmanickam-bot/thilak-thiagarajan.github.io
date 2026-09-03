@@ -302,13 +302,6 @@ private fun OnboardingSignInStep(onNext: () -> Unit) {
             color = TextMuted,
             textAlign = TextAlign.Center
         )
-        Spacer(Modifier.height(6.dp))
-        Text(
-            text = "Sign in to back up your profile and charts across devices.",
-            style = MaterialTheme.typography.bodySmall,
-            color = TextMuted,
-            textAlign = TextAlign.Center
-        )
         Spacer(Modifier.height(32.dp))
         Button(
             onClick = { viewModel.signInWithGoogle(context) },
