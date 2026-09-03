@@ -357,7 +357,6 @@ private fun ReadingTab(chart: NatalChart, chartName: String) {
     }
 }
 
-@Composable
 /**
  * @param stacked lay the six values out one per line instead of two rows of
  *   three. For the narrow details column of the wide layout: at 30% of the
