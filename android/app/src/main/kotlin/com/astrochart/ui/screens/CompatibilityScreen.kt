@@ -1,6 +1,7 @@
 package com.astrochart.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,6 +17,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -24,8 +27,11 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -44,19 +50,89 @@ import com.astrochart.core.i18n.Translations
 import com.astrochart.core.interpret.KootaScore
 import com.astrochart.core.interpret.Porutham
 import com.astrochart.core.interpret.PoruthamResult
+import com.astrochart.core.panchangam.Panchangam
 import com.astrochart.core.panchangam.PanchangamNames
+import com.astrochart.data.LocationOption
 import com.astrochart.ui.components.CelestialCard
 import com.astrochart.ui.components.LabeledDropdown
+import com.astrochart.ui.components.SearchableLocationField
 import com.astrochart.ui.components.SectionDivider
 import com.astrochart.ui.i18n.LocalLanguage
+import com.astrochart.ui.i18n.LocalStrings
 import com.astrochart.ui.i18n.PoruthamStrings
 import com.astrochart.ui.theme.CardBorder
 import com.astrochart.ui.theme.GoldDeep
 import com.astrochart.ui.theme.TextMuted
 import com.astrochart.ui.theme.TextPrimary
+import java.time.LocalDateTime
+import java.time.Month
+import java.time.Year
+import java.time.YearMonth
+import java.time.ZoneId
+import java.time.format.TextStyle
 
 private val PresentGreen = Color(0xFF3B9C5A)
 private val AbsentRed = Color(0xFFD1495B)
+
+/**
+ * One person's inputs.
+ *
+ * Rasi and nakshatram can be chosen by hand, or worked out from a birth date,
+ * time and place. [derived] holds the worked-out pair and, when it is present,
+ * takes precedence over the hand-picked values — so filling in birth details
+ * never silently disagrees with what the screen goes on to score.
+ *
+ * Every part of the birth instant starts unset. A defaulted date would let
+ * someone pick only a birthplace and be handed a rasi for midnight on the 1st
+ * of January, which looks like an answer and is not one.
+ */
+private class PersonInput {
+    var name by mutableStateOf("")
+    var pickedRasi by mutableStateOf<Int?>(null)
+    var pickedNak by mutableStateOf<Int?>(null)
+    var showBirthDetails by mutableStateOf(false)
+    var day by mutableStateOf<Int?>(null)
+    var month by mutableStateOf<Int?>(null)
+    var year by mutableStateOf<Int?>(null)
+    var hour by mutableStateOf<Int?>(null)
+    var minute by mutableStateOf<Int?>(null)
+    var location by mutableStateOf<LocationOption?>(null)
+    var derived by mutableStateOf<Pair<Int, Int>?>(null)
+
+    /**
+     * Bumped by [clearBirthDetails]. SearchableLocationField keeps the typed
+     * query in its own un-keyed `remember`, so without this the text of a
+     * cleared birthplace would stay on screen with nothing selected behind it.
+     */
+    var clearToken by mutableStateOf(0)
+
+    /** The birth instant, or null while any part of it is still unchosen. */
+    val birthDateTime: LocalDateTime?
+        get() {
+            val y = year ?: return null
+            val mo = month ?: return null
+            val d = day ?: return null
+            val h = hour ?: return null
+            val mi = minute ?: return null
+            // Choosing the 31st and then February leaves an impossible date
+            // standing for one frame — the clamp that fixes it runs after the
+            // composition that reads this. Treating that frame as "not yet a
+            // date" is the difference between a redraw and a crash.
+            return runCatching { LocalDateTime.of(y, mo, d, h, mi) }.getOrNull()
+        }
+
+    val zone: ZoneId?
+        get() = location?.let { runCatching { ZoneId.of(it.zoneId) }.getOrNull() }
+
+    val rasi: Int? get() = derived?.first ?: pickedRasi
+    val nak: Int? get() = derived?.second ?: pickedNak
+
+    fun clearBirthDetails() {
+        day = null; month = null; year = null; hour = null; minute = null
+        location = null; derived = null
+        clearToken++
+    }
+}
 
 /** Canonical zodiac-sign order; index = rasi index (0 = Aries). */
 private val SIGN_ORDER = listOf(
@@ -80,12 +156,8 @@ fun CompatibilityScreen(
     val ps = remember(lang) { PoruthamStrings.forLanguage(lang) }
     val activity = LocalContext.current as? Activity
 
-    var groomName by remember { mutableStateOf("") }
-    var groomRasi by remember { mutableStateOf<Int?>(null) }
-    var groomNak by remember { mutableStateOf<Int?>(null) }
-    var brideName by remember { mutableStateOf("") }
-    var brideRasi by remember { mutableStateOf<Int?>(null) }
-    var brideNak by remember { mutableStateOf<Int?>(null) }
+    val groom = remember { PersonInput() }
+    val bride = remember { PersonInput() }
     var result by remember { mutableStateOf<PoruthamResult?>(null) }
     var shownGroom by remember { mutableStateOf("") }
     var shownBride by remember { mutableStateOf("") }
@@ -94,7 +166,7 @@ fun CompatibilityScreen(
     var shownGroomNak by remember { mutableStateOf(0) }
     var shownBrideNak by remember { mutableStateOf(0) }
 
-    val ready = groomRasi != null && groomNak != null && brideRasi != null && brideNak != null
+    val ready = groom.rasi != null && groom.nak != null && bride.rasi != null && bride.nak != null
 
     Column(
         modifier = modifier
@@ -118,17 +190,15 @@ fun CompatibilityScreen(
         // phones.
         PersonCard(
             heading = ps.groomDetails,
-            name = groomName, onName = { groomName = it }, namePlaceholder = ps.enterGroomName,
-            rasi = groomRasi, onRasi = { groomRasi = it },
-            nak = groomNak, onNak = { groomNak = it },
+            person = groom,
+            namePlaceholder = ps.enterGroomName,
             ps = ps, lang = lang
         )
         Spacer(Modifier.height(16.dp))
         PersonCard(
             heading = ps.brideDetails,
-            name = brideName, onName = { brideName = it }, namePlaceholder = ps.enterBrideName,
-            rasi = brideRasi, onRasi = { brideRasi = it },
-            nak = brideNak, onNak = { brideNak = it },
+            person = bride,
+            namePlaceholder = ps.enterBrideName,
             ps = ps, lang = lang
         )
 
@@ -137,11 +207,11 @@ fun CompatibilityScreen(
         Button(
             onClick = {
                 if (ready) {
-                    result = Porutham.compute(groomRasi!!, groomNak!!, brideRasi!!, brideNak!!)
-                    shownGroom = groomName.ifBlank { ps.groomName }
-                    shownBride = brideName.ifBlank { ps.brideName }
-                    shownGroomRasi = groomRasi!!; shownBrideRasi = brideRasi!!
-                    shownGroomNak = groomNak!!; shownBrideNak = brideNak!!
+                    result = Porutham.compute(groom.rasi!!, groom.nak!!, bride.rasi!!, bride.nak!!)
+                    shownGroom = groom.name.ifBlank { ps.groomName }
+                    shownBride = bride.name.ifBlank { ps.brideName }
+                    shownGroomRasi = groom.rasi!!; shownBrideRasi = bride.rasi!!
+                    shownGroomNak = groom.nak!!; shownBrideNak = bride.nak!!
                     activity?.let { com.astrochart.ads.InterstitialAds.maybeShow(it) }
                 }
             },
@@ -193,24 +263,31 @@ fun CompatibilityScreen(
 @Composable
 private fun PersonCard(
     heading: String,
-    name: String,
-    onName: (String) -> Unit,
+    person: PersonInput,
     namePlaceholder: String,
-    rasi: Int?,
-    onRasi: (Int) -> Unit,
-    nak: Int?,
-    onNak: (Int) -> Unit,
     ps: PoruthamStrings,
     lang: Language
 ) {
+    // Recomputed only when the birth instant or its zone actually changes, so
+    // the ephemeris isn't evaluated on every recomposition of the card.
+    LaunchedEffect(person.birthDateTime, person.location?.zoneId) {
+        val at = person.birthDateTime
+        val zone = person.zone
+        person.derived = if (at != null && zone != null) {
+            Panchangam.moonRasiAndNakshatra(at, zone)
+        } else {
+            null
+        }
+    }
+
     CelestialCard {
         Text(heading, style = MaterialTheme.typography.titleMedium, color = GoldDeep, fontWeight = FontWeight.SemiBold)
         Spacer(Modifier.height(12.dp))
 
         Text(ps.name, style = MaterialTheme.typography.bodySmall, color = TextMuted)
         OutlinedTextField(
-            value = name,
-            onValueChange = onName,
+            value = person.name,
+            onValueChange = { person.name = it },
             placeholder = { Text(namePlaceholder) },
             singleLine = true,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
@@ -225,29 +302,171 @@ private fun PersonCard(
         )
         Spacer(Modifier.height(12.dp))
 
-        Text(ps.rasi, style = MaterialTheme.typography.bodySmall, color = TextMuted)
-        LabeledDropdown(
-            label = ps.rasi,
-            options = SIGN_ORDER.indices.toList(),
-            selected = rasi,
-            optionLabel = { Translations.signName(SIGN_ORDER[it], lang) },
-            onSelected = onRasi,
-            placeholder = ps.rasi,
-            modifier = Modifier.fillMaxWidth()
-        )
+        BirthDetailsSection(person, ps)
         Spacer(Modifier.height(12.dp))
 
-        Text(ps.nakshatram, style = MaterialTheme.typography.bodySmall, color = TextMuted)
+        val derived = person.derived
+        if (derived != null) {
+            // Showing the values rather than a disabled dropdown: a greyed-out
+            // control invites tapping and then refuses, which reads as broken.
+            DerivedValue(ps.rasi, Translations.signName(SIGN_ORDER[derived.first], lang), ps.derivedFromBirth)
+            Spacer(Modifier.height(12.dp))
+            DerivedValue(ps.nakshatram, PanchangamNames.nakshatras[derived.second].get(lang), ps.derivedFromBirth)
+        } else {
+            Text(ps.rasi, style = MaterialTheme.typography.bodySmall, color = TextMuted)
+            LabeledDropdown(
+                label = ps.rasi,
+                options = SIGN_ORDER.indices.toList(),
+                selected = person.pickedRasi,
+                optionLabel = { Translations.signName(SIGN_ORDER[it], lang) },
+                onSelected = { person.pickedRasi = it },
+                placeholder = ps.rasi,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(Modifier.height(12.dp))
+
+            Text(ps.nakshatram, style = MaterialTheme.typography.bodySmall, color = TextMuted)
+            LabeledDropdown(
+                label = ps.nakshatram,
+                options = PanchangamNames.nakshatras.indices.toList(),
+                selected = person.pickedNak,
+                optionLabel = { PanchangamNames.nakshatras[it].get(lang) },
+                onSelected = { person.pickedNak = it },
+                placeholder = ps.nakshatram,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+    }
+}
+
+/**
+ * The optional birth date, time and place. Collapsed by default: matching on a
+ * rasi and nakshatram alone is the common case, and this is six more fields.
+ */
+@Composable
+private fun BirthDetailsSection(person: PersonInput, ps: PoruthamStrings) {
+    val strings = LocalStrings.current
+    val lang = LocalLanguage.current
+
+    val years = remember { (1900..Year.now().value).toList().reversed() }
+    val daysInMonth = remember(person.year, person.month) {
+        val y = person.year
+        val m = person.month
+        if (y != null && m != null) YearMonth.of(y, m).lengthOfMonth() else 31
+    }
+    // Picking the 31st and then February must not leave the 31st selected.
+    LaunchedEffect(daysInMonth) {
+        person.day?.let { if (it > daysInMonth) person.day = daysInMonth }
+    }
+
+    TextButton(
+        onClick = { person.showBirthDetails = !person.showBirthDetails },
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Text(ps.birthDetails, color = GoldDeep, style = MaterialTheme.typography.bodyMedium)
+        Spacer(Modifier.width(6.dp))
+        Icon(
+            imageVector = if (person.showBirthDetails) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+            contentDescription = null,
+            tint = GoldDeep
+        )
+    }
+
+    if (!person.showBirthDetails) return
+
+    Text(
+        text = ps.birthDetailsHint,
+        style = MaterialTheme.typography.bodySmall,
+        color = TextMuted,
+        modifier = Modifier.fillMaxWidth()
+    )
+    Spacer(Modifier.height(10.dp))
+
+    Text(strings.dob, style = MaterialTheme.typography.bodySmall, color = TextMuted)
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         LabeledDropdown(
-            label = ps.nakshatram,
-            options = PanchangamNames.nakshatras.indices.toList(),
-            selected = nak,
-            optionLabel = { PanchangamNames.nakshatras[it].get(lang) },
-            onSelected = onNak,
-            placeholder = ps.nakshatram,
+            label = strings.day,
+            options = (1..daysInMonth).toList(),
+            selected = person.day,
+            optionLabel = { it.toString() },
+            onSelected = { person.day = it },
+            placeholder = strings.dropdownDefault,
+            modifier = Modifier.weight(1f)
+        )
+        LabeledDropdown(
+            label = strings.month,
+            options = (1..12).toList(),
+            selected = person.month,
+            optionLabel = { Month.of(it).getDisplayName(TextStyle.SHORT, lang.locale) },
+            onSelected = { person.month = it },
+            placeholder = strings.dropdownDefault,
+            modifier = Modifier.weight(1.4f)
+        )
+        LabeledDropdown(
+            label = strings.year,
+            options = years,
+            selected = person.year,
+            optionLabel = { it.toString() },
+            onSelected = { person.year = it },
+            placeholder = strings.dropdownDefault,
+            modifier = Modifier.weight(1.2f)
+        )
+    }
+    Spacer(Modifier.height(10.dp))
+
+    Text(strings.tob, style = MaterialTheme.typography.bodySmall, color = TextMuted)
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        LabeledDropdown(
+            label = strings.hour,
+            options = (0..23).toList(),
+            selected = person.hour,
+            optionLabel = { it.toString().padStart(2, '0') },
+            onSelected = { person.hour = it },
+            placeholder = strings.dropdownDefault,
+            modifier = Modifier.weight(1f)
+        )
+        LabeledDropdown(
+            label = strings.minute,
+            options = (0..59).toList(),
+            selected = person.minute,
+            optionLabel = { it.toString().padStart(2, '0') },
+            onSelected = { person.minute = it },
+            placeholder = strings.dropdownDefault,
+            modifier = Modifier.weight(1f)
+        )
+    }
+    Spacer(Modifier.height(10.dp))
+
+    Text(strings.pob, style = MaterialTheme.typography.bodySmall, color = TextMuted)
+    key(person.clearToken) {
+        SearchableLocationField(
+            label = strings.location,
+            placeholder = strings.searchCityHint,
+            selected = person.location,
+            onSelected = { person.location = it },
+            noResultsText = strings.noLocationResults,
             modifier = Modifier.fillMaxWidth()
         )
     }
+
+    // Only offered once something has been entered — otherwise it is a button
+    // that clears nothing.
+    if (person.location != null || person.day != null || person.hour != null) {
+        TextButton(
+            onClick = { person.clearBirthDetails() },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(ps.clearBirthDetails, color = TextMuted, style = MaterialTheme.typography.bodySmall)
+        }
+    }
+}
+
+/** A rasi or nakshatram the app worked out, shown in place of its dropdown. */
+@Composable
+private fun DerivedValue(label: String, value: String, caption: String) {
+    Text(label, style = MaterialTheme.typography.bodySmall, color = TextMuted)
+    Text(value, style = MaterialTheme.typography.titleMedium, color = TextPrimary, fontWeight = FontWeight.SemiBold)
+    Text(caption, style = MaterialTheme.typography.bodySmall, color = GoldDeep)
 }
 
 @Composable
@@ -255,14 +474,14 @@ private fun ResultHeader(
     r: PoruthamResult,
     ps: PoruthamStrings,
     lang: Language,
-    boy: String, girl: String,
+    groom: String, bride: String,
     groomRasi: Int, brideRasi: Int,
     groomNak: Int, brideNak: Int
 ) {
     CelestialCard {
         Row(modifier = Modifier.fillMaxWidth()) {
-            PersonSummary(ps.groomName, boy, Translations.signName(SIGN_ORDER[groomRasi], lang), PanchangamNames.nakshatras[groomNak].get(lang), Modifier.weight(1f))
-            PersonSummary(ps.brideName, girl, Translations.signName(SIGN_ORDER[brideRasi], lang), PanchangamNames.nakshatras[brideNak].get(lang), Modifier.weight(1f))
+            PersonSummary(ps.groomName, groom, Translations.signName(SIGN_ORDER[groomRasi], lang), PanchangamNames.nakshatras[groomNak].get(lang), Modifier.weight(1f))
+            PersonSummary(ps.brideName, bride, Translations.signName(SIGN_ORDER[brideRasi], lang), PanchangamNames.nakshatras[brideNak].get(lang), Modifier.weight(1f))
         }
         Spacer(Modifier.height(12.dp))
         SectionDivider(modifier = Modifier.fillMaxWidth(), width = 200)

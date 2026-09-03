@@ -1,6 +1,7 @@
 package com.astrochart.core.panchangam
 
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
@@ -229,6 +230,21 @@ object Panchangam {
         val rasi0 = floor(sidMoon / 30.0).toInt().coerceIn(0, 11)
         val nak0 = floor(sidMoon / NAK_SIZE).toInt().coerceIn(0, 26)
         return rasi0 to nak0
+    }
+
+    /**
+     * The same (rasi, nakshatra) as [moonRasiAndNakshatraAtJd], taken from a
+     * wall-clock birth date/time and the zone it was recorded in.
+     *
+     * Latitude and longitude are deliberately absent: the sidereal Moon's
+     * longitude is a function of the instant alone, so the birthplace only
+     * matters here insofar as it fixes the zone. That is what lets marriage
+     * matching derive a rasi and nakshatram without computing a whole chart.
+     */
+    fun moonRasiAndNakshatra(local: LocalDateTime, zone: ZoneId): Pair<Int, Int> {
+        val utc = local.atZone(zone).withZoneSameInstant(ZoneId.of("UTC")).toLocalDateTime()
+        val jdUt = SolarLunar.julianDayUt(utc.toLocalDate(), utc.hour + utc.minute / 60.0)
+        return moonRasiAndNakshatraAtJd(jdUt, utc.year)
     }
 
     /**

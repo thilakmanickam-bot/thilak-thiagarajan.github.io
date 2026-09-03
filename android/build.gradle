@@ -34,7 +34,9 @@ ext {
     //        ("karaikudi" now finds "Kāraikkudi").
     // 1.1.7: matchmaking speaks of the groom and bride, and drops the emoji.
     // 1.1.8: database v3 — saved_matches table for saved marriage matches.
-    versionName = "1.1.8"
+    // 1.1.9: matchmaking accepts an optional birth date, time and place, and
+    //        works out the rasi and nakshatram from it.
+    versionName = "1.1.9"
 
     // Dependency versions
     kotlinVersion = "1.9.22"

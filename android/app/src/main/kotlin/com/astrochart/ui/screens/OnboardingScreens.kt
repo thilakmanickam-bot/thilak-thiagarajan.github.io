@@ -59,7 +59,6 @@ import com.astrochart.Features
 import com.astrochart.core.i18n.Language
 import com.astrochart.core.models.ChartStyle
 import com.astrochart.core.panchangam.Panchangam
-import com.astrochart.core.panchangam.SolarLunar
 import com.astrochart.data.LocationOption
 import com.astrochart.ui.components.CelestialCard
 import com.astrochart.ui.components.GoldButton
@@ -413,7 +412,7 @@ internal fun OnboardingLanguageStep(
 
 /**
  * Full birth-detail profile step, reusing [BirthInputScreen] so rasi/nakshatra
- * are computed (via [Panchangam.moonRasiAndNakshatraAtJd], the sidereal
+ * are computed (via [Panchangam.moonRasiAndNakshatra], the sidereal
  * counterpart to its tropical [com.astrochart.core.models.NatalChart]) rather
  * than hand-picked. `internal` so Settings' "Change primary profile" flow can
  * reuse this exact same step, prefilled the same way.
@@ -447,9 +446,9 @@ internal fun OnboardingProfileStep(
             },
             initialTimeZone = existing?.timeZoneId ?: "Asia/Singapore",
             onChartCalculated = { chart, name, loc ->
-                val utc = chart.birthData.toUTC()
-                val jdUt = SolarLunar.julianDayUt(utc.toLocalDate(), utc.hour + utc.minute / 60.0)
-                val (rasi, nak) = Panchangam.moonRasiAndNakshatraAtJd(jdUt, utc.year)
+                val (rasi, nak) = Panchangam.moonRasiAndNakshatra(
+                    chart.birthData.dateTime, chart.birthData.timeZone
+                )
                 PrimaryProfileStore.save(
                     context,
                     PrimaryProfile(
