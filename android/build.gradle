@@ -37,7 +37,11 @@ ext {
     // 1.1.9: matchmaking accepts an optional birth date, time and place, works
     //        out the rasi and nakshatram from it, draws both charts on the
     //        result, and saves matches so they can be reopened or deleted.
-    versionName = "1.1.9"
+    // 1.2.0: matchmaking exports a match as a PDF; reminder switches on every
+    //        vratham day (Premium); the chart screen splits 30/70 on tablets;
+    //        the panchangam opens on the device's own city; "until" reads
+    //        before the time in English and Chinese; calendar alignment fixes.
+    versionName = "1.2.0"
 
     // Dependency versions
     kotlinVersion = "1.9.22"
