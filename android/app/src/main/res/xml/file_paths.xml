@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  What HaloFileProvider is allowed to hand out. Exactly one directory: the
+  "shared" folder inside the app's cache, where exported match PDFs are
+  written. Nothing else in the app's storage is reachable through the
+  provider, which is the point of naming a subdirectory rather than the whole
+  cache.
+-->
+<paths>
+    <cache-path name="shared" path="shared/" />
+</paths>

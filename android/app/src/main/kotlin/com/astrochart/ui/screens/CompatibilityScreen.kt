@@ -38,6 +38,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import android.app.Activity
+import android.content.Context
+import android.content.Intent
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -47,6 +49,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.FileProvider
 import com.astrochart.core.i18n.Language
 import com.astrochart.core.i18n.Translations
 import com.astrochart.core.interpret.KootaScore
@@ -67,6 +70,8 @@ import com.astrochart.ui.components.NatalWheel
 import com.astrochart.ui.components.SearchableLocationField
 import com.astrochart.ui.components.SectionDivider
 import com.astrochart.ui.components.SouthIndianChartView
+import com.astrochart.ui.export.MatchPdf
+import com.astrochart.ui.export.MatchSheet
 import com.astrochart.ui.i18n.LocalChartStyle
 import com.astrochart.ui.i18n.LocalLanguage
 import com.astrochart.ui.i18n.LocalStrings
@@ -75,7 +80,10 @@ import com.astrochart.ui.theme.CardBorder
 import com.astrochart.ui.theme.GoldDeep
 import com.astrochart.ui.theme.TextMuted
 import com.astrochart.ui.theme.TextPrimary
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
 import java.time.LocalDateTime
 import java.time.Month
 import java.time.Year
@@ -253,6 +261,9 @@ fun CompatibilityScreen(
     val activity = context as? Activity
     val scope = rememberCoroutineScope()
     val repository = remember(context) { SavedMatchRepository(context) }
+    // The PDF has to be told which style to draw; on screen each chart card
+    // reads this for itself.
+    val chartStyle = LocalChartStyle.current
 
     val groom = remember { PersonInput() }
     val bride = remember { PersonInput() }
@@ -441,6 +452,28 @@ fun CompatibilityScreen(
                     color = if (alreadySaved) TextMuted else GoldDeep,
                     style = MaterialTheme.typography.titleMedium
                 )
+            }
+            Spacer(Modifier.height(12.dp))
+
+            OutlinedButton(
+                onClick = {
+                    scope.launch {
+                        val sheet = matchSheet(
+                            ps, lang, chartStyle, r,
+                            shownGroom, shownBride,
+                            shownGroomRasi, shownBrideRasi,
+                            shownGroomNak, shownBrideNak,
+                            shownGroomChart, shownBrideChart
+                        )
+                        // Rendering a page and writing a file are both slow
+                        // enough to drop frames on the main thread.
+                        val file = withContext(Dispatchers.IO) { MatchPdf.write(context, sheet) }
+                        context.startActivity(shareIntent(context, file, ps.exportPdf))
+                    }
+                },
+                modifier = Modifier.fillMaxWidth().height(50.dp)
+            ) {
+                Text(ps.exportPdf, color = GoldDeep, style = MaterialTheme.typography.titleMedium)
             }
             Spacer(Modifier.height(12.dp))
 
@@ -698,6 +731,67 @@ private fun ResultHeader(
             modifier = Modifier.fillMaxWidth()
         )
     }
+}
+
+/**
+ * Assembles the export sheet from what the screen is already showing.
+ *
+ * Everything reaches [MatchPdf] already localized — koota names, the verdict,
+ * the sign and nakshatram names — so the PDF never has to decide what anything
+ * is called. `internal` so a test can build a sheet without a screen.
+ */
+internal fun matchSheet(
+    ps: PoruthamStrings,
+    lang: Language,
+    style: ChartStyle,
+    result: PoruthamResult,
+    groomName: String,
+    brideName: String,
+    groomRasi: Int,
+    brideRasi: Int,
+    groomNak: Int,
+    brideNak: Int,
+    groomChart: NatalChart?,
+    brideChart: NatalChart?
+): MatchSheet = MatchSheet(
+    title = ps.title,
+    groom = MatchSheet.Person(
+        role = ps.groomName,
+        name = groomName,
+        rasi = Translations.signName(SIGN_ORDER[groomRasi], lang),
+        nakshatra = PanchangamNames.nakshatras[groomNak].get(lang),
+        chart = groomChart
+    ),
+    bride = MatchSheet.Person(
+        role = ps.brideName,
+        name = brideName,
+        rasi = Translations.signName(SIGN_ORDER[brideRasi], lang),
+        nakshatra = PanchangamNames.nakshatras[brideNak].get(lang),
+        chart = brideChart
+    ),
+    kootaHeading = ps.kuta,
+    gainedHeading = ps.gained,
+    maxHeading = ps.max,
+    rows = result.scores.map { MatchSheet.Row(ps.kootaName(it.koota), it.gained, it.koota.max) },
+    totalLabel = ps.totalScore,
+    total = result.total,
+    max = result.max,
+    verdict = ps.summary(result.total, result.hasCriticalDosha),
+    language = lang,
+    style = style
+)
+
+/** ACTION_SEND for a file the app's FileProvider is allowed to hand out. */
+private fun shareIntent(context: Context, file: File, chooserTitle: String): Intent {
+    val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+    val send = Intent(Intent.ACTION_SEND).apply {
+        type = "application/pdf"
+        putExtra(Intent.EXTRA_STREAM, uri)
+        // The receiving app has no standing access to the provider; this grant
+        // is what lets it read the one file, for the life of the Intent.
+        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+    }
+    return Intent.createChooser(send, chooserTitle)
 }
 
 /**
