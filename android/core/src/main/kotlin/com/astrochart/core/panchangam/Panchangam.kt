@@ -256,7 +256,14 @@ object Panchangam {
         return tithiNakshatraAtJd(sun.sunriseJdUt ?: sun.solarNoonJdUt, date.year)
     }
 
-    private fun sidSunSignAtSunrise(date: LocalDate, latDeg: Double, lonEastDeg: Double, zone: ZoneId): Int {
+    /**
+     * The Sun's sidereal sign at sunrise (0 = Mesha … 11 = Meena).
+     *
+     * Public because it is the hinge of every solar reckoning in the app: the
+     * Tamil month, the ayana, and the Tamil year boundary (Mesha sankranti)
+     * are all read off it — see [com.astrochart.core.panchangam.HinduYear].
+     */
+    fun sidSunSignAtSunrise(date: LocalDate, latDeg: Double, lonEastDeg: Double, zone: ZoneId): Int {
         val sun = SunTimes.compute(date, latDeg, lonEastDeg, zone)
         val jd = sun.sunriseJdUt ?: sun.solarNoonJdUt
         val jde = SolarLunar.toJde(jd, date.year)
