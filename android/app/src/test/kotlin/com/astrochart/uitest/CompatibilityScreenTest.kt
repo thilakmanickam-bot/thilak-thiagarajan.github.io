@@ -3,12 +3,16 @@ package com.astrochart.uitest
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodes
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import com.astrochart.core.i18n.Language
+import com.astrochart.core.panchangam.PanchangamNames
 import com.astrochart.ui.i18n.PoruthamStrings
 import com.astrochart.ui.i18n.UiStrings
 import com.astrochart.ui.screens.CompatibilityScreen
@@ -57,7 +61,7 @@ class CompatibilityScreenTest {
         // None of the fields are on screen yet, so the screen is no longer than
         // it was before this section existed.
         composeTestRule.onNodeWithText(ps.birthDetailsHint).assertDoesNotExist()
-        composeTestRule.onNodeWithText(strings.searchCityHint).assertDoesNotExist()
+        composeTestRule.onNodeWithText(strings.pob).assertDoesNotExist()
     }
 
     @Test
@@ -70,7 +74,11 @@ class CompatibilityScreenTest {
 
         // One set of fields, not two: each card holds its own state.
         composeTestRule.onAllNodesWithText(ps.birthDetailsHint).assertCountEquals(1)
-        composeTestRule.onAllNodesWithText(strings.searchCityHint).assertCountEquals(1)
+        composeTestRule.onAllNodesWithText(strings.pob).assertCountEquals(1)
+        // The birthplace field's own label, not its placeholder: Material 3
+        // renders a placeholder only while the field is focused and empty, so
+        // asserting on strings.searchCityHint passes vacuously either way.
+        composeTestRule.onAllNodesWithText(strings.location).assertCountEquals(1)
     }
 
     @Test
@@ -82,9 +90,9 @@ class CompatibilityScreenTest {
         // details — is still the one in force.
         composeTestRule.onNodeWithText(ps.derivedFromBirth).assertDoesNotExist()
 
-        // At least one "Rasi" per person. Not an exact count: the dropdown
-        // renders the same word as its caption, its label and its placeholder,
-        // and how many of those are in the tree is a styling detail.
+        // At least one "Rasi" per person. Not an exact count: the caption above
+        // the dropdown and the dropdown's own label are the same word, and how
+        // many of those end up as separate nodes is a styling detail.
         val rasiNodes = composeTestRule.onAllNodesWithText(ps.rasi).fetchSemanticsNodes()
         assertTrue("expected a rasi control per person, found ${rasiNodes.size}", rasiNodes.size >= 2)
     }
@@ -100,6 +108,44 @@ class CompatibilityScreenTest {
         composeTestRule.onNodeWithText(ps.clearBirthDetails).assertDoesNotExist()
     }
 
+    /**
+     * The whole manual path, end to end. The six loose `var`s this screen used
+     * to hold were folded into one state holder per person; nothing about that
+     * refactor looks wrong from the outside if the two people's state got
+     * crossed or a field stopped reaching the scoring call, so this drives four
+     * dropdowns and checks a score actually comes back.
+     *
+     * Nodes are found by "has this label AND is clickable", which picks the
+     * dropdown itself over the caption above it that repeats the same word.
+     */
+    @Test
+    fun aMatchCanStillBeScoredFromHandPickedValuesAlone() {
+        setContent()
+
+        pickFromDropdown(label = ps.rasi, option = "Aries")
+        pickFromDropdown(label = ps.nakshatram, option = nakshatra(0))
+        pickFromDropdown(label = ps.rasi, option = "Taurus", index = 1)
+        pickFromDropdown(label = ps.nakshatram, option = nakshatra(1), index = 1)
+
+        composeTestRule.onNodeWithText(ps.calculate, ignoreCase = true)
+            .performScrollTo()
+            .performClick()
+
+        composeTestRule.onNodeWithText(ps.totalScore).performScrollTo().assertIsDisplayed()
+        // No birth details were given, so nothing claims to have been derived.
+        composeTestRule.onNodeWithText(ps.derivedFromBirth).assertDoesNotExist()
+    }
+
+    private fun nakshatra(index: Int) =
+        PanchangamNames.nakshatras[index].get(Language.EN)
+
+    private fun pickFromDropdown(label: String, option: String, index: Int = 0) {
+        composeTestRule.onAllNodes(hasText(label) and hasClickAction())[index]
+            .performScrollTo()
+            .performClick()
+        composeTestRule.onNodeWithText(option).performClick()
+    }
+
     @Test
     fun calculateIsBlockedUntilBothPeopleAreComplete() {
         setContent()
@@ -107,6 +153,6 @@ class CompatibilityScreenTest {
         composeTestRule.onNodeWithText(ps.calculate, ignoreCase = true)
             .performScrollTo()
             .assertIsNotEnabled()
-        composeTestRule.onNodeWithText(ps.fillAll).assertIsDisplayed()
+        composeTestRule.onNodeWithText(ps.fillAll).performScrollTo().assertIsDisplayed()
     }
 }

@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -50,13 +51,20 @@ import com.astrochart.core.i18n.Translations
 import com.astrochart.core.interpret.KootaScore
 import com.astrochart.core.interpret.Porutham
 import com.astrochart.core.interpret.PoruthamResult
+import com.astrochart.core.models.BirthData
+import com.astrochart.core.models.ChartStyle
+import com.astrochart.core.models.NatalChart
 import com.astrochart.core.panchangam.Panchangam
 import com.astrochart.core.panchangam.PanchangamNames
+import com.astrochart.core.utils.ChartCalculator
 import com.astrochart.data.LocationOption
 import com.astrochart.ui.components.CelestialCard
 import com.astrochart.ui.components.LabeledDropdown
+import com.astrochart.ui.components.NatalWheel
 import com.astrochart.ui.components.SearchableLocationField
 import com.astrochart.ui.components.SectionDivider
+import com.astrochart.ui.components.SouthIndianChartView
+import com.astrochart.ui.i18n.LocalChartStyle
 import com.astrochart.ui.i18n.LocalLanguage
 import com.astrochart.ui.i18n.LocalStrings
 import com.astrochart.ui.i18n.PoruthamStrings
@@ -127,6 +135,24 @@ private class PersonInput {
     val rasi: Int? get() = derived?.first ?: pickedRasi
     val nak: Int? get() = derived?.second ?: pickedNak
 
+    /**
+     * Everything a natal chart needs, or null when the birth details are
+     * incomplete. Unlike [birthDateTime] this does want the coordinates: house
+     * cusps and the ascendant depend on where on Earth you were standing.
+     */
+    fun birthData(): BirthData? {
+        val at = birthDateTime ?: return null
+        val place = location ?: return null
+        val z = zone ?: return null
+        return BirthData(
+            dateTime = at,
+            latitude = place.latitude,
+            longitude = place.longitude,
+            timeZone = z,
+            locationName = place.displayName
+        )
+    }
+
     fun clearBirthDetails() {
         day = null; month = null; year = null; hour = null; minute = null
         location = null; derived = null
@@ -141,11 +167,15 @@ private val SIGN_ORDER = listOf(
 )
 
 /**
- * Marriage match-making: the user enters each partner's name, rasi and
- * nakshatram, and the screen shows the South-Indian 40-point porutham with a
- * per-koota breakdown and present/absent verdicts. Fully self-contained — the
- * calculation is pure ([Porutham.compute]) and needs no saved charts, so it can
- * never crash on missing birth data.
+ * Marriage match-making: the user gives each partner's name, rasi and
+ * nakshatram — by hand, or by entering birth details the app derives them from
+ * — and the screen shows the South-Indian 40-point porutham with a per-koota
+ * breakdown and present/absent verdicts.
+ *
+ * Still self-contained: the scoring is pure ([Porutham.compute]) and reads no
+ * saved charts, so a match can always be run on two nakshatras alone. Natal
+ * charts appear under the result only for a person whose birth details were
+ * actually given, which is why each is nullable rather than assumed.
  */
 @Composable
 fun CompatibilityScreen(
@@ -165,6 +195,11 @@ fun CompatibilityScreen(
     var shownBrideRasi by remember { mutableStateOf(0) }
     var shownGroomNak by remember { mutableStateOf(0) }
     var shownBrideNak by remember { mutableStateOf(0) }
+    // Null for anyone matched on a hand-picked rasi and nakshatram: there is no
+    // birth moment to draw a chart from, and inventing one would be worse than
+    // showing nothing.
+    var shownGroomChart by remember { mutableStateOf<NatalChart?>(null) }
+    var shownBrideChart by remember { mutableStateOf<NatalChart?>(null) }
 
     val ready = groom.rasi != null && groom.nak != null && bride.rasi != null && bride.nak != null
 
@@ -212,6 +247,11 @@ fun CompatibilityScreen(
                     shownBride = bride.name.ifBlank { ps.brideName }
                     shownGroomRasi = groom.rasi!!; shownBrideRasi = bride.rasi!!
                     shownGroomNak = groom.nak!!; shownBrideNak = bride.nak!!
+                    // Computed once, on the tap, rather than in composition —
+                    // the results below recompose on scroll and on a chart-style
+                    // change, and this is the one genuinely expensive step.
+                    shownGroomChart = groom.birthData()?.let { ChartCalculator.calculateNatalChart(it) }
+                    shownBrideChart = bride.birthData()?.let { ChartCalculator.calculateNatalChart(it) }
                     activity?.let { com.astrochart.ads.InterstitialAds.maybeShow(it) }
                 }
             },
@@ -239,6 +279,14 @@ fun CompatibilityScreen(
                 r, ps, lang,
                 shownGroom, shownBride, shownGroomRasi, shownBrideRasi, shownGroomNak, shownBrideNak
             )
+            shownGroomChart?.let {
+                Spacer(Modifier.height(16.dp))
+                PersonChartCard(shownGroom, it)
+            }
+            shownBrideChart?.let {
+                Spacer(Modifier.height(16.dp))
+                PersonChartCard(shownBride, it)
+            }
             Spacer(Modifier.height(16.dp))
             KutaTable(r, ps)
             Spacer(Modifier.height(16.dp))
@@ -501,6 +549,40 @@ private fun ResultHeader(
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth()
         )
+    }
+}
+
+/**
+ * One person's natal chart, shown only when their birth details were given.
+ *
+ * Reads [LocalChartStyle] rather than taking a style parameter, so it follows
+ * the Settings preference and redraws when it changes — the same wiring
+ * [ChartDetailScreen] uses, and the reason a match does not need reopening
+ * after switching style.
+ */
+@Composable
+private fun PersonChartCard(name: String, chart: NatalChart) {
+    val style = LocalChartStyle.current
+    CelestialCard(
+        modifier = Modifier.fillMaxWidth().widthIn(max = 460.dp),
+        contentPadding = 16
+    ) {
+        Text(
+            text = name,
+            style = MaterialTheme.typography.titleSmall,
+            color = GoldDeep,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(Modifier.height(10.dp))
+        when (style) {
+            ChartStyle.WESTERN_WHEEL -> NatalWheel(chart = chart, modifier = Modifier.fillMaxWidth())
+            ChartStyle.SOUTH_INDIAN -> SouthIndianChartView(
+                chart = chart,
+                chartName = name,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
     }
 }
 
