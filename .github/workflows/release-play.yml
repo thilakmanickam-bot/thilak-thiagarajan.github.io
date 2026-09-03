@@ -16,6 +16,15 @@ name: Release to Play Store
 # that checkbox — determine-gate below is the single place that decides
 # this, so the gate can never be silently bypassed for a production ship.
 
+# One release at a time. Two runs dispatched together each created their own
+# Play edit (and the preflight below created more), and the alpha upload failed
+# with "This edit has expired" almost two hours before its edit's stated expiry
+# — Play had invalidated it. Serialising removes the whole class of problem;
+# queued runs wait rather than being cancelled, so nothing is silently dropped.
+concurrency:
+  group: release-play
+  cancel-in-progress: false
+
 on:
   workflow_dispatch:
     inputs:
@@ -115,7 +124,10 @@ jobs:
           path: android/app/build/outputs/bundle/release/app-release.aab
           if-no-files-found: error
 
+      # Only for track uploads. Internal App Sharing does not use the edits
+      # API, so running this there created an edit for no reason at all.
       - name: Preflight - verify Play API access (diagnostic)
+        if: needs.determine-gate.outputs.track != 'internal-app-sharing'
         env:
           PLAY_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
         run: |
@@ -138,12 +150,21 @@ jobs:
                   info, scopes=["https://www.googleapis.com/auth/androidpublisher"])
               s = AuthorizedSession(creds)
               pkg = "com.techbyt.halo"
-              r = s.post(f"https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{pkg}/edits")
+              base = f"https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{pkg}/edits"
+              r = s.post(base)
               print(f"POST /edits for {pkg} -> HTTP {r.status_code}")
               print("RESPONSE:", r.text[:1500])
               print("HINT: 200/201 = OK; 401 = bad/expired auth; "
                     "403 = service account lacks permission on this app OR API not enabled; "
                     "404 = app/package not found for this account.")
+              # Hand the edit back. This check only needs to know the call is
+              # authorised; leaving the edit open left it competing with the
+              # one the upload step creates seconds later, in the same job.
+              if r.status_code in (200, 201):
+                  edit_id = r.json().get("id")
+                  if edit_id:
+                      d = s.delete(f"{base}/{edit_id}")
+                      print(f"DELETE /edits/{edit_id} -> HTTP {d.status_code}")
           except Exception as e:
               print("AUTH/API EXCEPTION:", repr(e))
           PY
