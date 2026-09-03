@@ -42,18 +42,15 @@ class ChartCalculatorTest {
 
         val chart = ChartCalculator.calculateNatalChart(birthData)
 
-        assertEquals(10, chart.planets.size)
+        // The nine grahas. Uranus, Neptune and Pluto were removed along with
+        // the fabricated formulas that produced them, and have no place in a
+        // rasi koshtam — see SolachiChartTest.
+        assertEquals(9, chart.planets.size)
         val planetNames = chart.planets.map { it.name }.toSet()
-        assertTrue(planetNames.contains("Sun"))
-        assertTrue(planetNames.contains("Moon"))
-        assertTrue(planetNames.contains("Mercury"))
-        assertTrue(planetNames.contains("Venus"))
-        assertTrue(planetNames.contains("Mars"))
-        assertTrue(planetNames.contains("Jupiter"))
-        assertTrue(planetNames.contains("Saturn"))
-        assertTrue(planetNames.contains("Uranus"))
-        assertTrue(planetNames.contains("Neptune"))
-        assertTrue(planetNames.contains("Pluto"))
+        listOf(
+            "Sun", "Moon", "Mercury", "Venus", "Mars",
+            "Jupiter", "Saturn", "Rahu", "Ketu"
+        ).forEach { assertTrue(planetNames.contains(it), "missing $it") }
     }
 
     @Test
