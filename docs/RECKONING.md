@@ -80,42 +80,56 @@ either publishing Halo's source or buying a licence from Astrodienst.
   which was 19 March in 2026). Between those dates the two disagree on the
   samvatsara name, and **both are right**.
 
-### Open: the Tamil month boundary
+### Settled: the Tamil month boundary is two rules, not one
 
-Halo currently starts a Tamil solar month at the first sunrise with the Sun in
-the new sign. The commonly stated Tamil rule is different — the month begins on
-the day of the sankranti when that falls before sunset — and the two disagree
-for 7 of the 12 months in 2026.
+**Resolved from a printed Tamil panchangam** (2026): Chithirai 1 = **14 April**,
+Aavani 1 = **18 August**. Both are confirmed print, and together they rule out
+every single-threshold rule.
 
-The public evidence does not settle it, and it is worth setting out so nobody
-"fixes" this from a half-memory:
+Measured against the Swiss Ephemeris at Chennai:
 
-| month | sankranti (IST) | published start | implies |
-|---|---|---|---|
-| Chithirai | 14 Apr 09:32 | 14 Apr (Puthandu) | same day |
-| Aavani | 17 Aug 07:58 | 18 Aug | next day |
-| Purattasi | 17 Sep 07:52 | 18 Sep | next day |
+| month | sankranti (IST) | sunrise | after sunrise by | printed start | resolution |
+|---|---|---|---|---|---|
+| Chithirai | 14 Apr 09:33 | 05:58 | 3h 35m | 14 Apr | **same day** |
+| Aavani | 17 Aug 07:59 | 05:58 | 2h 01m | 18 Aug | **next day** |
 
-All three sankrantis are in the morning, and they imply opposite rules. No
-cutoff — sunrise, sunset, or aparahna — produces both.
+Both transits are in the morning, after sunrise. The *later* one resolves to the
+same day and the *earlier* one to the next day, so the outcome is anti-monotonic
+in "time after sunrise" — **no cutoff, whether sunrise, sunset or aparahna, can
+produce both.** A uniform sunrise rule gives 15 Apr (wrong); a uniform sunset
+rule gives 17 Aug (wrong).
+
+The reason is that they are not the same kind of boundary. **Puthandu is a civil
+holiday fixed to 14 April** by the Tamil Nadu government, independent of the
+astronomical rule; ordinary months follow the drik sunrise rule. Testing the two
+rules against Mesha across 2020–2030 shows exactly that:
+
+| | 2020 | 2021 | 2022 | 2023 | 2024 | 2025 | 2026 | 2027 | 2028 | 2029 | 2030 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| sunset rule | 14 | 14 | 14 | 14 | 14 | 14 | 14 | 14 | 14 | 14 | 14 |
+| sunrise rule | 14 | 14 | **15** | **15** | 14 | 14 | **15** | **15** | 14 | 14 | **15** |
+
+The sunset rule reproduces 14 April in every year — it works as a proxy for the
+fixed civil date. The sunrise rule would move Puthandu to 15 April in five years
+out of eleven.
+
+So the two code paths differ **on purpose**:
+
+- `Panchangam.tamilDate()` — sunrise rule, for ordinary month boundaries.
+  Verified by Aavani 1 = 18 Aug 2026.
+- `HinduYear.meshaSankranti()` — sunset rule, for the Tamil year boundary.
+  Verified by Puthandu = 14 Apr across eleven years.
+
+**Do not "fix" the inconsistency between them.** Aligning them either way breaks
+one of the two confirmed dates. `TamilBoundaryTest` pins both.
 
 The ingress times themselves are not in doubt: Makara computes to 14 Jan 15:07
-against a published 15:13, and Simha to 17 Aug 07:58 against a published
+against a published 15:13, and Simha to 17 Aug 07:59 against a published
 07:50–08:04.
 
-The likely resolution is that **Puthandu and Pongal are civil holidays fixed by
-the Tamil Nadu government** to 14 April and 14 January, independent of the
-astronomical rule — in which case Aavani and Purattasi are the honest evidence,
-the sunrise rule is right, and the app is already correct.
-
-One printed Tamil panchangam settles all twelve months: if it gives **Aavani 1 =
-17 August 2026** the sunset rule is right; **18 August** and the sunrise rule is.
-Until then `Panchangam.tamilDate()` is left alone.
-
-(`HinduYear.meshaSankranti` currently uses the sunset rule and so may disagree
-with `tamilDate` by a day on the Chithirai boundary. It only shifts the
-samvatsara name within that one-day window, and it is part of the same open
-question.)
+Still thin, and worth widening when a panchangam is to hand: this rests on one
+printed date per rule. Purattasi (sankranti 17 Sep 07:52, expected 18 Sep) is
+the cheapest next check on the sunrise side.
 ## If your printed jathagam differs
 
 Work down this list before assuming a bug.

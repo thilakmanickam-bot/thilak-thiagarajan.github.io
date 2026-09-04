@@ -145,6 +145,21 @@ object HinduYear {
      * which is why this is a Tamil-specific function rather than a general
      * "when does the solar month begin".)
      */
+    /**
+     * The Tamil year boundary — the **sunset** rule, deliberately different
+     * from the sunrise rule [Panchangam.tamilDate] uses for ordinary months.
+     *
+     * This looks like an inconsistency and is not. Puthandu is a civil holiday
+     * fixed to 14 April, and the sunset rule reproduces that in every year from
+     * 2020 to 2030; the sunrise rule would move it to 15 April in five of them.
+     * Meanwhile Aavani 1 is 18 August 2026 in print, which only the sunrise
+     * rule gives. Both dates are confirmed from a printed panchangam, both
+     * sankrantis are post-sunrise morning transits, and no single cutoff
+     * produces both — see `docs/RECKONING.md`.
+     *
+     * Aligning this with [Panchangam.tamilDate] breaks Puthandu.
+     * `TamilBoundaryTest` fails if either rule moves.
+     */
     fun meshaSankranti(year: Int, latDeg: Double, lonEastDeg: Double, zone: ZoneId): LocalDate {
         val ingress = meshaIngressJd(year)
         val day = SunEvents.instant(ingress).atZone(zone).toLocalDate()

@@ -190,6 +190,19 @@ object Panchangam {
      * sidereal sign at sunrise; the day counts sunrises since the sign ingress
      * (the first sunrise in the sign is day 1).
      */
+    /**
+     * (Tamil month index, day of month) — the **sunrise** rule: a month begins
+     * at the first sunrise with the Sun in the new sign.
+     *
+     * Confirmed against a printed panchangam: Simha sankranti is 17 Aug 2026
+     * 07:59 IST, after that morning's sunrise, and Aavani 1 is printed as
+     * **18 August** — which is what this gives and the sunset rule does not.
+     *
+     * [HinduYear.meshaSankranti] deliberately uses the *sunset* rule for the
+     * year boundary, because Puthandu is a fixed civil date. That difference is
+     * intentional and documented in `docs/RECKONING.md`; making the two agree
+     * breaks one of the two confirmed dates.
+     */
     fun tamilDate(date: LocalDate, latDeg: Double, lonEastDeg: Double, zone: ZoneId): Pair<Int, Int> {
         val todaySign = sidSunSignAtSunrise(date, latDeg, lonEastDeg, zone)
         var day = 1
