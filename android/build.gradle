@@ -41,7 +41,16 @@ ext {
     //        vratham day (Premium); the chart screen splits 30/70 on tablets;
     //        the panchangam opens on the device's own city; "until" reads
     //        before the time in English and Chinese; calendar alignment fixes.
-    versionName = "1.2.0"
+    // 1.2.1: charts are computed properly. The planets came from fabricated
+    //        formulas (Mercury was 98° out, Venus 123°, Saturn 135°) and the
+    //        ascendant from one with no obliquity term, which put the reference
+    //        lagnam seven signs away; every rasi is now sidereal (Lahiri) and
+    //        the chart carries the nine grahas, Rahu and Ketu included. The
+    //        engine is checked against the Swiss Ephemeris in CI. Saved charts
+    //        are recomputed on open rather than replaying the snapshot they
+    //        were stored with, so charts saved before this build are corrected
+    //        too. Sankalpa framing screen and a bottom navigation bar.
+    versionName = "1.2.1"
 
     // Dependency versions
     kotlinVersion = "1.9.22"

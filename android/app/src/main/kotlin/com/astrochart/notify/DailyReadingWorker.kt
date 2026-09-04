@@ -21,7 +21,7 @@ import com.astrochart.core.interpret.RasiPalanText
 import com.astrochart.core.interpret.RasiPeriod
 import com.astrochart.core.utils.ZodiacUtils
 import com.astrochart.data.db.AstroChartDatabase
-import com.astrochart.data.util.ChartJson
+import com.astrochart.data.repository.ChartRepository
 import com.astrochart.ui.i18n.LanguageStore
 import com.astrochart.ui.i18n.PrimaryProfileStore
 import com.astrochart.ui.i18n.UiStrings
@@ -54,10 +54,13 @@ class DailyReadingWorker(appContext: Context, params: WorkerParameters) :
                 .firstOrNull() ?: DailyReading.build(LocalDate.now(), lang, null).summary
         } else {
             // Whichever zodiac the reader has chosen — the notification should
-            // not name a different sign from the chart screen.
+            // not name a different sign from the chart screen. Which means
+            // recomputing from the row's birth data exactly as the chart screen
+            // now does: reading the stored snapshot instead would have named the
+            // sign that screen used to show, before the ephemeris was fixed.
             val sign = runCatching {
                 AstroChartDatabase.getInstance(context).savedChartDao().getLatestChart()
-                    ?.chartJson?.let { ChartJson.fromJson(it) }
+                    ?.let { ChartRepository(context).recomputeFromEntity(it) }
                     ?.planets?.firstOrNull { it.name == "Sun" }
                     ?.signFor(ChartStyleStore.load(context))
             }.getOrNull()

@@ -51,18 +51,37 @@ class ChartRepository(private val context: Context) {
     }
 
     /**
-     * Loads a saved chart and reconstructs its [NatalChart]. Prefers the stored
-     * JSON snapshot; if that is missing or unparseable (e.g. an older row), it
-     * falls back to recomputing deterministically from the saved birth data.
+     * Loads a saved chart and rebuilds its [NatalChart] **by recomputing it**
+     * from the stored birth instant and place.
+     *
+     * The row also carries a `chartJson` snapshot of the chart as it was when it
+     * was saved, and this used to prefer it. That made every saved chart immune
+     * to fixing the engine: charts stored by 1.2.0 hold tropical signs, a Libra
+     * ascendant from a formula that omitted the obliquity, and Uranus, Neptune
+     * and Pluto from fabricated elements — and would have gone on showing all of
+     * it after the corrected build was installed, because the corrected code
+     * never ran.
+     *
+     * A chart is a pure function of the birth data, and the row stores all of
+     * it, so recomputing is not a fallback here — it is the only honest answer.
+     * The snapshot is still written by [saveChart]: [com.astrochart.auth.ProfileSync]
+     * round-trips the whole entity through Firestore, and dropping the column
+     * would cost a Room migration and a document-shape change for a field
+     * nothing reads.
      */
     suspend fun getNatalChartById(id: Long): NatalChart? {
         return withContext(Dispatchers.IO) {
             val entity = chartDao.getChartById(id) ?: return@withContext null
-            deserializeChart(entity.chartJson) ?: recomputeFromEntity(entity)
+            recomputeFromEntity(entity)
         }
     }
 
-    private fun recomputeFromEntity(entity: SavedChartEntity): NatalChart {
+    /**
+     * The chart for a saved row, recomputed from its birth data. `internal` so
+     * the notification worker reads a saved chart the same way rather than
+     * parsing the snapshot and naming a sign the chart screen disagrees with.
+     */
+    internal fun recomputeFromEntity(entity: SavedChartEntity): NatalChart {
         val birthData = BirthData(
             dateTime = entity.birthDateTime,
             latitude = entity.latitude,
@@ -109,9 +128,5 @@ class ChartRepository(private val context: Context) {
 
     private fun serializeChart(chart: NatalChart): String {
         return ChartJson.toJson(chart)
-    }
-
-    private fun deserializeChart(json: String): NatalChart? {
-        return ChartJson.fromJson(json)
     }
 }
