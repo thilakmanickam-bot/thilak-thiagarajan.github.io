@@ -1,5 +1,6 @@
 package com.astrochart.core.interpret
 
+import com.astrochart.core.models.ChartStyle
 import com.astrochart.core.i18n.Language
 import com.astrochart.core.i18n.Translations
 import com.astrochart.core.models.BirthData
@@ -61,7 +62,7 @@ class ReadingEnglishTest {
     @Test
     fun reading_isStructurallySound_forDiverseCharts() {
         for (chart in sampleCharts()) {
-            val sections = ChartReading.build(chart, "Alex", Language.EN)
+            val sections = ChartReading.build(chart, "Alex", ChartStyle.SOUTH_INDIAN, Language.EN)
 
             // Exactly five sections, all titled, no blank paragraphs.
             assertEquals(5, sections.size, "expected 5 sections")

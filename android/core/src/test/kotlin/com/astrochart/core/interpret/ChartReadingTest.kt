@@ -1,5 +1,6 @@
 package com.astrochart.core.interpret
 
+import com.astrochart.core.models.ChartStyle
 import com.astrochart.core.i18n.Language
 import com.astrochart.core.models.BirthData
 import com.astrochart.core.utils.ChartCalculator
@@ -22,7 +23,7 @@ class ChartReadingTest {
 
     @Test
     fun build_producesAllSections_nonEmpty() {
-        val sections = ChartReading.build(sampleChart(), "Alex")
+        val sections = ChartReading.build(sampleChart(), "Alex", ChartStyle.SOUTH_INDIAN)
 
         val titles = sections.map { it.title }
         assertTrue(titles.contains("Overview"))
@@ -42,7 +43,7 @@ class ChartReadingTest {
     @Test
     fun build_includesNameAndEveryPlanetOnce() {
         val chart = sampleChart()
-        val sections = ChartReading.build(chart, "Alex")
+        val sections = ChartReading.build(chart, "Alex", ChartStyle.SOUTH_INDIAN)
 
         val overview = sections.first { it.title == "Overview" }.paragraphs.joinToString(" ")
         assertTrue(overview.contains("Alex"))
@@ -60,7 +61,7 @@ class ChartReadingTest {
     fun build_localizedSectionsNonEmpty_forTamilAndChinese() {
         val chart = sampleChart()
         for (lang in listOf(Language.TA, Language.ZH)) {
-            val sections = ChartReading.build(chart, "Alex", lang)
+            val sections = ChartReading.build(chart, "Alex", ChartStyle.SOUTH_INDIAN, lang)
             // Same five sections, each with non-blank, localized paragraphs.
             assertTrue(sections.size == 5, "$lang should produce 5 sections")
             for (section in sections) {

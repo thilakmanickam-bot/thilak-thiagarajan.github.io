@@ -1,5 +1,6 @@
 package com.astrochart.core.interpret
 
+import com.astrochart.core.models.ChartStyle
 import com.astrochart.core.i18n.Language
 import com.astrochart.core.models.BirthData
 import com.astrochart.core.utils.ChartCalculator
@@ -24,7 +25,7 @@ class ChatPromptTest {
     @Test
     fun chartContext_reflectsRealChart_localized() {
         val chart = sampleChart()
-        val ctx = ChatPrompt.chartContext(chart, "Alex", Language.EN)
+        val ctx = ChatPrompt.chartContext(chart, "Alex", ChartStyle.SOUTH_INDIAN, Language.EN)
         assertTrue(ctx.contains("Alex"), "context should name the person")
         // Every planet in the chart is represented in the context snapshot.
         for (planet in chart.planets) {
@@ -32,14 +33,14 @@ class ChatPromptTest {
         }
 
         // Chinese context localizes planet names (Sun -> 太阳).
-        val zh = ChatPrompt.chartContext(chart, "Alex", Language.ZH)
+        val zh = ChatPrompt.chartContext(chart, "Alex", ChartStyle.SOUTH_INDIAN, Language.ZH)
         assertTrue(zh.contains("太阳"), "Chinese context should localize the Sun")
     }
 
     @Test
     fun systemPrompt_containsPersona_context_andLanguageDirective() {
         val chart = sampleChart()
-        val ctx = ChatPrompt.chartContext(chart, "Alex", Language.EN)
+        val ctx = ChatPrompt.chartContext(chart, "Alex", ChartStyle.SOUTH_INDIAN, Language.EN)
         val prompt = ChatPrompt.systemPrompt(Language.EN, ctx)
 
         // Persona guardrail present, chart context embedded (header + the actual

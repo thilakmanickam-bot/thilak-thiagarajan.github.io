@@ -3,6 +3,7 @@ package com.astrochart.ui.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.astrochart.ui.i18n.ChartStyleStore
 import com.astrochart.chat.AnthropicApi
 import com.astrochart.chat.ApiMessage
 import com.astrochart.chat.ChatClient
@@ -140,7 +141,11 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun buildForLanguage(lang: Language) {
         val chart = currentChart ?: return
-        val context = ChatPrompt.chartContext(chart, currentName, lang)
+        // Same zodiac the reader is looking at, so the assistant and the
+        // chart on screen never name different signs for one planet.
+        val context = ChatPrompt.chartContext(
+            chart, currentName, ChartStyleStore.load(getApplication()), lang
+        )
         systemPrompt = ChatPrompt.systemPrompt(lang, context)
         _greeting.value = ChatPrompt.greeting(lang, currentName)
     }

@@ -12,6 +12,7 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import com.astrochart.ui.i18n.ChartStyleStore
 import com.astrochart.MainActivity
 import com.astrochart.R
 import com.astrochart.core.i18n.Translations
@@ -52,10 +53,13 @@ class DailyReadingWorker(appContext: Context, params: WorkerParameters) :
             notifText = RasiPalanText.horoscope(primary.rasi, RasiPeriod.DAY, LocalDate.now(), lang)
                 .firstOrNull() ?: DailyReading.build(LocalDate.now(), lang, null).summary
         } else {
+            // Whichever zodiac the reader has chosen — the notification should
+            // not name a different sign from the chart screen.
             val sign = runCatching {
                 AstroChartDatabase.getInstance(context).savedChartDao().getLatestChart()
                     ?.chartJson?.let { ChartJson.fromJson(it) }
-                    ?.planets?.firstOrNull { it.name == "Sun" }?.sign
+                    ?.planets?.firstOrNull { it.name == "Sun" }
+                    ?.signFor(ChartStyleStore.load(context))
             }.getOrNull()
             notifTitle = strings.notifTitle
             notifText = DailyReading.build(LocalDate.now(), lang, sign).summary

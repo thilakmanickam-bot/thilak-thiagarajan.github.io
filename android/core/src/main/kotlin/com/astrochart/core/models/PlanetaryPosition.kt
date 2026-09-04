@@ -33,4 +33,27 @@ data class PlanetaryPosition(
     val tropicalLabel: String = label  // e.g. "21°45' Leo", tropical
 ) {
     fun toReadableString(): String = "$label (House $house)${if (retrograde) " ℞" else ""}"
+
+    /**
+     * The sign to *show*, given how the chart is being drawn.
+     *
+     * UI must go through this rather than reading [sign] or [tropicalSign]
+     * directly. Reading a field without thinking about which zodiac it belongs
+     * to is exactly how the Western wheel came to be drawn at tropical
+     * longitudes while the header beside it named sidereal rasis.
+     *
+     * Only [ChartStyle.WESTERN_WHEEL] is tropical. Everything else is Vedic, so
+     * a style added later — North Indian, say — is correct by default instead
+     * of by someone remembering to extend a `when`.
+     */
+    fun signFor(style: ChartStyle): String =
+        if (style == ChartStyle.WESTERN_WHEEL) tropicalSign else sign
+
+    /** The degree-and-sign label to show, in the zodiac [style] implies. */
+    fun labelFor(style: ChartStyle): String =
+        if (style == ChartStyle.WESTERN_WHEEL) tropicalLabel else label
+
+    /** The longitude to draw at, in the zodiac [style] implies. */
+    fun longitudeFor(style: ChartStyle): Double =
+        if (style == ChartStyle.WESTERN_WHEEL) lon else siderealLon
 }

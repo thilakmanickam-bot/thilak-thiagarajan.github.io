@@ -66,11 +66,19 @@ private fun birthFormatter(lang: Language): DateTimeFormatter =
         lang.locale
     )
 
-/** Rebuilds a placement's degree label with the sign name localized. */
-private fun localizedLabel(position: PlanetaryPosition, lang: Language): String {
-    val deg = position.degree
-    val min = position.minute.toString().padStart(2, '0')
-    return "$deg°$min' ${Translations.signName(position.sign, lang)}"
+/**
+ * Rebuilds a placement's degree label with the sign name localized, in the
+ * zodiac [style] implies — the degree and the sign have to come from the same
+ * frame or the label reads as nonsense.
+ */
+private fun localizedLabel(
+    position: PlanetaryPosition,
+    style: ChartStyle,
+    lang: Language
+): String {
+    val label = position.labelFor(style)
+    val degrees = label.substringBefore(' ')
+    return "$degrees ${Translations.signName(position.signFor(style), lang)}"
 }
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -256,7 +264,7 @@ private fun dailyDateFmt(lang: Language): DateTimeFormatter =
 private fun DailyReadingCard(chart: NatalChart) {
     val strings = LocalStrings.current
     val lang = LocalLanguage.current
-    val sun = chart.planets.firstOrNull { it.name == "Sun" }?.sign
+    val sun = chart.planets.firstOrNull { it.name == "Sun" }?.signFor(LocalChartStyle.current)
     val today = LocalDate.now()
     val data = remember(lang, sun, today) { DailyReading.build(today, lang, sun) }
     val dateText = remember(lang, today) { today.format(dailyDateFmt(lang)) }
@@ -341,7 +349,12 @@ private fun WheelLegend() {
 @Composable
 private fun ReadingTab(chart: NatalChart, chartName: String) {
     val lang = LocalLanguage.current
-    val sections = remember(chart, chartName, lang) { ChartReading.build(chart, chartName, lang) }
+    // The reading is prose about signs, so it must name them in the same
+    // zodiac as the chart drawn above it.
+    val style = LocalChartStyle.current
+    val sections = remember(chart, chartName, style, lang) {
+        ChartReading.build(chart, chartName, style, lang)
+    }
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
@@ -374,6 +387,9 @@ private fun ReadingTab(chart: NatalChart, chartName: String) {
 private fun ChartHeader(chart: NatalChart, chartName: String, stacked: Boolean = false) {
     val strings = LocalStrings.current
     val lang = LocalLanguage.current
+    // The header sits directly above the chart, so it must name signs in the
+    // same zodiac the chart is drawn in.
+    val style = LocalChartStyle.current
     val sun = chart.planets.firstOrNull { it.name == "Sun" }
     val moon = chart.planets.firstOrNull { it.name == "Moon" }
 
@@ -385,9 +401,9 @@ private fun ChartHeader(chart: NatalChart, chartName: String, stacked: Boolean =
 
     // Built as pairs so both layouts read the same values from one place.
     val placements = buildList {
-        sun?.let { add(strings.labelSun to Translations.signName(it.sign, lang)) }
-        moon?.let { add(strings.labelMoon to Translations.signName(it.sign, lang)) }
-        add(strings.labelRising to Translations.signName(chart.ascendant.sign, lang))
+        sun?.let { add(strings.labelSun to Translations.signName(it.signFor(style), lang)) }
+        moon?.let { add(strings.labelMoon to Translations.signName(it.signFor(style), lang)) }
+        add(strings.labelRising to Translations.signName(chart.ascendant.signFor(style), lang))
     }
     val facts = buildList {
         add(strings.labelAge to strings.ageValue(age))
@@ -514,7 +530,11 @@ private fun PlacementRow(position: PlanetaryPosition) {
                 modifier = Modifier.weight(1f)
             )
             Column(horizontalAlignment = Alignment.End) {
-                Text(text = localizedLabel(position, lang), style = MaterialTheme.typography.bodyMedium, color = GoldDeep)
+                Text(
+                    text = localizedLabel(position, LocalChartStyle.current, lang),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = GoldDeep
+                )
                 Text(
                     text = strings.houseLabel(position.house),
                     style = MaterialTheme.typography.bodySmall,

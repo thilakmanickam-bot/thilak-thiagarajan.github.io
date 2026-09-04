@@ -1,6 +1,7 @@
 package com.astrochart.core.interpret
 
 import com.astrochart.core.i18n.Language
+import com.astrochart.core.models.ChartStyle
 import com.astrochart.core.models.NatalChart
 
 /**
@@ -102,8 +103,15 @@ object ChatPrompt {
      * chosen language; the model is told (via [systemPrompt]) to reflect only on
      * this and on what the user shares.
      */
-    fun chartContext(chart: NatalChart, name: String, lang: Language): String {
-        val sections = ChartReading.build(chart, name, lang)
+    fun chartContext(
+        chart: NatalChart,
+        name: String,
+        style: ChartStyle,
+        lang: Language
+    ): String {
+        // The assistant talks about the chart the reader is looking at, so
+        // it must use the same zodiac they see.
+        val sections = ChartReading.build(chart, name, style, lang)
         return sections.joinToString("\n\n") { section ->
             buildString {
                 append(section.title)
