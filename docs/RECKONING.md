@@ -83,8 +83,8 @@ either publishing Halo's source or buying a licence from Astrodienst.
 ### Settled: the Tamil month boundary is two rules, not one
 
 **Resolved from a printed Tamil panchangam** (2026): Chithirai 1 = **14 April**,
-Aavani 1 = **18 August**. Both are confirmed print, and together they rule out
-every single-threshold rule.
+Aavani 1 = **18 August**, Purattasi 1 = **18 September**. All three are
+confirmed print, and together they rule out every single-threshold rule.
 
 Measured against the Swiss Ephemeris at Chennai:
 
@@ -92,6 +92,7 @@ Measured against the Swiss Ephemeris at Chennai:
 |---|---|---|---|---|---|
 | Chithirai | 14 Apr 09:33 | 05:58 | 3h 35m | 14 Apr | **same day** |
 | Aavani | 17 Aug 07:59 | 05:58 | 2h 01m | 18 Aug | **next day** |
+| Purattasi | 17 Sep 07:53 | 05:59 | 1h 54m | 18 Sep | **next day** |
 
 Both transits are in the morning, after sunrise. The *later* one resolves to the
 same day and the *earlier* one to the next day, so the outcome is anti-monotonic
@@ -116,7 +117,8 @@ out of eleven.
 So the two code paths differ **on purpose**:
 
 - `Panchangam.tamilDate()` — sunrise rule, for ordinary month boundaries.
-  Verified by Aavani 1 = 18 Aug 2026.
+  Verified by Aavani 1 = 18 Aug and Purattasi 1 = 18 Sep 2026, two
+  independent months whose sankrantis both land ~2h after sunrise.
 - `HinduYear.meshaSankranti()` — sunset rule, for the Tamil year boundary.
   Verified by Puthandu = 14 Apr across eleven years.
 
@@ -127,9 +129,41 @@ The ingress times themselves are not in doubt: Makara computes to 14 Jan 15:07
 against a published 15:13, and Simha to 17 Aug 07:59 against a published
 07:50–08:04.
 
-Still thin, and worth widening when a panchangam is to hand: this rests on one
-printed date per rule. Purattasi (sankranti 17 Sep 07:52, expected 18 Sep) is
-the cheapest next check on the sunrise side.
+Evidence now stands at three printed dates: two for the sunrise rule (Aavani,
+Purattasi) and one for the sunset rule, that one backed by the eleven-year
+Puthandu table above. `TamilBoundaryTest` pins all three.
+
+### Where the two rules disagree, all twelve months of 2026
+
+Scanned against the Swiss Ephemeris at Chennai. The two rules part company on
+**7 of 12 months**, so this is not a corner case:
+
+| month | sankranti (IST) | sunrise | sunset | sunrise rule | sunset rule | differ |
+|---|---|---|---|---|---|---|
+| Thai | 14 Jan 15:07 | 06:36 | 18:00 | 15 Jan | 14 Jan | **yes** |
+| Maasi | 13 Feb 04:09 | 06:33 | 18:13 | 13 Feb | 13 Feb | — |
+| Panguni | 15 Mar 01:03 | 06:17 | 18:18 | 15 Mar | 15 Mar | — |
+| Chithirai | 14 Apr 09:33 | 05:58 | 18:21 | 15 Apr | **14 Apr** ✓ | **yes** |
+| Vaikasi | 15 May 06:22 | 05:44 | 18:26 | 16 May | 15 May | **yes** |
+| Aani | 15 Jun 12:53 | 05:44 | 18:35 | 16 Jun | 15 Jun | **yes** |
+| Aadi | 16 Jul 23:39 | 05:51 | 18:39 | 17 Jul | 17 Jul | — |
+| Aavani | 17 Aug 07:59 | 05:58 | 18:28 | **18 Aug** ✓ | 17 Aug | **yes** |
+| Purattasi | 17 Sep 07:53 | 05:59 | 18:08 | **18 Sep** ✓ | 17 Sep | **yes** |
+| Aippasi | 17 Oct 19:52 | 06:00 | 17:48 | 18 Oct | 18 Oct | — |
+| Karthigai | 16 Nov 19:43 | 06:09 | 17:38 | 17 Nov | 17 Nov | — |
+| Margazhi | 16 Dec 10:25 | 06:25 | 17:44 | 17 Dec | 16 Dec | **yes** |
+
+✓ marks a date confirmed in print. Thai 1 is the one that matters next: it is
+**Pongal**, the sunrise rule puts it on 15 January 2026, and unlike Puthandu —
+which is essentially always 14 April — Pongal genuinely moves between the 14th
+and 15th from year to year. So it is not obviously a fixed civil date, and it is
+the cheapest remaining test of whether the sunrise rule holds for every ordinary
+month or whether the year-opening months are special.
+
+The app currently has **no solar festivals at all** — the observances in
+`MonthPanchangam` are tithi- and nakshatra-based — so nothing displays Pongal
+today and there is no bug to fix. What the panchangam screen would show is
+Thai 1 on 15 January 2026.
 ## If your printed jathagam differs
 
 Work down this list before assuming a bug.

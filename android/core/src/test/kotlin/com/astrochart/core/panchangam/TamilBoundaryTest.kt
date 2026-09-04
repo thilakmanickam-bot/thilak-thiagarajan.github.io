@@ -89,4 +89,28 @@ class TamilBoundaryTest {
         )
         assertEquals(3, month, "17 Aug 2026 is still Aadi (index 3), not Aavani")
     }
+
+    @Test
+    fun purattasiBeginsOnTheEighteenthOfSeptember() {
+        // A second printed confirmation of the sunrise rule, and near enough a
+        // replica of Aavani: Kanya sankranti is 17 Sep 07:53 IST against a
+        // 05:59 sunrise, so the month starts on the 18th. The sunset rule would
+        // say the 17th. Two independent months now pin this side, which one
+        // alone did not.
+        val (month, day) = Panchangam.tamilDate(
+            LocalDate.of(2026, 9, 18), chennaiLat, chennaiLon, zone
+        )
+        assertEquals(5, month, "18 Sep 2026 should be in Purattasi (index 5)")
+        assertEquals(1, day, "18 Sep 2026 is Purattasi 1 in print")
+    }
+
+    @Test
+    fun theSeventeenthOfSeptemberIsStillAavani() {
+        // Margin here is 0.077° — the tightest in the file, marginally ahead of
+        // the 17 August case, for the same reason.
+        val (month, _) = Panchangam.tamilDate(
+            LocalDate.of(2026, 9, 17), chennaiLat, chennaiLon, zone
+        )
+        assertEquals(4, month, "17 Sep 2026 is still Aavani (index 4), not Purattasi")
+    }
 }
