@@ -53,7 +53,18 @@ object ProfileSync {
             mapOf(
                 "name" to profile.name,
                 "rasi" to profile.rasi,
-                "nakshatra" to profile.nakshatra
+                "nakshatra" to profile.nakshatra,
+                "gender" to profile.gender,
+                "year" to profile.year,
+                "month" to profile.month,
+                "day" to profile.day,
+                "hour" to profile.hour,
+                "minute" to profile.minute,
+                "latitude" to profile.latitude,
+                "longitude" to profile.longitude,
+                "timeZoneId" to profile.timeZoneId,
+                "locationCity" to profile.locationCity,
+                "locationCountry" to profile.locationCountry
             ),
             SetOptions.merge()
         ).await()
@@ -63,7 +74,22 @@ object ProfileSync {
         val rasi = getLong("rasi")?.toInt() ?: return null
         val nak = getLong("nakshatra")?.toInt() ?: return null
         if (rasi !in 0..11 || nak !in 0..26) return null
-        return PrimaryProfile(getString("name") ?: "", rasi, nak)
+        return PrimaryProfile(
+            name = getString("name") ?: "",
+            rasi = rasi,
+            nakshatra = nak,
+            gender = getString("gender") ?: "",
+            year = getLong("year")?.toInt() ?: 2000,
+            month = getLong("month")?.toInt() ?: 1,
+            day = getLong("day")?.toInt() ?: 1,
+            hour = getLong("hour")?.toInt() ?: 12,
+            minute = getLong("minute")?.toInt() ?: 0,
+            latitude = getDouble("latitude") ?: 0.0,
+            longitude = getDouble("longitude") ?: 0.0,
+            timeZoneId = getString("timeZoneId") ?: "UTC",
+            locationCity = getString("locationCity") ?: "",
+            locationCountry = getString("locationCountry") ?: ""
+        )
     }
 
     // ----- Charts -----------------------------------------------------------

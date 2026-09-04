@@ -52,7 +52,7 @@ after that the API can take over.
    email → grant **Release to testing tracks** (and *production* if you'll auto-ship
    there) → send.
 
-### 5. Add the 5 GitHub secrets
+### 5. Add the 6 GitHub secrets
 Repo → **Settings → Secrets and variables → Actions → New repository secret**:
 
 | Secret | Value |
@@ -62,17 +62,43 @@ Repo → **Settings → Secrets and variables → Actions → New repository sec
 | `ANDROID_KEY_ALIAS` | `halo` |
 | `ANDROID_KEY_PASSWORD` | key password (step 1) |
 | `PLAY_SERVICE_ACCOUNT_JSON` | the entire contents of the JSON file (step 4) |
+| `ANTHROPIC_API_KEY` | an Anthropic API key (from <https://console.anthropic.com/>) — used by `qa-gate.yml`'s `design-integrity` job to review UI diffs against `docs/DESIGN_SYSTEM.md`. Without this secret the QA gate's modules/features/UI jobs still work; only the design-integrity step fails to authenticate (it's report-only, so this doesn't block a release, but you'll see no design-integrity feedback until it's set). |
 
 ---
 
 ## PART B — Ship a release (every time)
 
-1. *(optional)* bump `ext.versionName` in `android/build.gradle` (e.g. `1.0.1`). The
-   `versionCode` auto-increments from the CI run number.
+### Before every rollout: bump `versionName`
+
+**Bump `ext.versionName` in `android/build.gradle` whenever the release carries a
+minor or major dependency update, or any user-visible change.** This is not
+optional bookkeeping — the app footer on the Home screen renders
+`v<versionName> (<versionCode>)`, so a stale `versionName` makes it impossible to
+tell from an installed build whether a tester is actually on the newest version.
+
+| Change in the release | New `versionName` |
+|---|---|
+| Patch dependency bump, bug fix only | `1.1.0` → `1.1.1` |
+| Minor/major dependency update (e.g. Play Billing 7.x → 9.x), or new features | `1.1.0` → `1.2.0` |
+| Breaking change / major rework | `1.1.0` → `2.0.0` |
+
+`versionCode` needs no manual edit — CI sets it to the workflow run number, so it
+increments on every rollout regardless (which is why the footer shows it too: even
+a missed `versionName` bump still leaves the build number to compare).
+
+### Then ship it
+
+1. Bump `ext.versionName` per the table above.
 2. GitHub → **Actions → "Release to Play Store" → Run workflow** → pick a track
-   (`internal` first) → **Run**. *Or* push a tag: `git tag v1.0.1 && git push origin v1.0.1`.
-3. The workflow builds a signed `.aab`, saves it as an artifact, and uploads it to the
-   chosen Play track via the service account.
+   (`internal` first), leave **`run_qa_gate` checked** (the QA gate — modules/features/
+   UI tests + a design-integrity review, see `docs/TESTING.md`) → **Run**. *Or* push a
+   tag: `git tag v1.0.1 && git push origin v1.0.1` (tag pushes always run the gate).
+   - Uncheck `run_qa_gate` only to skip the gate for a quick internal/alpha/beta
+     iteration — **it cannot be skipped for `production`**: `determine-gate` forces it
+     on regardless of the checkbox once that track is selected.
+3. The workflow runs the QA gate (if required), builds a signed `.aab`, saves it as an
+   artifact, and uploads it to the chosen Play track via the service account — `publish`
+   only runs if the gate passed (or wasn't required).
 4. In Play Console, **promote Internal → Production** when ready. Production releases
    go through Google review (hours to a few days).
 

@@ -1,0 +1,26 @@
+{
+  "name": "halo-chat-functions",
+  "description": "Server-side proxy for the Halo app's \"Ask the Universe\" chat: verifies the caller's Firebase ID token, enforces a daily per-user message cap, then forwards to the Anthropic Messages API using a key held server-side (never shipped in the app).",
+  "private": true,
+  "engines": {
+    "node": "20"
+  },
+  "main": "lib/index.js",
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "serve": "npm run build && firebase emulators:start --only functions,firestore",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "firebase-admin": "^12.6.0",
+    "firebase-functions": "^5.1.1",
+    "google-auth-library": "^9.14.1"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "typescript": "^5.5.4"
+  }
+}

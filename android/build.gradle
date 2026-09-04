@@ -13,8 +13,44 @@ ext {
     compileSdk = 36
     targetSdk = 36
     minSdk = 26
+    // versionCode is overridden by CI (VERSION_CODE = the release run number),
+    // so this local value only matters for local builds.
     versionCode = 1
-    versionName = "1.0.0"
+    // Bump this on every rollout that carries a minor/major dependency update
+    // or user-visible change — the app footer shows it, so a stale versionName
+    // makes it impossible to tell from a deployed build whether it's current.
+    // See docs/RELEASE_RUNBOOK.md ("Before every rollout").
+    // 1.1.0: Play Billing 7.1.1 -> 9.1.0, onboarding wizard, bundled per-language
+    //        fonts, chat proxy, Halo Premium billing, location-search fix.
+    // 1.1.1: surface the real sign-in failure reason instead of a generic message.
+    // 1.1.2: report Play Services status + Activity-context in sign-in failures.
+    // 1.1.3: report the running build's signing certificate and whether it is
+    //        registered; stop cancelling a slow sign-in (it destroyed the error).
+    // 1.1.4: onboarding redesign — centred steps, a full-width sliding step
+    //        indicator and Skip in the footer, gold hero on the first screen.
+    // 1.1.5: report Play Services version and elapsed time in sign-in
+    //        failures; show the reason on the onboarding screen too.
+    // 1.1.6: birthplace search tolerates approximate spellings
+    //        ("karaikudi" now finds "Kāraikkudi").
+    // 1.1.7: matchmaking speaks of the groom and bride, and drops the emoji.
+    // 1.1.8: database v3 — saved_matches table for saved marriage matches.
+    // 1.1.9: matchmaking accepts an optional birth date, time and place, works
+    //        out the rasi and nakshatram from it, draws both charts on the
+    //        result, and saves matches so they can be reopened or deleted.
+    // 1.2.0: matchmaking exports a match as a PDF; reminder switches on every
+    //        vratham day (Premium); the chart screen splits 30/70 on tablets;
+    //        the panchangam opens on the device's own city; "until" reads
+    //        before the time in English and Chinese; calendar alignment fixes.
+    // 1.2.1: charts are computed properly. The planets came from fabricated
+    //        formulas (Mercury was 98° out, Venus 123°, Saturn 135°) and the
+    //        ascendant from one with no obliquity term, which put the reference
+    //        lagnam seven signs away; every rasi is now sidereal (Lahiri) and
+    //        the chart carries the nine grahas, Rahu and Ketu included. The
+    //        engine is checked against the Swiss Ephemeris in CI. Saved charts
+    //        are recomputed on open rather than replaying the snapshot they
+    //        were stored with, so charts saved before this build are corrected
+    //        too. Sankalpa framing screen and a bottom navigation bar.
+    versionName = "1.2.1"
 
     // Dependency versions
     kotlinVersion = "1.9.22"
@@ -30,4 +66,10 @@ ext {
     credentialsVersion = "1.3.0"
     googleIdVersion = "1.1.1"
     coroutinesPlayServicesVersion = "1.8.0"
+
+    // Google Play Billing (Halo Premium subscriptions), used only in :app,
+    // gated behind Features.BILLING_ENABLED. Play requires >= 8.0.0 to
+    // accept an upload at all (7.x uploads are rejected outright, even
+    // with billing unused/flag-off) — see release-play.yml run history.
+    billingVersion = "9.1.0"
 }

@@ -78,4 +78,84 @@ class LocationSearchTest {
     fun rankMatches_blankQueryReturnsEmpty() {
         assertEquals(emptyList<GeoPlace>(), LocationSearch.rankMatches(places, "   ", limit = 10))
     }
+
+    // ---- approximate matching ----
+
+    private val karaikkudi =
+        GeoPlace("Kāraikkudi", "India", 10.0665, 78.7784, "Asia/Kolkata", 106793)
+
+    @Test
+    fun rankMatches_findsAPlaceSpelledOneLetterShort() {
+        // The reported bug: "karaikudi" and "karaikkudi" are both accepted
+        // romanisations of the same town, one k apart, so an exact `contains`
+        // finds nothing at all.
+        val results = LocationSearch.rankMatches(listOf(karaikkudi), "karaikudi", limit = 10)
+
+        assertEquals(listOf("Kāraikkudi"), results.map { it.name })
+    }
+
+    @Test
+    fun rankMatches_stillFindsTheExactSpellingAndTheAccentedOne() {
+        assertEquals(
+            listOf("Kāraikkudi"),
+            LocationSearch.rankMatches(listOf(karaikkudi), "karaikkudi", limit = 10).map { it.name }
+        )
+        assertEquals(
+            listOf("Kāraikkudi"),
+            LocationSearch.rankMatches(listOf(karaikkudi), "kāraikkudi", limit = 10).map { it.name }
+        )
+    }
+
+    @Test
+    fun rankMatches_matchesOneWordOfAMultiWordName() {
+        // The full name is far outside the edit-distance tolerance; the match
+        // has to come from the "Kāraikkudi" word alone.
+        val junction = GeoPlace("Kāraikkudi Junction", "India", 10.0, 78.7, "Asia/Kolkata", 5000)
+
+        val results = LocationSearch.rankMatches(listOf(junction), "karaikudi", limit = 10)
+
+        assertEquals(listOf("Kāraikkudi Junction"), results.map { it.name })
+    }
+
+    @Test
+    fun rankMatches_exactMatchesAlwaysOutrankApproximateOnes() {
+        // Erode is an exact hit but tiny; Erede is a misspelling of a huge
+        // city. Population must not promote the fuzzy hit above the exact one.
+        val exactButSmall = GeoPlace("Erode", "India", 11.3, 77.7, "Asia/Kolkata", 1_000)
+        val fuzzyButHuge = GeoPlace("Erede", "Italy", 45.0, 7.0, "Europe/Rome", 9_000_000)
+
+        val results = LocationSearch.rankMatches(listOf(fuzzyButHuge, exactButSmall), "erode", limit = 10)
+
+        assertEquals(listOf("Erode", "Erede"), results.map { it.name })
+    }
+
+    @Test
+    fun rankMatches_doesNotFuzzyMatchShortQueries() {
+        // Below four characters nearly everything is within an edit or two of
+        // everything else, so fuzzy matching there would bury the real hits.
+        val results = LocationSearch.rankMatches(places, "ero", limit = 10)
+
+        assertEquals(setOf("Erode", "Erode Rural"), results.map { it.name }.toSet())
+    }
+
+    @Test
+    fun rankMatches_findsAnApproximateMatchInAFullSizedDataset() {
+        // The bundled asset is ~235k rows and every keystroke scans all of
+        // them, so exercise the fuzzy path at that scale: one needle hidden
+        // among 200k non-matches.
+        val many = (1..200_000).map {
+            GeoPlace("Place$it", "Country${it % 200}", 0.0, 0.0, "UTC", it)
+        } + karaikkudi
+
+        val elapsed = kotlin.system.measureTimeMillis {
+            val results = LocationSearch.rankMatches(many, "karaikudi", limit = 20)
+            assertEquals(listOf("Kāraikkudi"), results.map { it.name })
+        }
+
+        // A runaway guard, not a benchmark: it fires only on genuinely
+        // pathological behaviour (a quadratic scan, or losing both the length
+        // prefilter and the early row abort). A tighter bound would flake on
+        // a slow CI runner without catching anything a reviewer wouldn't.
+        assertTrue("rankMatches took ${elapsed}ms over 200k rows", elapsed < 10_000)
+    }
 }

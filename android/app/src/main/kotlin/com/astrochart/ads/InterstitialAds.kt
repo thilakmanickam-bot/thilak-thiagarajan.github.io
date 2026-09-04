@@ -24,7 +24,7 @@ object InterstitialAds {
 
     /** Load an interstitial in the background if one isn't ready already. */
     fun preload(context: Context) {
-        if (!Features.ADS_ENABLED || Premium.isActive || ad != null || loading) return
+        if (!Features.ADS_ENABLED || Premium.isActive(context) || ad != null || loading) return
         loading = true
         runCatching {
             InterstitialAd.load(
@@ -51,7 +51,7 @@ object InterstitialAds {
      * stays unobtrusive. Reloads afterwards. Returns true if an ad was shown.
      */
     fun maybeShow(activity: Activity, everyNth: Int = 2): Boolean {
-        if (!Features.ADS_ENABLED || Premium.isActive) return false
+        if (!Features.ADS_ENABLED || Premium.isActive(activity)) return false
         shownCount++
         if (shownCount % everyNth != 0) return false
         val current = ad ?: run { preload(activity); return false }

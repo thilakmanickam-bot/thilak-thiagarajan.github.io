@@ -1,5 +1,8 @@
 package com.astrochart.ads
 
+import android.content.Context
+import com.astrochart.billing.PremiumStore
+
 /**
  * AdMob ad-unit configuration.
  *
@@ -36,10 +39,24 @@ object Ads {
 }
 
 /**
- * Whether the current viewer has the ad-free Premium tier. There is no billing
- * yet (Premium is "coming soon"), so everyone is on the basic, ad-supported
- * tier. When the subscription ships, back [isActive] with the real entitlement.
+ * Whether the current viewer has the ad-free Premium tier. Backed by
+ * [PremiumStore], a local cache of the entitlement last verified server-side
+ * by the `verifyPurchase` Cloud Function (see `BillingManager`) — refreshed
+ * on every app launch, so it stays close to the real Play subscription state
+ * without needing push notifications from Play.
  */
 object Premium {
-    const val isActive: Boolean = false
+    /**
+     * Honours the expiry as well as the flag. A tester grant is time-limited
+     * (90 days, see `functions/src/tester.ts`), and a device that never comes
+     * back online would otherwise keep Premium for good on a cache written
+     * once. `0L` means "no expiry recorded" and stays active — that is what a
+     * subscriber's row looked like before this, so paying users are unaffected.
+     */
+    fun isActive(context: Context): Boolean {
+        val entitlement = PremiumStore.load(context)
+        if (!entitlement.active) return false
+        return entitlement.expiresAtMillis == 0L ||
+            entitlement.expiresAtMillis > System.currentTimeMillis()
+    }
 }

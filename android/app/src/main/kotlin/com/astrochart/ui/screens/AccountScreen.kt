@@ -74,7 +74,9 @@ fun AccountScreen(modifier: Modifier = Modifier) {
                 comingSoon = strings.accountComingSoon,
                 errorText = strings.accountSignInError,
                 working = status is AccountViewModel.Status.Working,
+                workingNote = (status as? AccountViewModel.Status.Working)?.note,
                 showError = status is AccountViewModel.Status.Error,
+                errorDetail = (status as? AccountViewModel.Status.Error)?.message,
                 onGoogle = { viewModel.signInWithGoogle(context) }
             )
         } else {
@@ -87,7 +89,7 @@ fun AccountScreen(modifier: Modifier = Modifier) {
             Text(
                 text = signedIn.displayName.ifBlank { signedIn.email },
                 style = MaterialTheme.typography.titleLarge,
-                color = TextPrimary,
+                color = GoldDeep,
                 textAlign = TextAlign.Center
             )
             if (signedIn.email.isNotBlank() && signedIn.displayName.isNotBlank()) {
@@ -126,7 +128,9 @@ private fun SignedOut(
     comingSoon: String,
     errorText: String,
     working: Boolean,
+    workingNote: String? = null,
     showError: Boolean,
+    errorDetail: String? = null,
     onGoogle: () -> Unit
 ) {
     Text(
@@ -159,6 +163,18 @@ private fun SignedOut(
     if (working) {
         Spacer(Modifier.height(20.dp))
         CircularProgressIndicator(color = GoldDeep)
+        // A sign-in that is still running after 15s is itself a finding, and the
+        // request is deliberately not cancelled, so say so rather than leaving a
+        // silent spinner that looks identical to a request that has died.
+        if (!workingNote.isNullOrBlank()) {
+            Spacer(Modifier.height(8.dp))
+            Text(
+                text = workingNote,
+                style = MaterialTheme.typography.labelSmall,
+                color = TextMuted,
+                textAlign = TextAlign.Center
+            )
+        }
     }
     if (showError) {
         Spacer(Modifier.height(16.dp))
@@ -168,5 +184,20 @@ private fun SignedOut(
             color = MaterialTheme.colorScheme.error,
             textAlign = TextAlign.Center
         )
+        // The underlying exception message, shown verbatim. Sign-in failures
+        // here are almost always environmental (an unregistered signing
+        // certificate, a disabled provider, no Play Services) rather than
+        // something the user did, and the generic line above gives a tester
+        // nothing to report back. See also the Log.e in AuthManager for the
+        // full stack trace via logcat.
+        if (!errorDetail.isNullOrBlank()) {
+            Spacer(Modifier.height(6.dp))
+            Text(
+                text = errorDetail,
+                style = MaterialTheme.typography.labelSmall,
+                color = TextMuted,
+                textAlign = TextAlign.Center
+            )
+        }
     }
 }

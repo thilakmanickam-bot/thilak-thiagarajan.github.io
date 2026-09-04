@@ -2,6 +2,7 @@ package com.astrochart.ui.viewmodel
 
 import android.app.Application
 import android.content.Context
+import android.os.SystemClock
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.astrochart.Features
@@ -10,8 +11,10 @@ import com.astrochart.auth.AccountStore
 import com.astrochart.auth.AuthManager
 import com.astrochart.auth.ProfileSync
 import com.astrochart.data.repository.ChartRepository
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 /**
@@ -35,9 +38,26 @@ class AccountViewModel(application: Application) : AndroidViewModel(application)
 
     /** Google sign-in. [context] must be an Activity context (Credential Manager UI). */
     fun signInWithGoogle(context: Context) {
-        if (!Features.AUTH_ENABLED || _status.value == Status.Working) return
-        _status.value = Status.Working
+        if (!Features.AUTH_ENABLED || _status.value is Status.Working) return
+        _status.value = Status.Working()
         viewModelScope.launch {
+            // A watchdog that *reports* slowness without cancelling. An earlier
+            // build wrapped this call in withTimeout(20s); that cancellation
+            // threw away the exception the request was about to produce and
+            // triggered Credential Manager's own "sign-in request cancelled"
+            // toast, so the only thing the failure reported was our own timeout.
+            // The request now always runs to its own terminal state.
+            val watchdog = launch {
+                var waited = 0
+                while (isActive) {
+                    delay(15_000)
+                    waited += 15
+                    _status.value = Status.Working(
+                        "still waiting ${waited}s — ${AuthManager.environmentSummary(context)}"
+                    )
+                }
+            }
+            val startedAt = SystemClock.elapsedRealtime()
             try {
                 val account = AuthManager.signInWithGoogle(context)
                 AccountStore.save(getApplication(), account)
@@ -45,7 +65,18 @@ class AccountViewModel(application: Application) : AndroidViewModel(application)
                 runCatching { ProfileSync.syncAll(getApplication(), repository) }
                 _status.value = Status.Idle
             } catch (e: Exception) {
-                _status.value = Status.Error(e.message ?: "sign-in failed")
+                // Elapsed time separates a request that failed fast (a
+                // configuration answer came back from Play Services) from one
+                // that hung and only failed much later (the request never got
+                // an answer at all) — the same exception type can arrive both
+                // ways, and they point at different layers.
+                val seconds = (SystemClock.elapsedRealtime() - startedAt) / 1000
+                _status.value = Status.Error(
+                    "${e.javaClass.simpleName} after ${seconds}s: ${e.message} — " +
+                        AuthManager.environmentSummary(context)
+                )
+            } finally {
+                watchdog.cancel()
             }
         }
     }
@@ -67,7 +98,8 @@ class AccountViewModel(application: Application) : AndroidViewModel(application)
 
     sealed class Status {
         object Idle : Status()
-        object Working : Status()
+        /** [note] carries progress detail for a request that is taking unusually long. */
+        data class Working(val note: String? = null) : Status()
         data class Error(val message: String) : Status()
     }
 }

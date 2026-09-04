@@ -1,5 +1,6 @@
 package com.astrochart.core.interpret
 
+import com.astrochart.core.models.ChartStyle
 import com.astrochart.core.i18n.Language
 import com.astrochart.core.i18n.Translations
 import com.astrochart.core.models.BirthData
@@ -58,7 +59,7 @@ class ReadingTamilTest {
     @Test
     fun tamilReading_isWellFormed_forDiverseCharts() {
         for (chart in listOf(losAngeles(), chennai())) {
-            val sections = ChartReading.build(chart, NAME, Language.TA)
+            val sections = ChartReading.build(chart, NAME, ChartStyle.SOUTH_INDIAN, Language.TA)
 
             // Structure: exactly five sections, all titles & paragraphs non-blank.
             assertEquals(5, sections.size, "Tamil reading should have 5 sections")

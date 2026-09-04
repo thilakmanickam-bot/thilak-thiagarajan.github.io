@@ -90,7 +90,7 @@ fun PanchangamScreen(
                     Text(
                         text = date.format(gregFmt),
                         style = MaterialTheme.typography.titleLarge,
-                        color = TextPrimary
+                        color = GoldDeep
                     )
                     Text(
                         text = PanchangamNames.weekdays[p.weekdayIndex].get(lang),
@@ -179,7 +179,8 @@ fun PanchangamScreen(
             )
             ElementRowRaw(
                 label = ps.karana,
-                text = "${PanchangamNames.karanaName(p.karanaHalf0).get(lang)}  ${ps.until} ${p.karanaEndsAt.format(timeFmt)}"
+                text = "${PanchangamNames.karanaName(p.karanaHalf0).get(lang)}  " +
+                    ps.untilTime(p.karanaEndsAt.format(timeFmt))
             )
         }
 
@@ -258,7 +259,7 @@ private fun ElementRow(
     timeFmt: DateTimeFormatter
 ) {
     val suffix = if (element.endsNextDay) " ${ps.nextDay}" else ""
-    ElementRowRaw(label, "$name  ${ps.until} ${element.endsAt.format(timeFmt)}$suffix")
+    ElementRowRaw(label, "$name  " + ps.untilTime(element.endsAt.format(timeFmt) + suffix))
 }
 
 @Composable

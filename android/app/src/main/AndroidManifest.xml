@@ -31,6 +31,20 @@
             </intent-filter>
         </activity>
 
+        <!-- Sharing an exported PDF needs a content:// URI — ACTION_SEND with a
+             file:// URI throws FileUriExposedException on API 24 and above.
+             Not exported: the receiving app is granted read access per-Intent
+             via FLAG_GRANT_READ_URI_PERMISSION and has none otherwise. -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
     </application>
 
 </manifest>

@@ -3,8 +3,8 @@ package com.astrochart.ui.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.astrochart.ui.i18n.ChartStyleStore
 import com.astrochart.chat.AnthropicApi
-import com.astrochart.chat.ApiKeyStore
 import com.astrochart.chat.ApiMessage
 import com.astrochart.chat.ChatClient
 import com.astrochart.chat.ChatRequest
@@ -13,6 +13,7 @@ import com.astrochart.core.interpret.ChatPrompt
 import com.astrochart.core.models.NatalChart
 import com.astrochart.data.db.entities.SavedChartEntity
 import com.astrochart.data.repository.ChartRepository
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -20,11 +21,16 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import retrofit2.HttpException
 
 /**
  * Drives the astrologer chatbot: lets the user pick a saved chart, builds the
  * persona + chart system prompt via [ChatPrompt], and exchanges messages with
- * Claude through the [ChatClient] proxy. Non-streaming — replies are short.
+ * Claude through the [ChatClient] proxy — which requires the user to be
+ * signed in (the proxy verifies their Firebase ID token and enforces the
+ * daily message cap; see `functions/src/index.ts`). Non-streaming — replies
+ * are short.
  */
 class ChatViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -53,7 +59,6 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
 
-    private val appContext = application.applicationContext
     private var systemPrompt: String = ""
     private var language: Language = Language.EN
     // The loaded chart is kept so the prompt/greeting can be rebuilt if the app
@@ -62,27 +67,33 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     private var currentName: String = ""
     private var sendJob: Job? = null
     private var selecting: Boolean = false
-    private var apiClient: AnthropicApi? = null
 
-    /** True until an API key is entered, or when the user asks to change it. */
-    private val _showKeyEntry = MutableStateFlow(ApiKeyStore.load(appContext).isBlank())
-    val showKeyEntry: StateFlow<Boolean> = _showKeyEntry.asStateFlow()
+    private val auth = FirebaseAuth.getInstance()
 
-    /** Whether an API key is stored, so chat can actually send. */
-    fun hasApiKey(): Boolean = ApiKeyStore.load(appContext).isNotBlank()
+    /** True until the user is signed in — chat requires an account (the proxy
+     *  verifies a Firebase ID token; see `functions/src/index.ts`). */
+    private val _showSignIn = MutableStateFlow(auth.currentUser == null)
+    val showSignIn: StateFlow<Boolean> = _showSignIn.asStateFlow()
 
-    /** Stores the user's Anthropic API key and returns to the chat if non-blank. */
-    fun saveApiKey(key: String) {
-        ApiKeyStore.save(appContext, key)
-        apiClient = null
-        _showKeyEntry.value = key.isBlank()
+    private val authListener = FirebaseAuth.AuthStateListener { a ->
+        _showSignIn.value = a.currentUser == null
     }
 
-    /** Re-opens the key entry so the user can change or replace the key. */
-    fun editApiKey() { _showKeyEntry.value = true }
+    init {
+        auth.addAuthStateListener(authListener)
+    }
 
-    private fun api(): AnthropicApi =
-        apiClient ?: ChatClient.create(ApiKeyStore.load(appContext)).also { apiClient = it }
+    override fun onCleared() {
+        auth.removeAuthStateListener(authListener)
+        super.onCleared()
+    }
+
+    /** Builds a client authenticated with a fresh ID token for the current user. */
+    private suspend fun api(): AnthropicApi {
+        val idToken = auth.currentUser?.getIdToken(false)?.await()?.token
+            ?: throw IllegalStateException("Not signed in")
+        return ChatClient.create(idToken)
+    }
 
     fun suggestedQuestions(): List<String> = ChatPrompt.suggestedQuestions(language)
 
@@ -130,7 +141,11 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun buildForLanguage(lang: Language) {
         val chart = currentChart ?: return
-        val context = ChatPrompt.chartContext(chart, currentName, lang)
+        // Same zodiac the reader is looking at, so the assistant and the
+        // chart on screen never name different signs for one planet.
+        val context = ChatPrompt.chartContext(
+            chart, currentName, ChartStyleStore.load(getApplication()), lang
+        )
         systemPrompt = ChatPrompt.systemPrompt(lang, context)
         _greeting.value = ChatPrompt.greeting(lang, currentName)
     }
@@ -155,7 +170,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     fun send(text: String) {
         val trimmed = text.trim()
         if (trimmed.isEmpty() || _isSending.value) return
-        if (!hasApiKey() || systemPrompt.isEmpty()) {
+        if (auth.currentUser == null || systemPrompt.isEmpty()) {
             _error.value = "not_configured"
             return
         }
@@ -197,7 +212,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                 // Remove the optimistic user turn so a retry doesn't produce two
                 // consecutive user messages (which the API rejects).
                 rollbackLastUser()
-                _error.value = "send_failed"
+                _error.value = if (t is HttpException && t.code() == 429) "rate_limited" else "send_failed"
             } finally {
                 _isSending.value = false
             }

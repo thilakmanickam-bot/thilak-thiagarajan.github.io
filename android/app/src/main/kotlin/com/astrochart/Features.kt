@@ -6,9 +6,12 @@ package com.astrochart
  */
 object Features {
     /**
-     * The "Ask the Universe" AI astrologer chat. Temporarily disabled for the
-     * initial Play Store release; set to `true` to bring it back (its entry point
-     * and navigation are gated on this flag).
+     * The "Ask the Universe" AI astrologer chat. The app-side implementation
+     * (UI, prompt building, sign-in gate) is complete, but it calls a server-side
+     * proxy Cloud Function (see /functions) that must be deployed separately —
+     * flipping this to `true` before that's done means every request 404s.
+     * Deploy the function and set `CHAT_PROXY_BASE_URL` first (see
+     * functions/README.md), THEN flip this flag and rebuild.
      */
     const val CHAT_ENABLED = false
 
@@ -45,4 +48,15 @@ object Features {
      * Facebook button renders disabled with a "coming soon" hint.
      */
     const val FACEBOOK_LOGIN_ENABLED = false
+
+    /**
+     * Real Google Play Billing for Halo Premium (monthly/yearly subscriptions).
+     * The app-side implementation (Billing Library wiring, purchase flow,
+     * entitlement caching) is complete, but it depends on the `verifyPurchase`
+     * Cloud Function (see /functions) and the two subscription products, both
+     * of which must be set up in Play Console separately — flipping this to
+     * `true` before that's done means every purchase attempt fails to verify.
+     * See functions/README.md for the exact one-time setup steps.
+     */
+    const val BILLING_ENABLED = false
 }

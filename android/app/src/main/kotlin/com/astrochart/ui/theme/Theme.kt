@@ -7,6 +7,7 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.text.font.FontFamily
 import androidx.core.view.WindowCompat
 
 // Single fixed dark scheme — the app commits to the celestial night aesthetic.
@@ -29,6 +30,11 @@ private val CelestialColorScheme = darkColorScheme(
 
 @Composable
 fun AstroChartTheme(
+    // Overridden reactively per active language once `AppNavigation` composes
+    // (see LocalizedFonts.kt / MainActivity.kt); this default only matters
+    // for content composed above that point, e.g. the onboarding wizard,
+    // whose own copy is plain English regardless of the chosen language.
+    fontFamily: FontFamily = FontFamily.SansSerif,
     content: @Composable () -> Unit
 ) {
     val view = LocalView.current
@@ -45,7 +51,7 @@ fun AstroChartTheme(
 
     MaterialTheme(
         colorScheme = CelestialColorScheme,
-        typography = Typography,
+        typography = buildTypography(fontFamily),
         content = content
     )
 }

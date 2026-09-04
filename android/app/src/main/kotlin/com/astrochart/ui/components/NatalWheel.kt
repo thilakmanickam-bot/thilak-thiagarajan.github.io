@@ -31,7 +31,8 @@ import com.astrochart.ui.theme.TextPrimary
 import kotlin.math.cos
 import kotlin.math.sin
 
-private data class WheelPlanet(
+/** `internal` so the PDF export can lay planets out the same way. */
+internal data class WheelPlanet(
     val name: String,
     val lon: Double,
     var disp: Double,
@@ -41,8 +42,12 @@ private data class WheelPlanet(
 private fun norm(d: Double): Double = ((d % 360.0) + 360.0) % 360.0
 
 /** Spread planet glyphs that sit within MIN_SEP degrees so they don't overlap. */
-private fun spreadPlanets(planets: List<PlanetaryPosition>): List<WheelPlanet> {
-    val ps = planets.map { WheelPlanet(it.name, it.lon, it.lon, it.label) }
+internal fun spreadPlanets(planets: List<PlanetaryPosition>): List<WheelPlanet> {
+    // Tropical throughout: this is the Western wheel, so it draws at the
+    // tropical longitude and must label with the tropical sign to match.
+    // PlanetaryPosition.label is the sidereal rasi, which belongs to the
+    // koshtam, not here.
+    val ps = planets.map { WheelPlanet(it.name, it.lon, it.lon, it.tropicalLabel) }
         .sortedBy { it.lon }
         .toMutableList()
     if (ps.size < 2) return ps
@@ -93,9 +98,18 @@ fun NatalWheel(chart: NatalChart, modifier: Modifier = Modifier) {
     }
 }
 
-private val SoftAspect = Color(0xFF8FB8C8)
+internal val SoftAspect = Color(0xFF8FB8C8)
 
-private fun DrawScope.drawWheel(
+/**
+ * The wheel itself, colours passed in rather than read from the theme.
+ *
+ * `internal` so the PDF export draws the *same* wheel onto a page canvas
+ * through CanvasDrawScope instead of carrying a second implementation that
+ * could drift from what the screen shows. The colour parameters are what makes
+ * that possible: a PDF is printed on white, where this screen's light-on-dark
+ * palette would be all but invisible.
+ */
+internal fun DrawScope.drawWheel(
     chart: NatalChart,
     planets: List<WheelPlanet>,
     measurer: TextMeasurer,

@@ -42,21 +42,30 @@ import java.time.format.TextStyle
 @Composable
 fun BirthInputScreen(
     viewModel: BirthInputViewModel,
-    onChartCalculated: (NatalChart, String) -> Unit,
+    onChartCalculated: (NatalChart, String, LocationOption) -> Unit,
+    initialName: String = "",
+    initialGender: String = "",
+    initialYear: Int = 2000,
+    initialMonth: Int = 1,
+    initialDay: Int = 1,
+    initialHour: Int = 12,
+    initialMinute: Int = 0,
+    initialLocation: LocationOption? = null,
+    initialTimeZone: String = "Asia/Singapore",
     modifier: Modifier = Modifier
 ) {
     val strings = LocalStrings.current
     val lang = LocalLanguage.current
 
-    var name by remember { mutableStateOf("") }
-    var gender by remember { mutableStateOf("") } // canonical English: "", Female, Male, Other
-    var year by remember { mutableStateOf(2000) }
-    var month by remember { mutableStateOf(1) }
-    var day by remember { mutableStateOf(1) }
-    var hour by remember { mutableStateOf(12) }
-    var minute by remember { mutableStateOf(0) }
-    var location by remember { mutableStateOf<LocationOption?>(null) }
-    var timeZone by remember { mutableStateOf("Asia/Singapore") }
+    var name by remember { mutableStateOf(initialName) }
+    var gender by remember { mutableStateOf(initialGender) } // canonical English: "", Female, Male, Other
+    var year by remember { mutableStateOf(initialYear) }
+    var month by remember { mutableStateOf(initialMonth) }
+    var day by remember { mutableStateOf(initialDay) }
+    var hour by remember { mutableStateOf(initialHour) }
+    var minute by remember { mutableStateOf(initialMinute) }
+    var location by remember { mutableStateOf(initialLocation) }
+    var timeZone by remember { mutableStateOf(initialLocation?.zoneId ?: initialTimeZone) }
 
     // Canonical gender codes with localized labels for display.
     val genderOptions = listOf("Female", "Male", "Other")
@@ -76,10 +85,13 @@ fun BirthInputScreen(
     val uiState by viewModel.uiState.collectAsState()
     val isLoading = uiState is BirthInputViewModel.BirthInputUiState.Loading
     val canSubmit = name.isNotBlank() && location != null && !isLoading
+    // The location a calculation was submitted with, so the result callback
+    // reports the exact place used even if `location` changes while loading.
+    var submittedLocation by remember { mutableStateOf<LocationOption?>(null) }
 
     LaunchedEffect(uiState) {
         (uiState as? BirthInputViewModel.BirthInputUiState.Success)?.let {
-            onChartCalculated(it.chart, name.trim())
+            submittedLocation?.let { loc -> onChartCalculated(it.chart, name.trim(), loc) }
             viewModel.reset()
         }
     }
@@ -107,7 +119,7 @@ fun BirthInputScreen(
         Text(
             text = strings.biHeading,
             style = MaterialTheme.typography.headlineSmall,
-            color = TextPrimary
+            color = GoldDeep
         )
 
         Spacer(modifier = Modifier.height(20.dp))
@@ -222,6 +234,7 @@ fun BirthInputScreen(
             text = strings.navCalculate,
             onClick = {
                 val loc = location ?: return@GoldButton
+                submittedLocation = loc
                 viewModel.calculateAndSave(
                     name = name,
                     year = year,

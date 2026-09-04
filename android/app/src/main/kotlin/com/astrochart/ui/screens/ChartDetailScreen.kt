@@ -5,10 +5,12 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Tab
@@ -48,7 +50,9 @@ import com.astrochart.ui.i18n.LocalChartStyle
 import com.astrochart.ui.i18n.LocalLanguage
 import com.astrochart.ui.i18n.LocalStrings
 import com.astrochart.ui.i18n.UiStrings
+import com.astrochart.ui.theme.CardBorder
 import com.astrochart.ui.theme.GoldDeep
+import com.astrochart.ui.theme.LocalWindowSizeClass
 import com.astrochart.ui.theme.TextMuted
 import com.astrochart.ui.theme.TextPrimary
 import kotlinx.coroutines.launch
@@ -62,11 +66,19 @@ private fun birthFormatter(lang: Language): DateTimeFormatter =
         lang.locale
     )
 
-/** Rebuilds a placement's degree label with the sign name localized. */
-private fun localizedLabel(position: PlanetaryPosition, lang: Language): String {
-    val deg = position.degree
-    val min = position.minute.toString().padStart(2, '0')
-    return "$deg°$min' ${Translations.signName(position.sign, lang)}"
+/**
+ * Rebuilds a placement's degree label with the sign name localized, in the
+ * zodiac [style] implies — the degree and the sign have to come from the same
+ * frame or the label reads as nonsense.
+ */
+private fun localizedLabel(
+    position: PlanetaryPosition,
+    style: ChartStyle,
+    lang: Language
+): String {
+    val label = position.labelFor(style)
+    val degrees = label.substringBefore(' ')
+    return "$degrees ${Translations.signName(position.signFor(style), lang)}"
 }
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -99,39 +111,107 @@ fun ChartDetailScreen(
     }
     DisposableEffect(Unit) { onDispose { motion.parallax = 0f } }
 
-    Column(modifier = modifier.fillMaxSize()) {
-        ChartHeader(chart = chart, chartName = chartName)
+    // On a tablet or a laptop the birth details are a reference panel, not a
+    // banner: pinning them beside the chart means the chart no longer starts
+    // half a screen down, and the details stay readable while the tabs change.
+    // The 30/70 split is the point — the details column is bounded content, the
+    // chart is what wants the room.
+    //
+    // Expanded (>=840dp), not merely "not Compact". Medium starts at 600dp,
+    // which is a large *phone in landscape* — there the split has ~250dp for
+    // the details rail (too narrow for the stacked values, per the note on
+    // ChartHeader's `stacked`) and only ~360dp of height to hold a tab strip
+    // and a chart. This also matches RasiSignsOrTwoPane, the app's other
+    // two-pane layout, so the two agree on what counts as a tablet.
+    val isWide = LocalWindowSizeClass.current.widthSizeClass == WindowWidthSizeClass.Expanded
 
-        ScrollableTabRow(
-            selectedTabIndex = pagerState.currentPage,
-            containerColor = Color.Transparent,
-            contentColor = GoldDeep,
-            edgePadding = 12.dp
-        ) {
-            tabs.forEachIndexed { index, title ->
-                Tab(
-                    selected = pagerState.currentPage == index,
-                    onClick = { scope.launch { pagerState.animateScrollToPage(index) } },
-                    selectedContentColor = GoldDeep,
-                    unselectedContentColor = TextMuted,
-                    text = { Text(title, style = MaterialTheme.typography.titleSmall) }
-                )
+    if (isWide) {
+        Row(modifier = modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .weight(DETAILS_WEIGHT)
+                    .fillMaxHeight()
+                    .verticalScroll(rememberScrollState())
+            ) {
+                // Stacked: at 30% of the window the three-across rows would put
+                // "Sagittarius" in a column too narrow to hold it.
+                ChartHeader(chart = chart, chartName = chartName, stacked = true)
+            }
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .width(1.dp)
+                    .background(CardBorder)
+            )
+            Column(
+                modifier = Modifier
+                    .weight(CHART_WEIGHT)
+                    .fillMaxHeight()
+            ) {
+                ChartTabs(tabs, pagerState, chart, chartName) { index ->
+                    scope.launch { pagerState.animateScrollToPage(index) }
+                }
             }
         }
-
-        HorizontalPager(
-            state = pagerState,
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-        ) { page ->
-            when (page) {
-                0 -> WheelTab(chart, chartName)
-                1 -> PlacementsTab(chart)
-                2 -> AspectsTab(chart)
-                3 -> BalanceTab(chart)
-                else -> ReadingTab(chart, chartName)
+    } else {
+        Column(modifier = modifier.fillMaxSize()) {
+            ChartHeader(chart = chart, chartName = chartName)
+            ChartTabs(tabs, pagerState, chart, chartName) { index ->
+                scope.launch { pagerState.animateScrollToPage(index) }
             }
+        }
+    }
+}
+
+/** 30 / 70. Weights rather than a fixed rail, so the split holds at any width. */
+private const val DETAILS_WEIGHT = 0.3f
+private const val CHART_WEIGHT = 0.7f
+
+/**
+ * The tab strip and the pager it drives — identical in both layouts, so they
+ * live here rather than being written twice and drifting.
+ *
+ * A ColumnScope extension because the pager takes the remaining height in
+ * whichever Column it lands in.
+ */
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun ColumnScope.ChartTabs(
+    tabs: List<String>,
+    pagerState: PagerState,
+    chart: NatalChart,
+    chartName: String,
+    onTabSelected: (Int) -> Unit
+) {
+    ScrollableTabRow(
+        selectedTabIndex = pagerState.currentPage,
+        containerColor = Color.Transparent,
+        contentColor = GoldDeep,
+        edgePadding = 12.dp
+    ) {
+        tabs.forEachIndexed { index, title ->
+            Tab(
+                selected = pagerState.currentPage == index,
+                onClick = { onTabSelected(index) },
+                selectedContentColor = GoldDeep,
+                unselectedContentColor = TextMuted,
+                text = { Text(title, style = MaterialTheme.typography.titleSmall) }
+            )
+        }
+    }
+
+    HorizontalPager(
+        state = pagerState,
+        modifier = Modifier
+            .weight(1f)
+            .fillMaxWidth()
+    ) { page ->
+        when (page) {
+            0 -> WheelTab(chart, chartName)
+            1 -> PlacementsTab(chart)
+            2 -> AspectsTab(chart)
+            3 -> BalanceTab(chart)
+            else -> ReadingTab(chart, chartName)
         }
     }
 }
@@ -184,7 +264,7 @@ private fun dailyDateFmt(lang: Language): DateTimeFormatter =
 private fun DailyReadingCard(chart: NatalChart) {
     val strings = LocalStrings.current
     val lang = LocalLanguage.current
-    val sun = chart.planets.firstOrNull { it.name == "Sun" }?.sign
+    val sun = chart.planets.firstOrNull { it.name == "Sun" }?.signFor(LocalChartStyle.current)
     val today = LocalDate.now()
     val data = remember(lang, sun, today) { DailyReading.build(today, lang, sun) }
     val dateText = remember(lang, today) { today.format(dailyDateFmt(lang)) }
@@ -269,7 +349,12 @@ private fun WheelLegend() {
 @Composable
 private fun ReadingTab(chart: NatalChart, chartName: String) {
     val lang = LocalLanguage.current
-    val sections = remember(chart, chartName, lang) { ChartReading.build(chart, chartName, lang) }
+    // The reading is prose about signs, so it must name them in the same
+    // zodiac as the chart drawn above it.
+    val style = LocalChartStyle.current
+    val sections = remember(chart, chartName, style, lang) {
+        ChartReading.build(chart, chartName, style, lang)
+    }
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
@@ -292,10 +377,19 @@ private fun ReadingTab(chart: NatalChart, chartName: String) {
     }
 }
 
+/**
+ * @param stacked lay the six values out one per line instead of two rows of
+ *   three. For the narrow details column of the wide layout: at 30% of the
+ *   window a third of that is not enough for "Sagittarius" at title size, and
+ *   a value that wraps mid-word or clips is worse than a taller card.
+ */
 @Composable
-private fun ChartHeader(chart: NatalChart, chartName: String) {
+private fun ChartHeader(chart: NatalChart, chartName: String, stacked: Boolean = false) {
     val strings = LocalStrings.current
     val lang = LocalLanguage.current
+    // The header sits directly above the chart, so it must name signs in the
+    // same zodiac the chart is drawn in.
+    val style = LocalChartStyle.current
     val sun = chart.planets.firstOrNull { it.name == "Sun" }
     val moon = chart.planets.firstOrNull { it.name == "Moon" }
 
@@ -305,6 +399,18 @@ private fun ChartHeader(chart: NatalChart, chartName: String) {
     val zodiac = ChineseZodiac.name(birthYear, lang)
     val zodiacEmoji = ChineseZodiac.emoji(birthYear)
 
+    // Built as pairs so both layouts read the same values from one place.
+    val placements = buildList {
+        sun?.let { add(strings.labelSun to Translations.signName(it.signFor(style), lang)) }
+        moon?.let { add(strings.labelMoon to Translations.signName(it.signFor(style), lang)) }
+        add(strings.labelRising to Translations.signName(chart.ascendant.signFor(style), lang))
+    }
+    val facts = buildList {
+        add(strings.labelAge to strings.ageValue(age))
+        if (gender.isNotBlank()) add(strings.labelGender to localizedGender(gender, strings))
+        add(strings.labelChineseZodiac to "$zodiacEmoji $zodiac")
+    }
+
     CelestialCard(
         modifier = Modifier.padding(16.dp),
         contentPadding = 18
@@ -313,7 +419,7 @@ private fun ChartHeader(chart: NatalChart, chartName: String) {
             Text(
                 text = chartName,
                 style = MaterialTheme.typography.titleLarge,
-                color = TextPrimary
+                color = GoldDeep
             )
             Spacer(modifier = Modifier.height(4.dp))
         }
@@ -330,26 +436,27 @@ private fun ChartHeader(chart: NatalChart, chartName: String) {
             )
         }
         Spacer(modifier = Modifier.height(16.dp))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            sun?.let { KeyPlacement(strings.labelSun, Translations.signName(it.sign, lang), Modifier.weight(1f)) }
-            moon?.let { KeyPlacement(strings.labelMoon, Translations.signName(it.sign, lang), Modifier.weight(1f)) }
-            KeyPlacement(strings.labelRising, Translations.signName(chart.ascendant.sign, lang), Modifier.weight(1f))
-        }
+        KeyPlacementGroup(placements, stacked)
         Spacer(modifier = Modifier.height(16.dp))
         SectionDivider()
         Spacer(modifier = Modifier.height(12.dp))
+        KeyPlacementGroup(facts, stacked)
+    }
+}
+
+/** One row of three, or one per line — the same values either way. */
+@Composable
+private fun KeyPlacementGroup(entries: List<Pair<String, String>>, stacked: Boolean) {
+    if (stacked) {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            entries.forEach { (label, value) -> KeyPlacement(label, value) }
+        }
+    } else {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            KeyPlacement(strings.labelAge, strings.ageValue(age), Modifier.weight(1f))
-            if (gender.isNotBlank()) {
-                KeyPlacement(strings.labelGender, localizedGender(gender, strings), Modifier.weight(1f))
-            }
-            KeyPlacement(strings.labelChineseZodiac, "$zodiacEmoji $zodiac", Modifier.weight(1f))
+            entries.forEach { (label, value) -> KeyPlacement(label, value, Modifier.weight(1f)) }
         }
     }
 }
@@ -423,7 +530,11 @@ private fun PlacementRow(position: PlanetaryPosition) {
                 modifier = Modifier.weight(1f)
             )
             Column(horizontalAlignment = Alignment.End) {
-                Text(text = localizedLabel(position, lang), style = MaterialTheme.typography.bodyMedium, color = GoldDeep)
+                Text(
+                    text = localizedLabel(position, LocalChartStyle.current, lang),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = GoldDeep
+                )
                 Text(
                     text = strings.houseLabel(position.house),
                     style = MaterialTheme.typography.bodySmall,

@@ -72,6 +72,11 @@ object SouthIndianChart {
             SIGN_POSITIONS.associate { it.first to mutableListOf<String>() }
 
         if (includeAscendant) {
+            // Sidereal, unconditionally, and deliberately not gated on
+            // ChartStyle: a rasi koshtam is a Vedic chart by definition, so
+            // there is no tropical variant of it to switch to. Same for
+            // porutham, Rasi Palan and the panchangam. Only the surfaces
+            // that can be drawn either way take a style.
             bySign[chart.ascendant.sign]?.add("Ascendant")
         }
         for (planet in chart.planets) {

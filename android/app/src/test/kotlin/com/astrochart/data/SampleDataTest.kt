@@ -22,7 +22,9 @@ class SampleDataTest {
     fun sampleBirthData_computesValidChart() {
         val chart = ChartCalculator.calculateNatalChart(SampleData.sampleBirthData())
 
-        assertEquals(10, chart.planets.size)
+        // Nine grahas: the outer three went with the fabricated formulas that
+        // produced them (see core's SolachiChartTest).
+        assertEquals(9, chart.planets.size)
         assertTrue(chart.ascendant.sign in ZodiacUtils.getAllSigns())
         for (planet in chart.planets) {
             assertTrue(planet.lon >= 0.0 && planet.lon < 360.0)

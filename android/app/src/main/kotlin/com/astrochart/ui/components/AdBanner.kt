@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import com.astrochart.Features
 import com.astrochart.ads.Ads
@@ -18,21 +19,32 @@ import com.google.android.gms.ads.AdView
  * disabled by flag or the viewer is on Premium, so callers can place it
  * unconditionally. Uses the test ad unit until real AdMob IDs are dropped in.
  *
- * This is Scaffold's `bottomBar`, so Material3 routes the bottom system-bar
- * (navigation bar) inset here expecting it to be consumed — without
- * `.navigationBarsPadding()` on every branch (including the "renders
+ * This sits in Scaffold's `bottomBar`, so Material3 routes the bottom
+ * system-bar (navigation bar) inset there expecting it to be consumed —
+ * without `.navigationBarsPadding()` on every branch (including the "renders
  * nothing" one below) that inset is silently dropped and every screen's
  * content clips under the 3-button nav bar.
+ *
+ * Exactly one element in the bottom bar may consume that inset, and it must be
+ * the bottom-most one. Since [com.astrochart.ui.components.AppBottomNav] now
+ * sits below the banner, it consumes the inset and callers pass
+ * [applyNavigationInset] = false here — otherwise the padding appears twice,
+ * as a gap between the ad and the navigation bar.
  */
 @Composable
-fun AdBanner(modifier: Modifier = Modifier) {
-    if (!Features.ADS_ENABLED || Premium.isActive) {
-        Spacer(modifier = modifier.fillMaxWidth().navigationBarsPadding())
+fun AdBanner(
+    modifier: Modifier = Modifier,
+    applyNavigationInset: Boolean = true
+) {
+    val context = LocalContext.current
+    val inset = if (applyNavigationInset) Modifier.navigationBarsPadding() else Modifier
+    if (!Features.ADS_ENABLED || Premium.isActive(context)) {
+        Spacer(modifier = modifier.fillMaxWidth().then(inset))
         return
     }
 
     AndroidView(
-        modifier = modifier.fillMaxWidth().navigationBarsPadding(),
+        modifier = modifier.fillMaxWidth().then(inset),
         factory = { context ->
             AdView(context).apply {
                 setAdSize(AdSize.BANNER)

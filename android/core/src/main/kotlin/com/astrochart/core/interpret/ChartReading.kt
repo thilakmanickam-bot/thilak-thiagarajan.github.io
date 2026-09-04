@@ -2,6 +2,7 @@ package com.astrochart.core.interpret
 
 import com.astrochart.core.i18n.Language
 import com.astrochart.core.i18n.Translations
+import com.astrochart.core.models.ChartStyle
 import com.astrochart.core.models.NatalChart
 import com.astrochart.core.models.PlanetaryPosition
 import com.astrochart.core.utils.AspectInterpretationProvider
@@ -27,7 +28,19 @@ object ChartReading {
         else -> DateTimeFormatter.ofPattern("d MMM yyyy, HH:mm", lang.locale)
     }
 
-    fun build(chart: NatalChart, name: String, lang: Language = Language.EN): List<ReadingSection> {
+    /**
+     * @param style which zodiac to name signs in. **Required on purpose** — no
+     *   default. The reading is prose about signs, so it has to agree with the
+     *   chart drawn above it, and a default here is precisely what let the
+     *   Western wheel end up captioned with sidereal rasis. Making every caller
+     *   state it is the point.
+     */
+    fun build(
+        chart: NatalChart,
+        name: String,
+        style: ChartStyle,
+        lang: Language = Language.EN
+    ): List<ReadingSection> {
         val who = name.ifBlank { defaultWho(lang) }
         val sun = chart.planets.firstOrNull { it.name == "Sun" }
         val moon = chart.planets.firstOrNull { it.name == "Moon" }
@@ -40,20 +53,26 @@ object ChartReading {
         val birth = birthPhrase(date, place, lang)
         sections += ReadingSection(
             title(lang, 0),
-            listOf(bornLine(who, birth, lang), bigThree(who, sun?.sign, moon?.sign, asc.sign, lang))
+            listOf(
+                bornLine(who, birth, lang),
+                bigThree(
+                    who, sun?.signFor(style), moon?.signFor(style),
+                    asc.signFor(style), lang
+                )
+            )
         )
 
         // 2. Core self (the "big three")
         val core = mutableListOf<String>()
-        sun?.let { core += placementSentence(it, lang) }
-        moon?.let { core += placementSentence(it, lang) }
-        core += risingSentence(asc.sign, lang)
+        sun?.let { core += placementSentence(it, style, lang) }
+        moon?.let { core += placementSentence(it, style, lang) }
+        core += risingSentence(asc.signFor(style), lang)
         sections += ReadingSection(title(lang, 1), core)
 
         // 3. All placements, in canonical planet order
         val placements = PlanetInfo.order
             .mapNotNull { pn -> chart.planets.firstOrNull { it.name == pn } }
-            .map { placementSentence(it, lang) }
+            .map { placementSentence(it, style, lang) }
         sections += ReadingSection(title(lang, 2), placements)
 
         // 4. Key aspects (tightest orbs first)
@@ -207,12 +226,16 @@ object ChartReading {
 
     // ----- Placements --------------------------------------------------------
 
-    private fun placementSentence(p: PlanetaryPosition, lang: Language): String {
+    private fun placementSentence(
+        p: PlanetaryPosition,
+        style: ChartStyle,
+        lang: Language
+    ): String {
         val glyph = PlanetInfo.glyph(p.name)
         val planet = Translations.planetName(p.name, lang)
-        val sign = Translations.signName(p.sign, lang)
+        val sign = Translations.signName(p.signFor(style), lang)
         val role = Translations.planetRole(p.name, lang)
-        val kw = Translations.signKeywords(p.sign, lang)
+        val kw = Translations.signKeywords(p.signFor(style), lang)
         val area = Translations.houseArea(p.house, lang)
         return when (lang) {
             Language.TA -> "$glyph $planet — $sign ராசியில் (${p.house}ஆம் வீடு): உங்கள் $role $kw " +

@@ -1,11 +1,18 @@
 package com.astrochart.ui.components
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -16,10 +23,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import com.astrochart.data.GeoPlace
 import com.astrochart.data.LocationOption
 import com.astrochart.data.LocationSearch
 import com.astrochart.ui.theme.CardBorder
+import com.astrochart.ui.theme.CardFill
 import com.astrochart.ui.theme.GoldDeep
 import com.astrochart.ui.theme.TextMuted
 import com.astrochart.ui.theme.TextPrimary
@@ -35,8 +44,16 @@ private const val DEBOUNCE_MS = 250L
  * found in the dataset can still be typed freely, and the caller
  * (`BirthInputScreen`) keeps its time-zone override field as the fallback
  * for that case.
+ *
+ * Renders the suggestion list in normal layout flow (a [Surface] right
+ * below the field, inside the caller's scrolling [Column]) rather than via
+ * [androidx.compose.material3.ExposedDropdownMenu]'s separate popup window.
+ * That popup was cutting the IME connection on some keyboards — the field
+ * would render fine but backspace/typing stopped reaching it after the
+ * first suggestion appeared — and, with the keyboard open, it could flip to
+ * render *above* the field and cover earlier inputs instead of the list
+ * appearing where the user is looking.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchableLocationField(
     label: String,
@@ -48,11 +65,18 @@ fun SearchableLocationField(
 ) {
     val context = LocalContext.current
     var query by remember { mutableStateOf(selected?.displayName.orEmpty()) }
-    var expanded by remember { mutableStateOf(false) }
     var results by remember { mutableStateOf<List<GeoPlace>>(emptyList()) }
     var hasSearched by remember { mutableStateOf(false) }
+    // Set right before a selection sets `query` to the picked place's own
+    // display name, so the resulting re-search (which would just find that
+    // same place again) doesn't reopen the list immediately after picking.
+    var suppressNextSearch by remember { mutableStateOf(false) }
 
     LaunchedEffect(query) {
+        if (suppressNextSearch) {
+            suppressNextSearch = false
+            return@LaunchedEffect
+        }
         val trimmed = query.trim()
         if (trimmed.length < MIN_QUERY_LENGTH) {
             results = emptyList()
@@ -64,19 +88,10 @@ fun SearchableLocationField(
         hasSearched = true
     }
 
-    val menuVisible = expanded && query.trim().length >= MIN_QUERY_LENGTH
-
-    ExposedDropdownMenuBox(
-        expanded = menuVisible,
-        onExpandedChange = { expanded = it },
-        modifier = modifier
-    ) {
+    Column(modifier = modifier) {
         OutlinedTextField(
             value = query,
-            onValueChange = {
-                query = it
-                expanded = true
-            },
+            onValueChange = { query = it },
             label = { Text(label) },
             placeholder = { Text(placeholder) },
             singleLine = true,
@@ -89,30 +104,50 @@ fun SearchableLocationField(
                 unfocusedTextColor = TextPrimary,
                 cursorColor = GoldDeep
             ),
-            modifier = Modifier
-                .menuAnchor()
-                .fillMaxWidth()
+            modifier = Modifier.fillMaxWidth()
         )
-        ExposedDropdownMenu(
-            expanded = menuVisible,
-            onDismissRequest = { expanded = false }
-        ) {
-            if (results.isEmpty()) {
-                if (hasSearched) {
-                    DropdownMenuItem(text = { Text(noResultsText) }, onClick = {}, enabled = false)
-                }
-            } else {
-                results.forEach { place ->
-                    DropdownMenuItem(
-                        text = {
-                            Text(place.displayName, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        },
-                        onClick = {
-                            query = place.displayName
-                            expanded = false
-                            onSelected(place.toLocationOption())
-                        }
+
+        val showSuggestions = query.trim().length >= MIN_QUERY_LENGTH && (results.isNotEmpty() || hasSearched)
+        if (showSuggestions) {
+            Surface(
+                shape = RoundedCornerShape(14.dp),
+                color = CardFill,
+                border = BorderStroke(1.dp, CardBorder),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 6.dp)
+            ) {
+                if (results.isEmpty()) {
+                    Text(
+                        text = noResultsText,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = TextMuted,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp)
                     )
+                } else {
+                    Column(
+                        modifier = Modifier.heightIn(max = 240.dp).verticalScroll(rememberScrollState())
+                    ) {
+                        results.forEach { place ->
+                            Text(
+                                text = place.displayName,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = TextPrimary,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        suppressNextSearch = true
+                                        query = place.displayName
+                                        results = emptyList()
+                                        hasSearched = false
+                                        onSelected(place.toLocationOption())
+                                    }
+                                    .padding(horizontal = 16.dp, vertical = 12.dp)
+                            )
+                        }
+                    }
                 }
             }
         }

@@ -1,6 +1,7 @@
 package com.astrochart.core.panchangam
 
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
@@ -189,6 +190,19 @@ object Panchangam {
      * sidereal sign at sunrise; the day counts sunrises since the sign ingress
      * (the first sunrise in the sign is day 1).
      */
+    /**
+     * (Tamil month index, day of month) — the **sunrise** rule: a month begins
+     * at the first sunrise with the Sun in the new sign.
+     *
+     * Confirmed against a printed panchangam: Simha sankranti is 17 Aug 2026
+     * 07:59 IST, after that morning's sunrise, and Aavani 1 is printed as
+     * **18 August** — which is what this gives and the sunset rule does not.
+     *
+     * [HinduYear.meshaSankranti] deliberately uses the *sunset* rule for the
+     * year boundary, because Puthandu is a fixed civil date. That difference is
+     * intentional and documented in `docs/RECKONING.md`; making the two agree
+     * breaks one of the two confirmed dates.
+     */
     fun tamilDate(date: LocalDate, latDeg: Double, lonEastDeg: Double, zone: ZoneId): Pair<Int, Int> {
         val todaySign = sidSunSignAtSunrise(date, latDeg, lonEastDeg, zone)
         var day = 1
@@ -217,6 +231,36 @@ object Panchangam {
     }
 
     /**
+     * The (rasi index 0–11, nakshatra index 0–26) of the sidereal Moon at a UT
+     * Julian Day — used to derive a birth chart's Vedic Moon sign/nakshatra
+     * (e.g. for [com.astrochart.core.models.NatalChart.birthData]), since
+     * [NatalChart]'s own tropical planet positions aren't sidereal-corrected.
+     */
+    fun moonRasiAndNakshatraAtJd(jdUt: Double, year: Int): Pair<Int, Int> {
+        val jde = SolarLunar.toJde(jdUt, year)
+        val moonL = SolarLunar.moonLongitude(jde)
+        val sidMoon = Ayanamsa.toSidereal(moonL, jde)
+        val rasi0 = floor(sidMoon / 30.0).toInt().coerceIn(0, 11)
+        val nak0 = floor(sidMoon / NAK_SIZE).toInt().coerceIn(0, 26)
+        return rasi0 to nak0
+    }
+
+    /**
+     * The same (rasi, nakshatra) as [moonRasiAndNakshatraAtJd], taken from a
+     * wall-clock birth date/time and the zone it was recorded in.
+     *
+     * Latitude and longitude are deliberately absent: the sidereal Moon's
+     * longitude is a function of the instant alone, so the birthplace only
+     * matters here insofar as it fixes the zone. That is what lets marriage
+     * matching derive a rasi and nakshatram without computing a whole chart.
+     */
+    fun moonRasiAndNakshatra(local: LocalDateTime, zone: ZoneId): Pair<Int, Int> {
+        val utc = local.atZone(zone).withZoneSameInstant(ZoneId.of("UTC")).toLocalDateTime()
+        val jdUt = SolarLunar.julianDayUt(utc.toLocalDate(), utc.hour + utc.minute / 60.0)
+        return moonRasiAndNakshatraAtJd(jdUt, utc.year)
+    }
+
+    /**
      * (tithi, nakshatra) prevailing at sunrise — a lightweight read used to scan
      * a month for vratham days, without the heavier work of [compute].
      */
@@ -225,7 +269,14 @@ object Panchangam {
         return tithiNakshatraAtJd(sun.sunriseJdUt ?: sun.solarNoonJdUt, date.year)
     }
 
-    private fun sidSunSignAtSunrise(date: LocalDate, latDeg: Double, lonEastDeg: Double, zone: ZoneId): Int {
+    /**
+     * The Sun's sidereal sign at sunrise (0 = Mesha … 11 = Meena).
+     *
+     * Public because it is the hinge of every solar reckoning in the app: the
+     * Tamil month, the ayana, and the Tamil year boundary (Mesha sankranti)
+     * are all read off it — see [com.astrochart.core.panchangam.HinduYear].
+     */
+    fun sidSunSignAtSunrise(date: LocalDate, latDeg: Double, lonEastDeg: Double, zone: ZoneId): Int {
         val sun = SunTimes.compute(date, latDeg, lonEastDeg, zone)
         val jd = sun.sunriseJdUt ?: sun.solarNoonJdUt
         val jde = SolarLunar.toJde(jd, date.year)

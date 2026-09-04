@@ -8,13 +8,28 @@ name: Release to Play Store
 #   ANDROID_KEY_ALIAS           - key alias inside the keystore
 #   ANDROID_KEY_PASSWORD        - key password
 #   PLAY_SERVICE_ACCOUNT_JSON   - Play Console service-account JSON (full contents)
+#   ANTHROPIC_API_KEY           - used by qa-gate.yml's design-integrity review
 # See docs/PLAY_RELEASE.md for how to create each of these.
+#
+# QA gate (qa-gate.yml): on-demand via the `run_qa_gate` checkbox for
+# internal/alpha/beta, but ALWAYS forced on for `production` regardless of
+# that checkbox — determine-gate below is the single place that decides
+# this, so the gate can never be silently bypassed for a production ship.
+
+# One release at a time. Two runs dispatched together each created their own
+# Play edit (and the preflight below created more), and the alpha upload failed
+# with "This edit has expired" almost two hours before its edit's stated expiry
+# — Play had invalidated it. Serialising removes the whole class of problem;
+# queued runs wait rather than being cancelled, so nothing is silently dropped.
+concurrency:
+  group: release-play
+  cancel-in-progress: false
 
 on:
   workflow_dispatch:
     inputs:
       track:
-        description: 'Play track to release to'
+        description: 'Play track to release to (internal-app-sharing is not a track — see below)'
         default: 'internal'
         type: choice
         options:
@@ -22,12 +37,55 @@ on:
           - alpha
           - beta
           - production
+          # Not a track: Internal App Sharing is a separate Play API that
+          # returns a private install link instead of creating a release.
+          # It skips review entirely, so a build is installable in minutes
+          # rather than after a closed-testing review, and it does not
+          # consume/require a unique version code. Use it for getting a
+          # diagnostic build onto a device fast; use the real tracks to ship.
+          - internal-app-sharing
+      run_qa_gate:
+        description: 'Run the QA gate before this release (always forced on for production)'
+        type: boolean
+        default: true
   push:
     tags:
       - 'v*'
 
 jobs:
+  determine-gate:
+    runs-on: ubuntu-latest
+    outputs:
+      required: ${{ steps.decide.outputs.required }}
+      track: ${{ steps.decide.outputs.track }}
+    steps:
+      - id: decide
+        run: |
+          TRACK="${{ github.event.inputs.track || 'internal' }}"
+          RUN_QA_GATE="${{ github.event.inputs.run_qa_gate }}"
+          if [ "$TRACK" = "production" ]; then
+            echo "required=true" >> "$GITHUB_OUTPUT"
+          elif [ "$RUN_QA_GATE" = "false" ]; then
+            echo "required=false" >> "$GITHUB_OUTPUT"
+          else
+            # Covers the checkbox left checked, and tag pushes (which have
+            # no dispatch inputs at all) — fail safe to gated.
+            echo "required=true" >> "$GITHUB_OUTPUT"
+          fi
+          echo "track=$TRACK" >> "$GITHUB_OUTPUT"
+
+  call-qa-gate:
+    needs: determine-gate
+    if: needs.determine-gate.outputs.required == 'true'
+    uses: ./.github/workflows/qa-gate.yml
+    secrets: inherit
+
   publish:
+    needs: [determine-gate, call-qa-gate]
+    # `call-qa-gate` is skipped (not run) when the gate wasn't required —
+    # `success() || skipped()`-shaped check so publish proceeds either way,
+    # but never when the gate actually ran and failed.
+    if: always() && (needs.call-qa-gate.result == 'success' || needs.call-qa-gate.result == 'skipped')
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -66,7 +124,10 @@ jobs:
           path: android/app/build/outputs/bundle/release/app-release.aab
           if-no-files-found: error
 
+      # Only for track uploads. Internal App Sharing does not use the edits
+      # API, so running this there created an edit for no reason at all.
       - name: Preflight - verify Play API access (diagnostic)
+        if: needs.determine-gate.outputs.track != 'internal-app-sharing'
         env:
           PLAY_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
         run: |
@@ -89,21 +150,106 @@ jobs:
                   info, scopes=["https://www.googleapis.com/auth/androidpublisher"])
               s = AuthorizedSession(creds)
               pkg = "com.techbyt.halo"
-              r = s.post(f"https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{pkg}/edits")
+              base = f"https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{pkg}/edits"
+              r = s.post(base)
               print(f"POST /edits for {pkg} -> HTTP {r.status_code}")
               print("RESPONSE:", r.text[:1500])
               print("HINT: 200/201 = OK; 401 = bad/expired auth; "
                     "403 = service account lacks permission on this app OR API not enabled; "
                     "404 = app/package not found for this account.")
+              # Hand the edit back. This check only needs to know the call is
+              # authorised; leaving the edit open left it competing with the
+              # one the upload step creates seconds later, in the same job.
+              if r.status_code in (200, 201):
+                  edit_id = r.json().get("id")
+                  if edit_id:
+                      d = s.delete(f"{base}/{edit_id}")
+                      print(f"DELETE /edits/{edit_id} -> HTTP {d.status_code}")
           except Exception as e:
               print("AUTH/API EXCEPTION:", repr(e))
           PY
 
       - name: Upload to Google Play
+        if: needs.determine-gate.outputs.track != 'internal-app-sharing'
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
           packageName: com.techbyt.halo
           releaseFiles: android/app/build/outputs/bundle/release/app-release.aab
-          track: ${{ github.event.inputs.track || 'internal' }}
+          track: ${{ needs.determine-gate.outputs.track }}
           status: completed
+
+      # Internal App Sharing is a different API from the track uploads above:
+      # it takes the artifact directly rather than going through an edit, and
+      # returns a private install link instead of creating a release. The
+      # action used above drives only the edits API, so this is done directly.
+      - name: Upload to Internal App Sharing
+        if: needs.determine-gate.outputs.track == 'internal-app-sharing'
+        env:
+          PLAY_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          python3 -m pip install --quiet google-auth requests
+          python3 - <<'PY'
+          import json, os, sys
+          from google.oauth2 import service_account
+          from google.auth.transport.requests import AuthorizedSession
+
+          PKG = "com.techbyt.halo"
+          AAB = "android/app/build/outputs/bundle/release/app-release.aab"
+
+          creds = service_account.Credentials.from_service_account_info(
+              json.loads(os.environ["PLAY_JSON"]),
+              scopes=["https://www.googleapis.com/auth/androidpublisher"],
+          )
+          session = AuthorizedSession(creds)
+
+          url = (
+              "https://androidpublisher.googleapis.com/upload/androidpublisher/v3"
+              f"/applications/internalappsharing/{PKG}/artifacts/bundle"
+          )
+          # Read into memory so requests sets an explicit Content-Length; the
+          # upload endpoint does not accept chunked transfer encoding.
+          with open(AAB, "rb") as f:
+              payload = f.read()
+          print(f"uploading {len(payload)} bytes")
+
+          resp = session.post(
+              url,
+              params={"uploadType": "media"},
+              headers={"Content-Type": "application/octet-stream"},
+              data=payload,
+              timeout=900,
+          )
+          print("HTTP", resp.status_code)
+          if resp.status_code != 200:
+              print("RESPONSE:", resp.text[:2000])
+              print(
+                  "HINT: 403 = the service account lacks permission, or Internal "
+                  "app sharing is not enabled for this app in Play Console "
+                  "(Setup -> Internal app sharing). 404 = package not found."
+              )
+              sys.exit(1)
+
+          body = resp.json()
+          # certificateFingerprint is the SHA-256 of the certificate Google
+          # signed this artifact with. google-services.json registers SHA-1
+          # fingerprints, so the two are not directly comparable — but the
+          # installed build reports its own SHA-1 on the Account screen
+          # (AuthManager.environmentSummary), which is.
+          lines = [
+              "## Internal app sharing",
+              "",
+              f"**Install link:** {body['downloadUrl']}",
+              "",
+              f"- Signing certificate (SHA-256): `{body.get('certificateFingerprint', 'not reported')}`",
+              f"- Artifact SHA-256: `{body.get('sha256', 'not reported')}`",
+              "",
+              "The link only installs for accounts on the Internal app sharing",
+              "tester list in Play Console.",
+          ]
+          print("\n".join(lines))
+          summary = os.environ.get("GITHUB_STEP_SUMMARY")
+          if summary:
+              with open(summary, "a") as fh:
+                  fh.write("\n".join(lines) + "\n")
+          PY

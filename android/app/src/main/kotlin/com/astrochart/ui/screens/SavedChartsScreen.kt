@@ -98,7 +98,7 @@ private fun SavedChartCard(
                 Text(
                     text = chart.name.ifBlank { strings.untitled },
                     style = MaterialTheme.typography.titleMedium,
-                    color = TextPrimary
+                    color = GoldDeep
                 )
                 if (chart.locationName.isNotBlank()) {
                     Text(chart.locationName, style = MaterialTheme.typography.bodySmall, color = TextMuted)

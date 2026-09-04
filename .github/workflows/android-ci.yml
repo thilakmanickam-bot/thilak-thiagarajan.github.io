@@ -5,11 +5,13 @@ on:
     branches: [ main, "claude/**" ]
     paths:
       - 'android/**'
+      - 'tools/**'
       - '.github/workflows/android-ci.yml'
   pull_request:
     branches: [ main ]
     paths:
       - 'android/**'
+      - 'tools/**'
 
 jobs:
   build-and-test:
@@ -34,11 +36,28 @@ jobs:
       - name: Run Lint
         run: gradle -p android lint
 
-      - name: Run Core Unit Tests
-        run: gradle -p android core:test --stacktrace
+      # The app computes its own ephemeris on device, so nothing outside it
+      # checks the arithmetic. This regenerates the golden longitudes from the
+      # Swiss Ephemeris and fails if the committed file disagrees — which is
+      # what stops the golden values being edited to make a failing test pass.
+      # Swiss is a dev/CI tool only and is never bundled; see docs/RECKONING.md.
+      - name: Verify ephemeris golden values against the Swiss Ephemeris
+        run: |
+          python3 -m pip install --quiet pyswisseph
+          python3 tools/ephemeris_oracle.py --check
 
+      - name: Run Core Unit Tests
+        run: gradle -p android core:test
+
+      # Unfiltered — this already runs com.astrochart.features.* and
+      # com.astrochart.uitest.* (Compose/Robolectric) alongside every other
+      # unit test, so feature and UI regressions are caught on every PR
+      # without a second, duplicate test run. qa-gate.yml (used for the
+      # alpha/production release gate) runs the same tests split into
+      # separately-attributed jobs, plus screenshot/design-integrity
+      # checks that don't belong on every PR — see docs/TESTING.md.
       - name: Run App Unit Tests
-        run: gradle -p android app:testDebugUnitTest --stacktrace
+        run: gradle -p android app:testDebugUnitTest
 
       - name: Build Debug APK
         run: gradle -p android app:assembleDebug --stacktrace

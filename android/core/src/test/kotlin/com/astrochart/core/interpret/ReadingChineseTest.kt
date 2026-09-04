@@ -1,5 +1,6 @@
 package com.astrochart.core.interpret
 
+import com.astrochart.core.models.ChartStyle
 import com.astrochart.core.i18n.Language
 import com.astrochart.core.i18n.Translations
 import com.astrochart.core.models.BirthData
@@ -71,7 +72,7 @@ class ReadingChineseTest {
         val charts = listOf(losAngelesChart(), beijingChart(), londonChart())
 
         for (chart in charts) {
-            val sections = ChartReading.build(chart, "小明", Language.ZH)
+            val sections = ChartReading.build(chart, "小明", ChartStyle.SOUTH_INDIAN, Language.ZH)
 
             // Structure: exactly five sections, all titles and paragraphs non-blank.
             assertEquals(5, sections.size, "expected 5 sections")

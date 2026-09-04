@@ -3,6 +3,7 @@ package com.astrochart.core.panchangam
 import com.astrochart.core.i18n.Language
 import org.junit.Test
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.ZoneId
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -104,6 +105,69 @@ class PanchangamTest {
         val julyDay = chennaiPanchangam(LocalDate.of(2026, 7, 20))
         assertTrue(julyDay.tamilMonthIndex in 0..11)
         assertTrue(julyDay.tamilDay in 1..32)
+    }
+
+    // --- Sidereal Moon rasi/nakshatra (for PrimaryProfile derivation) ------
+
+    @Test
+    fun moonRasiAndNakshatraAtJd_matchesAlmanacNakshatra_forChennai_2026_08_26() {
+        // Cross-checked against the almanac-verified compute() nakshatra above
+        // (elementIndices_matchAlmanac_forChennai_2026_08_26): both read the
+        // same sidereal Moon longitude at the same instant.
+        val date = LocalDate.of(2026, 8, 26)
+        val sun = SunTimes.compute(date, chennai.first, chennai.second, chennai.third)
+        val jdUt = sun.sunriseJdUt ?: sun.solarNoonJdUt
+        val (rasi, nak) = Panchangam.moonRasiAndNakshatraAtJd(jdUt, date.year)
+        assertEquals(21, nak, "Shravana")
+        assertEquals(9, rasi, "Capricorn — nakshatra 21 falls within sidereal 270-300°")
+    }
+
+    @Test
+    fun moonRasiAndNakshatra_fromWallClockMatchesTheAlmanacAnchoredValue() {
+        // Same instant as the test above, reached the way the app reaches it:
+        // a wall-clock birth time plus the zone it was recorded in. Sunrise is
+        // rounded to the second here, which cannot move the answer — a
+        // nakshatra lasts roughly a day, so the boundary is hours away.
+        val date = LocalDate.of(2026, 8, 26)
+        val sunrise = assertNotNull(chennaiPanchangam(date).sunrise)
+
+        val (rasi, nak) = Panchangam.moonRasiAndNakshatra(
+            LocalDateTime.of(date, sunrise), chennai.third
+        )
+
+        assertEquals(21, nak, "Shravana")
+        assertEquals(9, rasi, "Capricorn")
+    }
+
+    @Test
+    fun moonRasiAndNakshatra_readsTheInstant_notTheWallClock() {
+        // 23:35 in Kolkata is 18:05 UTC the same day. Both spellings of one
+        // instant must give one answer — if the zone were dropped, or applied
+        // the wrong way round, these would differ by 11 hours of Moon motion.
+        val kolkata = Panchangam.moonRasiAndNakshatra(
+            LocalDateTime.of(1988, 5, 26, 23, 35), ZoneId.of("Asia/Kolkata")
+        )
+        val utc = Panchangam.moonRasiAndNakshatra(
+            LocalDateTime.of(1988, 5, 26, 18, 5), ZoneId.of("UTC")
+        )
+
+        assertEquals(kolkata, utc)
+    }
+
+    @Test
+    fun moonRasiAndNakshatra_agreesWithTheJulianDayOverload() {
+        // The overload exists only to spare callers the zone -> UTC -> Julian
+        // Day dance; it must not become a second, drifting implementation.
+        val local = LocalDateTime.of(1988, 5, 26, 23, 35)
+        val zone = ZoneId.of("Asia/Kolkata")
+
+        val utc = local.atZone(zone).withZoneSameInstant(ZoneId.of("UTC")).toLocalDateTime()
+        val jdUt = SolarLunar.julianDayUt(utc.toLocalDate(), utc.hour + utc.minute / 60.0)
+
+        assertEquals(
+            Panchangam.moonRasiAndNakshatraAtJd(jdUt, utc.year),
+            Panchangam.moonRasiAndNakshatra(local, zone)
+        )
     }
 
     @Test

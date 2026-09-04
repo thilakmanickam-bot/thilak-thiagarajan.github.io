@@ -203,7 +203,11 @@ private fun AppFooter(modifier: Modifier = Modifier) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "v${BuildConfig.VERSION_NAME}",
+            // Build number included deliberately: CI sets versionCode to the
+            // release run number, so it changes on *every* rollout even if a
+            // versionName bump is missed — making "am I on the latest build?"
+            // answerable from the installed app alone.
+            text = "v${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
             style = MaterialTheme.typography.labelSmall,
             color = TextMuted
         )

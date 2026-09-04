@@ -3,7 +3,6 @@ package com.astrochart.ui.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,13 +23,18 @@ import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -54,12 +58,24 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 
+/**
+ * @param remindersOn the observance keys the user has switched a reminder on
+ *   for. Keys, not display names, so the state survives a language change.
+ * @param remindersUnlocked whether the switches do anything. Off for a user
+ *   without Premium, who still sees them — greyed rather than hidden, so the
+ *   feature is discoverable and its absence is explained rather than silent.
+ * @param onReminderChange fired only when [remindersUnlocked]; the caller owns
+ *   persistence, which keeps this screen drivable from a test.
+ */
 @Composable
 fun CalendarScreen(
     month: YearMonth,
     onMonthChange: (YearMonth) -> Unit,
     location: LocationOption,
     onDaySelected: (LocalDate) -> Unit,
+    remindersOn: Set<String> = emptySet(),
+    remindersUnlocked: Boolean = false,
+    onReminderChange: (String, Boolean) -> Unit = { _, _ -> },
     modifier: Modifier = Modifier
 ) {
     val lang = LocalLanguage.current
@@ -102,7 +118,7 @@ fun CalendarScreen(
                     Text(
                         text = month.format(monthFmt),
                         style = MaterialTheme.typography.titleLarge,
-                        color = TextPrimary
+                        color = GoldDeep
                     )
                     Text(
                         text = tamilLabel,
@@ -169,19 +185,38 @@ fun CalendarScreen(
             Spacer(Modifier.height(16.dp))
             CelestialCard {
                 EyebrowLabel(text = ps.vrathaTitle)
+                // Says why the switches are inert rather than leaving a row of
+                // dead controls to be puzzled over.
+                if (!remindersUnlocked) {
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = ps.remindersPremium,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = TextMuted
+                    )
+                }
                 Spacer(Modifier.height(8.dp))
                 vratha.forEachIndexed { i, group ->
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 6.dp),
-                        verticalAlignment = Alignment.Top
+                        // Centred, not top-aligned: a name long enough to wrap
+                        // ("Amavasai (new moon)", "Sankatahara Chaturthi") left
+                        // its date pinned beside the first line, reading as
+                        // though it belonged to that line rather than the entry.
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
                             text = ps.vratha(group.key),
                             style = MaterialTheme.typography.bodyMedium,
                             color = TextPrimary,
-                            modifier = Modifier.weight(1f)
+                            // The names are the long half and the dates the
+                            // short one — usually "17 Thu" — yet the split was
+                            // 1 : 1.1 the other way, which is what forced those
+                            // two names onto a second line with the date column
+                            // half empty beside them.
+                            modifier = Modifier.weight(1.4f)
                         )
                         Spacer(Modifier.width(12.dp))
                         Text(
@@ -189,7 +224,14 @@ fun CalendarScreen(
                             style = MaterialTheme.typography.bodyMedium,
                             color = GoldDeep,
                             textAlign = TextAlign.End,
-                            modifier = Modifier.weight(1.1f)
+                            modifier = Modifier.weight(1f)
+                        )
+                        Spacer(Modifier.width(4.dp))
+                        ReminderSwitch(
+                            on = group.key in remindersOn,
+                            enabled = remindersUnlocked,
+                            contentDescription = ps.vratha(group.key),
+                            onChange = { onReminderChange(group.key, it) }
                         )
                     }
                     if (i < vratha.lastIndex) SectionDivider()
@@ -201,17 +243,60 @@ fun CalendarScreen(
     }
 }
 
+/**
+ * The per-observance reminder switch: gold when on, an outline when off.
+ *
+ * Scaled down because it sits at the end of a row that already carries a name
+ * and up to two dates; a full-size switch would squeeze both. Disabled for a
+ * user without Premium — present but visibly inert, which is the point, and
+ * Material already renders that state at reduced alpha.
+ */
+@Composable
+private fun ReminderSwitch(
+    on: Boolean,
+    enabled: Boolean,
+    contentDescription: String,
+    onChange: (Boolean) -> Unit
+) {
+    Switch(
+        checked = on,
+        onCheckedChange = onChange,
+        enabled = enabled,
+        colors = SwitchDefaults.colors(
+            checkedThumbColor = OnGold,
+            checkedTrackColor = GoldDeep,
+            checkedBorderColor = GoldDeep,
+            uncheckedThumbColor = TextMuted,
+            uncheckedTrackColor = Color.Transparent,
+            uncheckedBorderColor = TextMuted
+        ),
+        modifier = Modifier
+            .scale(0.72f)
+            .semantics { this.contentDescription = contentDescription }
+    )
+}
+
+/**
+ * A Box, not a Column: the moon dot is positioned over the cell rather than
+ * stacked under the number.
+ *
+ * As a centred Column, a cell carrying a dot was taller than its neighbours,
+ * so centring the *stack* pushed the number upward — every new-moon and
+ * full-moon date rode visibly higher than the rest of its week. Anchoring the
+ * number to the cell's centre and the dot to its bottom edge means the numbers
+ * share one baseline across the whole grid, marked or not, and the dots line
+ * up with each other too.
+ */
 @Composable
 private fun DayCell(day: LocalDate, isToday: Boolean, mark: MoonMark, onClick: (LocalDate) -> Unit) {
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(2.dp)
             .clip(CircleShape)
             .then(if (isToday) Modifier.background(GoldDeep) else Modifier)
             .clickable { onClick(day) },
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        contentAlignment = Alignment.Center
     ) {
         Text(
             text = day.dayOfMonth.toString(),
@@ -219,8 +304,15 @@ private fun DayCell(day: LocalDate, isToday: Boolean, mark: MoonMark, onClick: (
             color = if (isToday) OnGold else TextPrimary
         )
         if (mark != MoonMark.NONE) {
-            Spacer(Modifier.height(2.dp))
-            MoonDot(mark, isToday)
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    // Clear of the clipped circle's edge, which narrows fast
+                    // near the bottom on a day that is also today.
+                    .padding(bottom = 3.dp)
+            ) {
+                MoonDot(mark, isToday)
+            }
         }
     }
 }

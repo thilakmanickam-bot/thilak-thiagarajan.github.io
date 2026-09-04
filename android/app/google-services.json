@@ -22,6 +22,14 @@
           }
         },
         {
+          "client_id": "38379713195-m8ek58k428macaikjim1ac6m9ijuufbl.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.techbyt.halo",
+            "certificate_hash": "6f9e13f1a50478788216f5c8fc9820b7c80876f6"
+          }
+        },
+        {
           "client_id": "38379713195-if50j3e967m6rc7trnr0lrmf10jb01mr.apps.googleusercontent.com",
           "client_type": 3
         }

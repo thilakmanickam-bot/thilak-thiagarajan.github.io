@@ -18,19 +18,15 @@ import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import com.astrochart.Features
 import com.astrochart.core.i18n.Language
@@ -49,10 +45,10 @@ import com.astrochart.ui.i18n.PanchangamStrings
 import com.astrochart.ui.i18n.PrimaryProfile
 import com.astrochart.ui.i18n.UiStrings
 import com.astrochart.ui.theme.AppTheme
-import com.astrochart.ui.theme.CardBorder
 import com.astrochart.ui.theme.GoldDeep
 import com.astrochart.ui.theme.TextMuted
 import com.astrochart.ui.theme.TextPrimary
+import com.astrochart.ui.theme.fontFamilyForLanguage
 
 /**
  * Settings / preferences: appearance (theme), chart type, defaults (language,
@@ -70,7 +66,7 @@ fun SettingsScreen(
     currentLocation: LocationOption,
     onLocationChange: (LocationOption) -> Unit,
     primary: PrimaryProfile?,
-    onPrimaryChange: (PrimaryProfile?) -> Unit,
+    onNavigateToEditProfile: () -> Unit,
     onNavigateToPremium: () -> Unit,
     onNavigateToAccount: () -> Unit = {},
     modifier: Modifier = Modifier
@@ -89,7 +85,7 @@ fun SettingsScreen(
         EyebrowLabel(text = strings.settingsAppearance)
         Spacer(Modifier.height(12.dp))
         CelestialCard {
-            Text(strings.settingsTheme, style = MaterialTheme.typography.titleMedium, color = TextPrimary)
+            Text(strings.settingsTheme, style = MaterialTheme.typography.titleMedium, color = GoldDeep)
             Text(strings.settingsThemeDesc, style = MaterialTheme.typography.bodySmall, color = TextMuted)
             Spacer(Modifier.height(8.dp))
             AppTheme.entries.forEach { theme ->
@@ -107,7 +103,7 @@ fun SettingsScreen(
         EyebrowLabel(text = strings.settingsPreferences)
         Spacer(Modifier.height(12.dp))
         CelestialCard {
-            Text(strings.settingsChartType, style = MaterialTheme.typography.titleMedium, color = TextPrimary)
+            Text(strings.settingsChartType, style = MaterialTheme.typography.titleMedium, color = GoldDeep)
             Text(strings.settingsChartTypeDesc, style = MaterialTheme.typography.bodySmall, color = TextMuted)
             Spacer(Modifier.height(8.dp))
             ChartStyle.entries.forEach { style ->
@@ -115,6 +111,19 @@ fun SettingsScreen(
                     label = Translations.chartStyleName(style, lang),
                     selected = style == currentStyle,
                     onSelect = { onStyleChange(style) }
+                )
+            }
+            // North Indian isn't implemented yet (no ChartStyle value to select) —
+            // shown disabled here so it reads as "coming soon," not missing.
+            Row(
+                modifier = Modifier.fillMaxWidth().alpha(0.45f).padding(vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = strings.settingsChartTypeNorthIndianSoon,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = TextMuted,
+                    modifier = Modifier.padding(start = 40.dp)
                 )
             }
         }
@@ -125,17 +134,18 @@ fun SettingsScreen(
         EyebrowLabel(text = strings.settingsDefaults)
         Spacer(Modifier.height(12.dp))
         CelestialCard {
-            Text(strings.languageLabel, style = MaterialTheme.typography.titleMedium, color = TextPrimary)
+            Text(strings.languageLabel, style = MaterialTheme.typography.titleMedium, color = GoldDeep)
             Spacer(Modifier.height(6.dp))
             Language.entries.forEach { l ->
                 ChoiceRow(
                     label = l.displayName,
                     selected = l == currentLanguage,
-                    onSelect = { onLanguageChange(l) }
+                    onSelect = { onLanguageChange(l) },
+                    fontFamily = fontFamilyForLanguage(l)
                 )
             }
             Spacer(Modifier.height(14.dp))
-            Text(strings.settingsCity, style = MaterialTheme.typography.titleMedium, color = TextPrimary)
+            Text(strings.settingsCity, style = MaterialTheme.typography.titleMedium, color = GoldDeep)
             Spacer(Modifier.height(6.dp))
             LabeledDropdown(
                 label = ps.location,
@@ -156,7 +166,7 @@ fun SettingsScreen(
             strings = strings,
             lang = lang,
             primary = primary,
-            onPrimaryChange = onPrimaryChange
+            onNavigateToEditProfile = onNavigateToEditProfile
         )
 
         Spacer(Modifier.height(24.dp))
@@ -170,7 +180,7 @@ fun SettingsScreen(
                     Icon(Icons.Filled.AccountCircle, contentDescription = null, tint = GoldDeep)
                     Spacer(Modifier.width(12.dp))
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(strings.settingsAccountRow, style = MaterialTheme.typography.titleMedium, color = TextPrimary)
+                        Text(strings.settingsAccountRow, style = MaterialTheme.typography.titleMedium, color = GoldDeep)
                         Text(strings.settingsAccountDesc, style = MaterialTheme.typography.bodySmall, color = TextMuted)
                     }
                     Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = TextMuted)
@@ -187,7 +197,7 @@ fun SettingsScreen(
                 Icon(Icons.Filled.WorkspacePremium, contentDescription = null, tint = GoldDeep)
                 Spacer(Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(strings.premiumEntry, style = MaterialTheme.typography.titleMedium, color = TextPrimary)
+                    Text(strings.premiumEntry, style = MaterialTheme.typography.titleMedium, color = GoldDeep)
                     Text(strings.premiumComingSoon, style = MaterialTheme.typography.bodySmall, color = GoldDeep)
                 }
                 Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = TextMuted)
@@ -200,64 +210,52 @@ fun SettingsScreen(
             style = MaterialTheme.typography.bodySmall,
             color = TextMuted
         )
+        Spacer(Modifier.height(4.dp))
+        Text(
+            text = "Fonts: Noto Sans family © Google, SIL Open Font License 1.1",
+            style = MaterialTheme.typography.bodySmall,
+            color = TextMuted
+        )
         Spacer(Modifier.height(20.dp))
     }
 }
 
+/**
+ * Read-only summary of the primary profile: rasi/nakshatra are derived from
+ * real birth data (see [com.astrochart.ui.screens.OnboardingProfileStep]), so
+ * editing them by hand here would let the two drift out of sync — tapping
+ * this card instead reopens the same full birth-detail step the onboarding
+ * wizard uses, prefilled with what's already saved.
+ */
 @Composable
 private fun PrimaryProfileCard(
     strings: UiStrings,
     lang: Language,
     primary: PrimaryProfile?,
-    onPrimaryChange: (PrimaryProfile?) -> Unit
+    onNavigateToEditProfile: () -> Unit
 ) {
     val signs = ZodiacUtils.getAllSigns()
-    var name by remember(primary) { mutableStateOf(primary?.name ?: "") }
-    var rasi by remember(primary) { mutableStateOf(primary?.rasi) }
-    var nak by remember(primary) { mutableStateOf(primary?.nakshatra) }
-
-    LaunchedEffect(name, rasi, nak) {
-        val r = rasi
-        val n = nak
-        if (r != null && n != null) onPrimaryChange(PrimaryProfile(name.trim(), r, n))
-    }
-
-    CelestialCard {
-        Text(strings.settingsPrimary, style = MaterialTheme.typography.titleMedium, color = TextPrimary)
+    CelestialCard(modifier = Modifier.clickable(onClick = onNavigateToEditProfile)) {
+        Text(strings.settingsPrimary, style = MaterialTheme.typography.titleMedium, color = GoldDeep)
         Text(strings.settingsPrimaryDesc, style = MaterialTheme.typography.bodySmall, color = TextMuted)
         Spacer(Modifier.height(10.dp))
-        OutlinedTextField(
-            value = name,
-            onValueChange = { name = it },
-            label = { Text(strings.settingsPrimary) },
-            singleLine = true,
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = GoldDeep,
-                unfocusedBorderColor = CardBorder,
-                focusedTextColor = TextPrimary,
-                unfocusedTextColor = TextPrimary,
-                cursorColor = GoldDeep
-            ),
-            modifier = Modifier.fillMaxWidth()
-        )
+        if (primary != null) {
+            Text(primary.name, style = MaterialTheme.typography.bodyLarge, color = TextPrimary)
+            Text(
+                text = "${strings.settingsPrimaryRasi}: ${Translations.signName(signs[primary.rasi], lang)}" +
+                    "  ·  ${strings.settingsPrimaryNak}: ${PanchangamNames.nakshatras[primary.nakshatra].get(lang)}",
+                style = MaterialTheme.typography.bodyMedium,
+                color = GoldDeep
+            )
+        } else {
+            Text(strings.settingsPrimaryEmpty, style = MaterialTheme.typography.bodyMedium, color = TextMuted)
+        }
         Spacer(Modifier.height(10.dp))
-        LabeledDropdown(
-            label = strings.settingsPrimaryRasi,
-            options = signs.indices.toList(),
-            selected = rasi,
-            optionLabel = { Translations.signName(signs[it], lang) },
-            onSelected = { rasi = it },
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(Modifier.height(10.dp))
-        LabeledDropdown(
-            label = strings.settingsPrimaryNak,
-            options = PanchangamNames.nakshatras.indices.toList(),
-            selected = nak,
-            optionLabel = { PanchangamNames.nakshatras[it].get(lang) },
-            onSelected = { nak = it },
-            modifier = Modifier.fillMaxWidth()
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(strings.settingsPrimaryEdit, style = MaterialTheme.typography.labelLarge, color = GoldDeep)
+            Spacer(Modifier.width(6.dp))
+            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = GoldDeep)
+        }
     }
 }
 
@@ -272,8 +270,15 @@ private fun themeLabel(theme: AppTheme, lang: Language): String = when (lang) {
     else -> theme.labelEn
 }
 
+/**
+ * Radio-button list row, reused by the onboarding wizard's own choice steps.
+ * [fontFamily] overrides the row's font — used only by the language list, so
+ * each language's own name renders in its own bundled script font regardless
+ * of which language is currently active (see LocalizedFonts.kt); every other
+ * caller leaves it null and inherits the ambient typography as before.
+ */
 @Composable
-private fun ChoiceRow(label: String, selected: Boolean, onSelect: () -> Unit) {
+internal fun ChoiceRow(label: String, selected: Boolean, onSelect: () -> Unit, fontFamily: FontFamily? = null) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -289,7 +294,11 @@ private fun ChoiceRow(label: String, selected: Boolean, onSelect: () -> Unit) {
         )
         Text(
             text = label,
-            style = MaterialTheme.typography.bodyLarge,
+            style = if (fontFamily != null) {
+                MaterialTheme.typography.bodyLarge.copy(fontFamily = fontFamily)
+            } else {
+                MaterialTheme.typography.bodyLarge
+            },
             color = if (selected) TextPrimary else TextMuted
         )
     }

@@ -8,33 +8,11 @@ object ChartCalculator {
         val (planets, angles) = EphemerisCalculator.calculatePlanetaryPositions(birthData)
         val (ascendantLon, midheavenLon) = angles
 
-        val ascendantSign = ZodiacUtils.getSignFromLongitude(ascendantLon)
-        val (ascDegree, ascMinute) = ZodiacUtils.formatPosition(ascendantLon)
-        val ascendant = PlanetaryPosition(
-            name = "Ascendant",
-            lon = ascendantLon,
-            sign = ascendantSign,
-            element = ZodiacUtils.getElement(ascendantSign),
-            modality = ZodiacUtils.getModality(ascendantSign),
-            degree = ascDegree,
-            minute = ascMinute,
-            label = "$ascDegree°$ascMinute' $ascendantSign",
-            house = 1
-        )
-
-        val midheavenSign = ZodiacUtils.getSignFromLongitude(midheavenLon)
-        val (mcDegree, mcMinute) = ZodiacUtils.formatPosition(midheavenLon)
-        val midheaven = PlanetaryPosition(
-            name = "Midheaven",
-            lon = midheavenLon,
-            sign = midheavenSign,
-            element = ZodiacUtils.getElement(midheavenSign),
-            modality = ZodiacUtils.getModality(midheavenSign),
-            degree = mcDegree,
-            minute = mcMinute,
-            label = "$mcDegree°$mcMinute' $midheavenSign",
-            house = 10
-        )
+        // The lagnam is the ascendant read in the sidereal zodiac; the tropical
+        // angle is kept alongside it so the Western wheel still draws where a
+        // Western wheel should.
+        val ascendant = angle("Ascendant", ascendantLon, house = 1, birthData = birthData)
+        val midheaven = angle("Midheaven", midheavenLon, house = 10, birthData = birthData)
 
         val allPositions = planets + ascendant + midheaven
         val aspects = AspectCalculator.findAspects(planets)
@@ -59,6 +37,39 @@ object ChartCalculator {
             houses = emptyList(),
             aspects = aspectsWithInterpretations,
             balance = balance
+        )
+    }
+
+    /**
+     * An angle (ascendant or midheaven) as a [PlanetaryPosition], carrying both
+     * zodiacs exactly as [EphemerisCalculator] does for the planets — the two
+     * must agree, or the lagnam in the koshtam would sit in a different rasi
+     * from every planet around it.
+     */
+    private fun angle(
+        name: String,
+        tropicalLon: Double,
+        house: Int,
+        birthData: BirthData
+    ): PlanetaryPosition {
+        val siderealLon = EphemerisCalculator.toSidereal(birthData, tropicalLon)
+        val sign = ZodiacUtils.getSignFromLongitude(siderealLon)
+        val (degree, minute) = ZodiacUtils.formatPosition(siderealLon)
+        val tropicalSign = ZodiacUtils.getSignFromLongitude(tropicalLon)
+        val (tropicalDegree, tropicalMinute) = ZodiacUtils.formatPosition(tropicalLon)
+        return PlanetaryPosition(
+            name = name,
+            lon = tropicalLon,
+            siderealLon = siderealLon,
+            sign = sign,
+            element = ZodiacUtils.getElement(sign),
+            modality = ZodiacUtils.getModality(sign),
+            degree = degree,
+            minute = minute,
+            label = "$degree°$minute' $sign",
+            tropicalSign = tropicalSign,
+            tropicalLabel = "$tropicalDegree°$tropicalMinute' $tropicalSign",
+            house = house
         )
     }
 

@@ -1,5 +1,11 @@
 package com.astrochart
 
+import com.astrochart.ui.screens.SankalpaScreen
+import com.astrochart.ui.i18n.SankalpaStrings
+import com.astrochart.ui.components.NavSection
+import com.astrochart.ui.components.AppBottomNav
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.compose.foundation.layout.Column
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
@@ -14,14 +20,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -36,35 +41,46 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.google.android.gms.ads.MobileAds
+import kotlinx.coroutines.launch
 import com.astrochart.core.i18n.Language
+import com.astrochart.ads.Premium
 import com.astrochart.notify.NotificationScheduler
 import com.astrochart.update.InAppUpdate
 import com.astrochart.ui.components.AdBanner
 import com.astrochart.ui.components.CelestialBackground
 import com.astrochart.ui.components.ResponsiveContainer
+import com.astrochart.billing.BillingManager
 import com.astrochart.ui.i18n.ChartStyleStore
 import com.astrochart.ui.i18n.LanguageStore
 import com.astrochart.ui.i18n.LocalChartStyle
 import com.astrochart.ui.i18n.LocalLanguage
 import com.astrochart.ui.i18n.LocalStrings
 import com.astrochart.core.interpret.RasiPeriod
+import com.astrochart.ui.i18n.OnboardingStore
 import com.astrochart.ui.i18n.PoruthamStrings
 import com.astrochart.ui.i18n.PanchangamLocationStore
 import com.astrochart.ui.i18n.PanchangamStrings
 import com.astrochart.ui.i18n.PrimaryProfileStore
 import com.astrochart.ui.i18n.RasiStrings
 import com.astrochart.ui.i18n.UiStrings
+import com.astrochart.ui.i18n.VrathamReminderStore
 import com.astrochart.ui.screens.BirthInputScreen
 import com.astrochart.ui.screens.CalendarScreen
 import com.astrochart.ui.screens.ChartDetailScreen
@@ -73,16 +89,21 @@ import com.astrochart.ui.screens.ChatScreen
 import com.astrochart.ui.screens.HomeScreen
 import com.astrochart.ui.screens.LanguagePickerDialog
 import com.astrochart.ui.screens.NakshatraListScreen
+import com.astrochart.ui.screens.OnboardingProfileStep
+import com.astrochart.ui.screens.OnboardingWizard
 import com.astrochart.ui.screens.PanchangamScreen
 import com.astrochart.ui.screens.RasiHoroscopeScreen
 import com.astrochart.ui.screens.RasiHubScreen
 import com.astrochart.ui.screens.RasiInfoScreen
 import com.astrochart.ui.screens.RasiPalanTwoPane
 import com.astrochart.ui.screens.RasiSignsScreen
+import com.astrochart.data.repository.SavedMatchRepository
 import com.astrochart.ui.screens.SavedChartsScreen
+import com.astrochart.ui.screens.SavedMatchesScreen
 import com.astrochart.ui.screens.SettingsScreen
 import com.astrochart.ui.screens.AccountScreen
 import com.astrochart.ui.screens.SubscriptionScreen
+import com.astrochart.ui.screens.TesterCodeScreen
 import java.time.LocalDate
 import java.time.YearMonth
 import com.astrochart.ui.theme.AppTheme
@@ -92,6 +113,8 @@ import com.astrochart.ui.theme.LocalAppTheme
 import com.astrochart.ui.theme.LocalWindowSizeClass
 import com.astrochart.ui.theme.TextPrimary
 import com.astrochart.ui.theme.ThemeStore
+import com.astrochart.ui.theme.buildTypography
+import com.astrochart.ui.theme.fontFamilyForLanguage
 import com.astrochart.ui.viewmodel.BirthInputViewModel
 import com.astrochart.ui.viewmodel.ChartViewModel
 import com.astrochart.ui.viewmodel.ChatViewModel
@@ -100,16 +123,27 @@ class MainActivity : ComponentActivity() {
 
     private var inAppUpdate: InAppUpdate? = null
     private lateinit var updateLauncher: ActivityResultLauncher<IntentSenderRequest>
+    private var billingManager: BillingManager? = null
 
     @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         NotificationScheduler.ensureChannel(this)
         NotificationScheduler.scheduleDaily(this)
+        NotificationScheduler.scheduleVrathamReminders(this)
         if (Features.ADS_ENABLED) {
             // Safe to call repeatedly; no-ops without Play services present.
             runCatching { MobileAds.initialize(this) }
             com.astrochart.ads.InterstitialAds.preload(this)
+        }
+        if (Features.BILLING_ENABLED) {
+            // Re-verifies whatever subscription Play reports once per launch —
+            // the app's whole entitlement-refresh mechanism (no RTDN/Pub-Sub;
+            // see the billing plan). Failures are silent: PremiumStore simply
+            // keeps its last-known state until the next successful refresh.
+            billingManager = BillingManager(this).also {
+                lifecycleScope.launch { it.refreshEntitlement() }
+            }
         }
         updateLauncher = registerForActivityResult(
             ActivityResultContracts.StartIntentSenderForResult()
@@ -121,20 +155,34 @@ class MainActivity : ComponentActivity() {
             val context = LocalContext.current
             var appTheme by remember { mutableStateOf(ThemeStore.load(context)) }
             val windowSizeClass = calculateWindowSizeClass(this@MainActivity)
+            var showOnboarding by remember { mutableStateOf(OnboardingStore.shouldShow(context)) }
+            // Text renders at the size it was designed at, everywhere, regardless
+            // of the device's own accessibility font-size setting — only the
+            // font-scale multiplier is pinned; real screen-density scaling
+            // (dp/pixel density, rotation, tablet width) is untouched.
+            val fixedFontDensity = Density(
+                density = LocalDensity.current.density,
+                fontScale = 1f
+            )
             AstroChartTheme {
                 CompositionLocalProvider(
                     LocalAppTheme provides appTheme,
-                    LocalWindowSizeClass provides windowSizeClass
+                    LocalWindowSizeClass provides windowSizeClass,
+                    LocalDensity provides fixedFontDensity
                 ) {
                     CelestialBackground {
-                        RequestNotificationPermission()
-                        AppNavigation(
-                            appTheme = appTheme,
-                            onThemeChange = {
-                                appTheme = it
-                                ThemeStore.save(context, it)
-                            }
-                        )
+                        if (showOnboarding) {
+                            OnboardingWizard(onFinished = { showOnboarding = false })
+                        } else {
+                            RequestNotificationPermission()
+                            AppNavigation(
+                                appTheme = appTheme,
+                                onThemeChange = {
+                                    appTheme = it
+                                    ThemeStore.save(context, it)
+                                }
+                            )
+                        }
                     }
                 }
             }
@@ -204,6 +252,14 @@ private fun RasiSignsOrTwoPane(
     }
 }
 
+/**
+ * Matchmaking, optionally reopening a saved match. The id is a query parameter
+ * rather than a path segment so `navigate("compatibility")` still resolves —
+ * that is how the home screen reaches it, and an optional argument keeps both
+ * entry points on one destination instead of two near-identical ones.
+ */
+private const val COMPATIBILITY_ROUTE = "compatibility?matchId={matchId}"
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppNavigation(
@@ -230,24 +286,38 @@ fun AppNavigation(
 
     val backStackEntry by navController.currentBackStackEntryAsState()
     val route = backStackEntry?.destination?.route
-    val canGoBack = route != null && route != "home"
+    // No back arrow on a top-level destination: with five of them in the
+    // bottom bar, "back" from a tab is meaningless — you switch tabs.
+    val canGoBack = route != null && NavSection.forRoute(route) == null
 
     CompositionLocalProvider(
         LocalStrings provides strings,
         LocalLanguage provides language,
         LocalChartStyle provides chartStyle
     ) {
+    // Reactive to `language`: bundled fonts guarantee the same glyphs render
+    // everywhere regardless of the device's own system font (see
+    // LocalizedFonts.kt). Only typography is overridden — colorScheme/shapes
+    // fall through to AstroChartTheme's outer MaterialTheme unchanged.
+    MaterialTheme(typography = buildTypography(fontFamilyForLanguage(language))) {
     val title = when (route) {
         "birth_input" -> strings.navCalculate
         "saved_charts" -> strings.navSavedChartsTitle
         "chart_detail" -> strings.chartTitle
         "chat" -> strings.navChatTitle
+        "sankalpa" -> SankalpaStrings.forLanguage(language).title
         "settings" -> strings.navSettingsTitle
+        "edit_profile" -> strings.settingsPrimary
         "premium" -> strings.navPremiumTitle
+        "tester_code" -> strings.testerTitle
         "account" -> strings.navAccountTitle
         "panchangam" -> PanchangamStrings.forLanguage(language).title
         "calendar" -> PanchangamStrings.forLanguage(language).calendarTitle
-        "compatibility" -> PoruthamStrings.forLanguage(language).title
+        // The pattern, not the bare name: NavController reports a
+        // destination's route template, and this one now carries an
+        // optional matchId for reopening a saved match.
+        "compatibility", COMPATIBILITY_ROUTE -> PoruthamStrings.forLanguage(language).title
+        "saved_matches" -> PoruthamStrings.forLanguage(language).savedMatches
         "rasi_hub", "rasi_signs", "rasi_horoscope" -> RasiStrings.forLanguage(language).title
         "rasi_info" -> RasiStrings.forLanguage(language).aboutSigns
         "nakshatra_list" -> RasiStrings.forLanguage(language).aboutNakshatras
@@ -271,24 +341,8 @@ fun AppNavigation(
                     }
                 },
                 actions = {
-                    if (route != "panchangam" && route != "calendar") {
-                        IconButton(onClick = { navController.navigate("panchangam") }) {
-                            Icon(
-                                imageVector = Icons.Filled.CalendarMonth,
-                                contentDescription = PanchangamStrings.forLanguage(language).calendarLabel,
-                                tint = GoldDeep
-                            )
-                        }
-                    }
-                    if (route != "settings") {
-                        IconButton(onClick = { navController.navigate("settings") }) {
-                            Icon(
-                                imageVector = Icons.Filled.Settings,
-                                contentDescription = strings.settingsLabel,
-                                tint = GoldDeep
-                            )
-                        }
-                    }
+                    // Calendar and Settings moved into AppBottomNav; only the
+                    // language switcher stays, since it is not a destination.
                     LanguageSwitcher(
                         current = language,
                         label = strings.languageLabel,
@@ -300,12 +354,33 @@ fun AppNavigation(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Transparent,
-                    titleContentColor = TextPrimary,
+                    titleContentColor = GoldDeep,
                     navigationIconContentColor = GoldDeep
                 )
             )
         },
-        bottomBar = { AdBanner() }
+        bottomBar = {
+            Column {
+                // The nav bar is bottom-most, so it consumes the system
+                // navigation-bar inset and the ad must not (see AdBanner).
+                AdBanner(applyNavigationInset = false)
+                AppBottomNav(
+                    currentRoute = route,
+                    onNavigate = { destination ->
+                        navController.navigate(destination) {
+                            // Switching tabs must not grow the back stack:
+                            // pop to the start, keep each tab's own state,
+                            // and never stack a second copy of a tab.
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
+                )
+            }
+        }
     ) { innerPadding ->
         ResponsiveContainer(
             modifier = Modifier
@@ -317,6 +392,8 @@ fun AppNavigation(
             startDestination = "home",
             modifier = Modifier.fillMaxSize()
         ) {
+            composable("sankalpa") { SankalpaScreen() }
+
             composable("home") {
                 HomeScreen(
                     onNavigateToBirthInput = { navController.navigate("birth_input") },
@@ -372,9 +449,37 @@ fun AppNavigation(
             }
             composable("nakshatra_list") { NakshatraListScreen() }
 
-            composable("compatibility") {
+            composable(
+                route = COMPATIBILITY_ROUTE,
+                arguments = listOf(
+                    navArgument("matchId") {
+                        type = NavType.LongType
+                        // -1 rather than a nullable argument: NavType.LongType
+                        // cannot be null, and no real row id is negative.
+                        defaultValue = -1L
+                    }
+                )
+            ) { entry ->
+                val matchId = entry.arguments?.getLong("matchId") ?: -1L
                 CompatibilityScreen(
-                    onNavigateToPremium = { navController.navigate("premium") }
+                    onNavigateToPremium = { navController.navigate("premium") },
+                    onNavigateToSavedMatches = { navController.navigate("saved_matches") },
+                    initialMatchId = matchId.takeIf { it >= 0 }
+                )
+            }
+
+            composable("saved_matches") {
+                val repository = remember(context) { SavedMatchRepository(context) }
+                val scope = rememberCoroutineScope()
+                // Remembered, not called per composition: observeAll() hands
+                // back a fresh Flow each call, and collecting a new one on
+                // every recomposition would restart the query each time.
+                val matches by remember(repository) { repository.observeAll() }
+                    .collectAsState(initial = emptyList())
+                SavedMatchesScreen(
+                    matches = matches,
+                    onMatchSelected = { id -> navController.navigate("compatibility?matchId=$id") },
+                    onDelete = { id -> scope.launch { repository.delete(id) } }
                 )
             }
 
@@ -398,20 +503,31 @@ fun AppNavigation(
                         PanchangamLocationStore.save(context, it.displayName)
                     },
                     primary = primaryProfile,
-                    onPrimaryChange = { profile ->
-                        primaryProfile = profile
-                        if (profile != null) {
-                            PrimaryProfileStore.save(context, profile)
-                            rasiSign = profile.rasi
-                        }
-                    },
+                    onNavigateToEditProfile = { navController.navigate("edit_profile") },
                     onNavigateToPremium = { navController.navigate("premium") },
                     onNavigateToAccount = { navController.navigate("account") }
                 )
             }
 
+            composable("edit_profile") {
+                OnboardingProfileStep(
+                    onSaved = {
+                        primaryProfile = PrimaryProfileStore.load(context)
+                        primaryProfile?.let { rasiSign = it.rasi }
+                        navController.popBackStack()
+                    },
+                    onSkip = { navController.popBackStack() }
+                )
+            }
+
             composable("premium") {
-                SubscriptionScreen()
+                SubscriptionScreen(
+                    onNavigateToTester = { navController.navigate("tester_code") }
+                )
+            }
+
+            composable("tester_code") {
+                TesterCodeScreen(onSignIn = { navController.navigate("account") })
             }
 
             composable("account") {
@@ -435,6 +551,11 @@ fun AppNavigation(
             }
 
             composable("calendar") {
+                // Read per-visit rather than hoisted: an entitlement is
+                // refreshed on launch and can be bought on the Premium screen
+                // mid-session, so the switches unlock on returning here.
+                var remindersOn by remember { mutableStateOf(VrathamReminderStore.enabled(context)) }
+                val remindersUnlocked = remember { Premium.isActive(context) }
                 CalendarScreen(
                     month = panchangamMonth,
                     onMonthChange = { panchangamMonth = it },
@@ -444,6 +565,12 @@ fun AppNavigation(
                         navController.navigate("panchangam") {
                             popUpTo("panchangam") { inclusive = true }
                         }
+                    },
+                    remindersOn = remindersOn,
+                    remindersUnlocked = remindersUnlocked,
+                    onReminderChange = { key, on ->
+                        VrathamReminderStore.setEnabled(context, key, on)
+                        remindersOn = VrathamReminderStore.enabled(context)
                     }
                 )
             }
@@ -451,7 +578,7 @@ fun AppNavigation(
             composable("birth_input") {
                 BirthInputScreen(
                     viewModel = birthInputViewModel,
-                    onChartCalculated = { chart, name ->
+                    onChartCalculated = { chart, name, _ ->
                         chartViewModel.setChart(chart, name)
                         navController.navigate("chart_detail") {
                             popUpTo("home")
@@ -510,6 +637,7 @@ fun AppNavigation(
         )
     }
     }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -533,6 +661,7 @@ private fun LanguageSwitcher(
                 text = {
                     Text(
                         text = lang.displayName,
+                        style = MaterialTheme.typography.bodyLarge.copy(fontFamily = fontFamilyForLanguage(lang)),
                         color = if (lang == current) GoldDeep else TextPrimary
                     )
                 },
