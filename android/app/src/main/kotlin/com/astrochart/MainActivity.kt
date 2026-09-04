@@ -1,5 +1,11 @@
 package com.astrochart
 
+import com.astrochart.ui.screens.SankalpaScreen
+import com.astrochart.ui.i18n.SankalpaStrings
+import com.astrochart.ui.components.NavSection
+import com.astrochart.ui.components.AppBottomNav
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.compose.foundation.layout.Column
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
@@ -14,7 +20,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material3.DropdownMenu
@@ -281,7 +286,9 @@ fun AppNavigation(
 
     val backStackEntry by navController.currentBackStackEntryAsState()
     val route = backStackEntry?.destination?.route
-    val canGoBack = route != null && route != "home"
+    // No back arrow on a top-level destination: with five of them in the
+    // bottom bar, "back" from a tab is meaningless — you switch tabs.
+    val canGoBack = route != null && NavSection.forRoute(route) == null
 
     CompositionLocalProvider(
         LocalStrings provides strings,
@@ -298,6 +305,7 @@ fun AppNavigation(
         "saved_charts" -> strings.navSavedChartsTitle
         "chart_detail" -> strings.chartTitle
         "chat" -> strings.navChatTitle
+        "sankalpa" -> SankalpaStrings.forLanguage(language).title
         "settings" -> strings.navSettingsTitle
         "edit_profile" -> strings.settingsPrimary
         "premium" -> strings.navPremiumTitle
@@ -332,24 +340,8 @@ fun AppNavigation(
                     }
                 },
                 actions = {
-                    if (route != "panchangam" && route != "calendar") {
-                        IconButton(onClick = { navController.navigate("panchangam") }) {
-                            Icon(
-                                imageVector = Icons.Filled.CalendarMonth,
-                                contentDescription = PanchangamStrings.forLanguage(language).calendarLabel,
-                                tint = GoldDeep
-                            )
-                        }
-                    }
-                    if (route != "settings") {
-                        IconButton(onClick = { navController.navigate("settings") }) {
-                            Icon(
-                                imageVector = Icons.Filled.Settings,
-                                contentDescription = strings.settingsLabel,
-                                tint = GoldDeep
-                            )
-                        }
-                    }
+                    // Calendar and Settings moved into AppBottomNav; only the
+                    // language switcher stays, since it is not a destination.
                     LanguageSwitcher(
                         current = language,
                         label = strings.languageLabel,
@@ -366,7 +358,28 @@ fun AppNavigation(
                 )
             )
         },
-        bottomBar = { AdBanner() }
+        bottomBar = {
+            Column {
+                // The nav bar is bottom-most, so it consumes the system
+                // navigation-bar inset and the ad must not (see AdBanner).
+                AdBanner(applyNavigationInset = false)
+                AppBottomNav(
+                    currentRoute = route,
+                    onNavigate = { destination ->
+                        navController.navigate(destination) {
+                            // Switching tabs must not grow the back stack:
+                            // pop to the start, keep each tab's own state,
+                            // and never stack a second copy of a tab.
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
+                )
+            }
+        }
     ) { innerPadding ->
         ResponsiveContainer(
             modifier = Modifier
@@ -378,6 +391,8 @@ fun AppNavigation(
             startDestination = "home",
             modifier = Modifier.fillMaxSize()
         ) {
+            composable("sankalpa") { SankalpaScreen() }
+
             composable("home") {
                 HomeScreen(
                     onNavigateToBirthInput = { navController.navigate("birth_input") },
