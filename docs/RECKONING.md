@@ -153,17 +153,40 @@ Scanned against the Swiss Ephemeris at Chennai. The two rules part company on
 | Karthigai | 16 Nov 19:43 | 06:09 | 17:38 | 17 Nov | 17 Nov | — |
 | Margazhi | 16 Dec 10:25 | 06:25 | 17:44 | 17 Dec | 16 Dec | **yes** |
 
-✓ marks a date confirmed in print. Thai 1 is the one that matters next: it is
-**Pongal**, the sunrise rule puts it on 15 January 2026, and unlike Puthandu —
-which is essentially always 14 April — Pongal genuinely moves between the 14th
-and 15th from year to year. So it is not obviously a fixed civil date, and it is
-the cheapest remaining test of whether the sunrise rule holds for every ordinary
-month or whether the year-opening months are special.
+✓ marks a date confirmed in print.
 
-The app currently has **no solar festivals at all** — the observances in
-`MonthPanchangam` are tithi- and nakshatra-based — so nothing displays Pongal
-today and there is no bug to fix. What the panchangam screen would show is
-Thai 1 on 15 January 2026.
+### Thai closes it: Chithirai is the only exception
+
+**Thai 1 = 15 January in both 2026 and 2027**, confirmed in print. Thai 1 is
+Pongal, so this was the case most likely to be a second civil exception, and it
+is not one.
+
+The two years carry different weight and it is worth not conflating them:
+
+| year | Makara sankranti | sunrise | sunset | sunrise rule | sunset rule | printed |
+|---|---|---|---|---|---|---|
+| 2026 | 14 Jan **15:07** | 06:36 | 18:00 | 15 Jan | 14 Jan | **15 Jan** |
+| 2027 | 14 Jan **21:10** | 06:36 | 18:00 | 15 Jan | 15 Jan | **15 Jan** |
+
+**2026 is the discriminator.** Its sankranti falls between sunrise and sunset,
+so the two rules split, and print sides with sunrise. It also kills the theory
+that the year-opening months are all pinned to the 14th like Puthandu. The 2027
+sankranti is after sunset, where both rules agree — a consistency check across a
+year rollover, not independent evidence for the rule.
+
+So the model is complete, on four printed dates spanning two years:
+
+- **Every ordinary month** follows the drik sunrise rule — Thai, Aavani and
+  Purattasi, each measured against a sankranti that falls after sunrise.
+- **Chithirai alone** is civil-fixed to 14 April, which the sunset rule
+  reproduces across 2020–2030.
+
+That Pongal lands on 15 January 2026 while Puthandu never leaves 14 April is
+the asymmetry the two rules encode, and the reason they must stay different.
+
+The app has **no solar festivals at all** — the observances in
+`MonthPanchangam` are tithi- and nakshatra-based — so nothing displays Pongal;
+the panchangam screen simply shows Thai 1 on 15 January 2026.
 ## If your printed jathagam differs
 
 Work down this list before assuming a bug.

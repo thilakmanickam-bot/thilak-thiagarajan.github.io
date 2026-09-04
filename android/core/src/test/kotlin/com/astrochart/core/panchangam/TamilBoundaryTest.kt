@@ -105,6 +105,36 @@ class TamilBoundaryTest {
     }
 
     @Test
+    fun thaiBeginsOnTheFifteenthOfJanuary() {
+        // Thai 1 is Pongal, and this is the assertion that proves Chithirai is
+        // the *only* civil exception. Makara sankranti 2026 is 14 Jan 15:07 IST
+        // — after sunrise, before sunset — so the sunrise rule gives the 15th
+        // and the sunset rule the 14th. Print says the 15th.
+        //
+        // It also disposes of the tempting theory that the year-opening months
+        // are all fixed to the 14th like Puthandu: Pongal genuinely moves
+        // between the 14th and 15th across years, and Puthandu does not.
+        val (month, day) = Panchangam.tamilDate(
+            LocalDate.of(2026, 1, 15), chennaiLat, chennaiLon, zone
+        )
+        assertEquals(9, month, "15 Jan 2026 should be in Thai (index 9)")
+        assertEquals(1, day, "15 Jan 2026 is Thai 1 in print")
+    }
+
+    @Test
+    fun thaiBeginsOnTheFifteenthTheFollowingYearToo() {
+        // A consistency check across a year boundary, not a second
+        // discriminator: the 2027 sankranti is 14 Jan 21:10 IST, *after*
+        // sunset, so both rules agree on the 15th. It would catch a
+        // month-length or year-rollover error, not a wrong boundary rule.
+        val (month, day) = Panchangam.tamilDate(
+            LocalDate.of(2027, 1, 15), chennaiLat, chennaiLon, zone
+        )
+        assertEquals(9, month, "15 Jan 2027 should be in Thai (index 9)")
+        assertEquals(1, day, "15 Jan 2027 is Thai 1 in print")
+    }
+
+    @Test
     fun theSeventeenthOfSeptemberIsStillAavani() {
         // Margin here is 0.077° — the tightest in the file, marginally ahead of
         // the 17 August case, for the same reason.
