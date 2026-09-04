@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -104,6 +103,7 @@ import com.astrochart.ui.screens.SavedMatchesScreen
 import com.astrochart.ui.screens.SettingsScreen
 import com.astrochart.ui.screens.AccountScreen
 import com.astrochart.ui.screens.SubscriptionScreen
+import com.astrochart.ui.screens.TesterCodeScreen
 import java.time.LocalDate
 import java.time.YearMonth
 import com.astrochart.ui.theme.AppTheme
@@ -309,6 +309,7 @@ fun AppNavigation(
         "settings" -> strings.navSettingsTitle
         "edit_profile" -> strings.settingsPrimary
         "premium" -> strings.navPremiumTitle
+        "tester_code" -> strings.testerTitle
         "account" -> strings.navAccountTitle
         "panchangam" -> PanchangamStrings.forLanguage(language).title
         "calendar" -> PanchangamStrings.forLanguage(language).calendarTitle
@@ -520,7 +521,13 @@ fun AppNavigation(
             }
 
             composable("premium") {
-                SubscriptionScreen()
+                SubscriptionScreen(
+                    onNavigateToTester = { navController.navigate("tester_code") }
+                )
+            }
+
+            composable("tester_code") {
+                TesterCodeScreen(onSignIn = { navController.navigate("account") })
             }
 
             composable("account") {

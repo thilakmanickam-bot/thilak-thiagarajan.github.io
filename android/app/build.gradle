@@ -56,6 +56,16 @@ android {
             ?: "")
         buildConfigField "String", "BILLING_VERIFY_BASE_URL", "\"${billingVerifyBaseUrl}\""
 
+        // URL of the deployed `redeemTesterCode` Cloud Function (see
+        // /functions/src/tester.ts), which backs "Become a tester". Set
+        // TESTER_REDEEM_BASE_URL the same way, e.g.
+        // "https://us-central1-halo-2b942.cloudfunctions.net/redeemTesterCode".
+        // No trailing slash — TesterCodeClient appends "/redeem" and "/request".
+        def testerRedeemBaseUrl = (project.findProperty("TESTER_REDEEM_BASE_URL")
+            ?: System.getenv("TESTER_REDEEM_BASE_URL")
+            ?: "")
+        buildConfigField "String", "TESTER_REDEEM_BASE_URL", "\"${testerRedeemBaseUrl}\""
+
         // The signing-certificate SHA-1s registered as Android OAuth clients for
         // this app, read straight out of google-services.json so the two can
         // never drift. AuthManager compares the *running* build's certificate

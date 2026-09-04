@@ -44,7 +44,7 @@ enum class NavSection(val route: String, val ownedRoutes: Set<String>) {
         "rasi_hub",
         setOf("rasi_hub", "rasi_signs", "rasi_horoscope", "rasi_info", "nakshatra_list")
     ),
-    SETTINGS("settings", setOf("settings", "edit_profile", "premium", "account"));
+    SETTINGS("settings", setOf("settings", "edit_profile", "premium", "account", "tester_code"));
 
     companion object {
         /** The section owning [route], or null for a screen that belongs to none. */

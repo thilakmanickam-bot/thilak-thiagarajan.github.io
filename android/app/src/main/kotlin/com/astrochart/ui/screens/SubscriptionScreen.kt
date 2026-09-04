@@ -2,6 +2,7 @@ package com.astrochart.ui.screens
 
 import android.app.Activity
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Science
 import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -58,7 +60,10 @@ import kotlinx.coroutines.launch
  * Console products / Cloud Function are actually set up.
  */
 @Composable
-fun SubscriptionScreen(modifier: Modifier = Modifier) {
+fun SubscriptionScreen(
+    onNavigateToTester: () -> Unit = {},
+    modifier: Modifier = Modifier
+) {
     val strings = LocalStrings.current
     val context = LocalContext.current
     var isPremium by remember { mutableStateOf(Premium.isActive(context)) }
@@ -140,6 +145,36 @@ fun SubscriptionScreen(modifier: Modifier = Modifier) {
                 color = TextMuted,
                 textAlign = TextAlign.Center
             )
+        }
+
+        // Deliberately *not* gated on Features.BILLING_ENABLED. That flag is
+        // false until the Play products exist, and testers are exactly the
+        // people needed before then — gating this with the purchase flow would
+        // hide it precisely when it is the only way in.
+        if (!isPremium) {
+            Spacer(modifier = Modifier.height(24.dp))
+            CelestialCard(modifier = Modifier.clickable(onClick = onNavigateToTester)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(Icons.Filled.Science, contentDescription = null, tint = GoldDeep)
+                    Spacer(modifier = Modifier.width(14.dp))
+                    Column {
+                        Text(
+                            text = strings.testerEntry,
+                            style = MaterialTheme.typography.titleMedium,
+                            color = GoldDeep
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = strings.testerEntryDesc,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = TextMuted
+                        )
+                    }
+                }
+            }
         }
 
         Spacer(modifier = Modifier.height(20.dp))

@@ -46,5 +46,17 @@ object Ads {
  * without needing push notifications from Play.
  */
 object Premium {
-    fun isActive(context: Context): Boolean = PremiumStore.load(context).active
+    /**
+     * Honours the expiry as well as the flag. A tester grant is time-limited
+     * (90 days, see `functions/src/tester.ts`), and a device that never comes
+     * back online would otherwise keep Premium for good on a cache written
+     * once. `0L` means "no expiry recorded" and stays active — that is what a
+     * subscriber's row looked like before this, so paying users are unaffected.
+     */
+    fun isActive(context: Context): Boolean {
+        val entitlement = PremiumStore.load(context)
+        if (!entitlement.active) return false
+        return entitlement.expiresAtMillis == 0L ||
+            entitlement.expiresAtMillis > System.currentTimeMillis()
+    }
 }

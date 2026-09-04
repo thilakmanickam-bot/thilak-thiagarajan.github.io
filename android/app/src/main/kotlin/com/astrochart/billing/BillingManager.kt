@@ -15,6 +15,7 @@ import com.android.billingclient.api.QueryProductDetailsParams
 import com.android.billingclient.api.QueryPurchasesParams
 import com.astrochart.BuildConfig
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.suspendCancellableCoroutine
 import okhttp3.MediaType.Companion.toMediaType
@@ -183,11 +184,40 @@ class BillingManager(private val context: Context) {
         }
         val active = purchasesList.orEmpty().firstOrNull {
             it.purchaseState == Purchase.PurchaseState.PURCHASED
-        } ?: run {
+        } ?: return entitlementFromServer()
+        return acknowledgeAndVerify(active)
+    }
+
+    /**
+     * The entitlement recorded on `users/{uid}`, for the case where Play has no
+     * purchase to report.
+     *
+     * "No Play subscription" is not the same as "not premium". A tester who
+     * redeemed a code (see `functions/src/tester.ts`) has the same
+     * `premiumActive`/`premiumExpiresAt` fields a subscriber has and no Play
+     * purchase at all, so treating an empty purchase list as proof of no
+     * entitlement revoked their Premium on the next launch — it worked until
+     * the app restarted, then silently stopped.
+     *
+     * Signed out, offline, or genuinely not entitled all end the same way: the
+     * cache goes false. The distinction that matters is only that the server
+     * gets asked first.
+     */
+    private suspend fun entitlementFromServer(): VerifiedEntitlement? {
+        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: run {
             PremiumStore.save(context, active = false, expiresAtMillis = 0L)
             return null
         }
-        return acknowledgeAndVerify(active)
+        val snapshot = runCatching {
+            FirebaseFirestore.getInstance().collection("users").document(uid).get().await()
+        }.getOrNull() ?: return null   // Offline: leave the last-known state alone.
+
+        val expiresAtMillis = snapshot.getTimestamp("premiumExpiresAt")?.toDate()?.time ?: 0L
+        val granted = snapshot.getBoolean("premiumActive") == true &&
+            (expiresAtMillis == 0L || expiresAtMillis > System.currentTimeMillis())
+
+        PremiumStore.save(context, granted, if (granted) expiresAtMillis else 0L)
+        return if (granted) VerifiedEntitlement(true, expiresAtMillis) else null
     }
 
     private suspend fun verifyWithServer(productId: String, purchaseToken: String): VerifiedEntitlement? {

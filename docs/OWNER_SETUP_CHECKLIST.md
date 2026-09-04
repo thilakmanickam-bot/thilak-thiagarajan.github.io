@@ -114,20 +114,39 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     match /users/{uid} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
+      allow read: if request.auth != null && request.auth.uid == uid;
+      // Entitlement fields are server-written ONLY. Without this clause any
+      // signed-in user can write premiumActive:true to their own document
+      // from the client SDK and take Premium without paying or redeeming.
+      allow write: if request.auth != null && request.auth.uid == uid
+        && !request.resource.data.diff(resource.data).affectedKeys()
+             .hasAny(['premiumActive','premiumExpiresAt','premiumProductId','testerRedeemedAt']);
       match /charts/{chartId} {
         allow read, write: if request.auth != null && request.auth.uid == uid;
       }
     }
+    // Tester access requests, reviewed by you in the console.
+    match /testerRequests/{uid} {
+      allow create, update: if request.auth != null && request.auth.uid == uid;
+      allow read: if false;
+    }
+    // Server-only bookkeeping: quota counters and redemption attempts.
+    match /chatUsage/{doc}      { allow read, write: if false; }
+    match /testerAttempts/{doc} { allow read, write: if false; }
   }
 }
 ```
 
 3. **Publish**, then sign in on the device and confirm a saved chart still syncs.
 
-> The `premiumActive` / `premiumExpiresAt` fields the billing function writes
-> live on `users/{uid}` and are written by the Admin SDK, which bypasses rules —
-> so this does not need a carve-out for them.
+> The Cloud Functions use the Firebase Admin SDK, which bypasses rules
+> entirely — so `verifyPurchase` and `redeemTesterCode` still write the
+> entitlement fields, and the quota collections above still work, even though
+> the rules deny every client.
+>
+> **An earlier version of this section granted blanket `write` on
+> `users/{uid}`**, which would have let any signed-in user grant themselves
+> Premium. If you already published that, replace it with the above.
 
 ### 1.2 Fix the Play Store listing copy — it currently describes the app wrongly
 
@@ -354,6 +373,68 @@ through Play** — a sideloaded APK cannot complete a purchase. Use
 
 If step 4 shows nothing, the failure is 3.2 or 3.3. Check
 `firebase functions:log --only verifyPurchase`.
+
+---
+
+## PART 3B — Tester access (Settings → Go Premium → Become a tester)
+
+Lets testers unlock every Premium feature with a code, before billing is live.
+Needs Part 2 done (Blaze + Firebase CLI), but **not** Part 3 — testers work
+without any Play subscription products existing.
+
+### 3B.1 Set the code as a Firebase secret
+
+```bash
+firebase functions:secrets:set TESTER_CODE
+```
+
+Paste `TEST2026HALO` when prompted.
+
+The code is **never** in the repo or the APK. That is the point: a constant
+compiled into the app can be read out of any published build with
+`strings classes.dex`, and once one tester posts it publicly, every install has
+free Premium with no way to revoke it short of shipping a new version. Held
+here, rotating it is this command plus a redeploy.
+
+### 3B.2 Deploy
+
+```bash
+cd functions && npm run deploy
+```
+
+Copy the printed `redeemTesterCode` URL.
+
+### 3B.3 Wire it into the build
+
+Add to `android/gradle.properties` — **no trailing slash**, the app appends
+`/redeem` and `/request`:
+
+```
+TESTER_REDEEM_BASE_URL=https://us-central1-halo-2b942.cloudfunctions.net/redeemTesterCode
+```
+
+### 3B.4 Approving people who have no code
+
+A tester who taps "I don't have a code" and submits their email writes a row to
+**`testerRequests`** in Firestore, keyed by their user id (repeat taps update
+the same row rather than piling up). Review them at
+<https://console.firebase.google.com/project/halo-2b942/firestore/data/~2FtesterRequests>
+and mail `TEST2026HALO` to whoever you approve, from `dev.techbyt@gmail.com`.
+
+Nothing notifies you — check the console when you expect requests.
+
+### 3B.5 What a redeemed code does
+
+Writes `premiumActive: true`, `premiumExpiresAt: now + 90 days` and
+`premiumProductId: "tester_code"` to `users/{uid}` — the same fields a real
+subscription writes, so every Premium gate in the app treats a tester exactly
+like a payer. The distinct product id is how you tell them apart in Firestore.
+
+Grants last **90 days** and then lapse on their own. To cut one short, set
+`premiumActive: false` on that user's document in the console.
+
+Wrong codes are limited to **10 attempts per user per day** — a short fixed
+code is guessable at machine speed otherwise.
 
 ---
 

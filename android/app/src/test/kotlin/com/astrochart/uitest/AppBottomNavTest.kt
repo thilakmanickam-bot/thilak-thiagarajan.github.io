@@ -90,6 +90,7 @@ class AppBottomNavTest {
         assertEquals(NavSection.RASI, NavSection.forRoute("nakshatra_list"))
         assertEquals(NavSection.CALENDAR, NavSection.forRoute("calendar"))
         assertEquals(NavSection.SETTINGS, NavSection.forRoute("premium"))
+        assertEquals(NavSection.SETTINGS, NavSection.forRoute("tester_code"))
         assertEquals(NavSection.SANKALPA, NavSection.forRoute("sankalpa"))
     }
 
